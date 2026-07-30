@@ -14,6 +14,7 @@ import { migrate } from "drizzle-orm/mysql2/migrator";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import path from "path";
+import { fileURLToPath } from "url";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -45,9 +46,15 @@ async function runMigrations() {
     console.log("[Migration] Running database migrations...");
     const connection = await mysql.createConnection(databaseUrl);
     const db = drizzle(connection);
-    // Dùng process.cwd() để luôn trỏ đúng thư mục gốc project
-    // dù chạy từ dev (tsx) hay production (node dist/index.js)
-    const migrationsFolder = path.resolve(process.cwd(), "drizzle");
+    // Tính migration path dựa trên môi trường:
+    // - Prod: node dist/index.js  → __dirname = dist/ → dist/drizzle (đã cp vào build)
+    // - Dev:  tsx server/_core/index.ts → dùng process.cwd()/drizzle (source folder)
+    const isProd = process.env.NODE_ENV === "production";
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const migrationsFolder = isProd
+      ? path.resolve(__dirname, "drizzle")
+      : path.resolve(process.cwd(), "drizzle");
     console.log("[Migration] Migrations folder:", migrationsFolder);
     await migrate(db, { migrationsFolder });
     await connection.end();
