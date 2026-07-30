@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: rewardsverse
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm install -g pnpm && pnpm install && pnpm run build
+    startCommand: node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: VITE_APP_ID
+        value: rewardsverse
+      - key: OAUTH_SERVER_URL
+        value: ""
+      - key: OWNER_OPEN_ID
+        value: ""
+      - key: BUILT_IN_FORGE_API_URL
+        value: ""
+      - key: BUILT_IN_FORGE_API_KEY
+        value: ""
+      - key: VITE_OAUTH_PORTAL_URL
+        value: ""
+    healthCheckPath: /
