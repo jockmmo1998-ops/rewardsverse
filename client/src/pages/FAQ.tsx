@@ -1,113 +1,85 @@
-import { ArrowLeft, ChevronDown, HelpCircle, Zap } from "lucide-react";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useLocation } from "wouter";
+import { ChevronLeft, ChevronDown, ChevronUp, HelpCircle, MessageCircle, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const faqs = [
-  { question: "How do I get started on RewardsVerse?", answer: "Simply create an account, complete your profile, and start browsing available offers. Once you complete an offer, your earnings will be added to your balance immediately." },
-  { question: "How are points calculated?", answer: "Points are awarded based on the offer value set by each offer provider. When you complete an offer, the points are instantly credited to your account." },
-  { question: "What is the minimum withdrawal amount?", answer: "The minimum withdrawal amount is $0.50. You can withdraw your earnings in cryptocurrency (Bitcoin, Ethereum, USDT, Solana, etc.)." },
-  { question: "How long does it take to process a withdrawal?", answer: "Withdrawals are typically processed within 24-48 hours after admin approval. The actual transfer time depends on the blockchain network." },
-  { question: "Can I have multiple accounts?", answer: "No, creating multiple accounts is strictly prohibited and may result in permanent account suspension. Each user is allowed only one active account." },
-  { question: "What if an offer doesn't credit my account?", answer: "If an offer doesn't credit your account after completion, please contact our support team with details about the offer. We'll investigate and manually credit your account if verified." },
-  { question: "How does the referral program work?", answer: "Invite friends using your referral code. When they sign up and earn points, you'll receive a percentage of their earnings as bonus points." },
-  { question: "Is my personal information safe?", answer: "Yes, we use industry-standard encryption and security measures to protect your personal information. See our Privacy Policy for more details." },
-  { question: "What payment methods do you support?", answer: "We support withdrawals to major cryptocurrencies including Bitcoin (BTC), Ethereum (ETH), USDT, Solana (SOL), and other popular coins." },
-  { question: "Can I cancel a withdrawal request?", answer: "Yes, you can cancel a pending withdrawal request. Once approved, the withdrawal cannot be cancelled and will be processed." },
-  { question: "Why was my account suspended?", answer: "Accounts are suspended for violations such as fraudulent activity, using multiple accounts, or violating offer provider terms. Contact support for more information." },
-  { question: "How can I contact support?", answer: "You can reach our support team through the Contact Us page, via email at support@rewardsverse.com, or through live chat on our website." },
+const FAQS = [
+  { q: "How do I start earning?", a: "Create a free account, then browse our offer walls to find surveys, games, and tasks. Complete them to earn cash instantly credited to your balance." },
+  { q: "What is the minimum withdrawal?", a: "The minimum withdrawal is $0.50 for most cryptocurrencies. Some coins like USDT have a $1.00 minimum. There are zero fees on all withdrawals." },
+  { q: "How long do withdrawals take?", a: "Withdrawals are processed within 24 hours. Most are completed within a few hours depending on network congestion." },
+  { q: "Which cryptocurrencies are supported?", a: "We support Bitcoin (BTC), Ethereum (ETH), Litecoin (LTC), and Tether USDT. More currencies are being added soon." },
+  { q: "How does the referral program work?", a: "Share your unique referral link. You earn 10% of your referrals' lifetime earnings — completely passive income with no cap." },
+  { q: "Is RewardsVerse free to join?", a: "Yes, 100% free. No credit card, no subscription, no hidden fees. Just sign up and start earning." },
+  { q: "Why wasn't my offer credited?", a: "Offers can take up to 30 minutes to credit. If not credited after that, contact support with your offer ID and we'll investigate." },
+  { q: "Can I have multiple accounts?", a: "No. Multiple accounts are against our terms of service and will result in a permanent ban of all associated accounts." },
+  { q: "How do daily bonuses work?", a: "Log in each day and click 'Claim Bonus' on your dashboard. Consecutive days increase your streak multiplier for bigger rewards." },
+  { q: "Is my personal data safe?", a: "We use 256-bit SSL encryption and never sell your data to third parties. See our Privacy Policy for full details." },
 ];
-
-function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-      className="cyber-card rounded-xl overflow-hidden"
-    >
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-5 flex items-center justify-between hover:bg-green-500/3 transition-colors group"
-      >
-        <div className="flex items-center gap-3 text-left">
-          <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isOpen ? "bg-green-500/15 text-green-400" : "bg-muted/50 text-muted-foreground"}`}>
-            <HelpCircle className="w-3.5 h-3.5" />
-          </div>
-          <span className={`font-semibold transition-colors ${isOpen ? "text-green-400" : "text-white group-hover:text-green-400/80"}`}>{question}</span>
-        </div>
-        <ChevronDown className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-green-400" : ""}`} />
-      </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <div className="px-6 pb-5 pt-1 border-t border-green-500/10">
-              <div className="w-0.5 h-full bg-green-400/30 absolute left-6" />
-              <p className="text-muted-foreground leading-relaxed text-sm pl-9">{answer}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
 
 export default function FAQ() {
   const [, setLocation] = useLocation();
+  const [open, setOpen] = useState<number | null>(null);
+
   return (
-    <div className="min-h-screen bg-background bg-grid bg-scan">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[30%] h-[30%] bg-green-500/4 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-cyan-500/4 blur-[120px] rounded-full" />
-      </div>
-
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="relative z-10 border-b border-green-500/10 bg-background/90 backdrop-blur-md sticky top-0">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => setLocation("/")} className="text-muted-foreground hover:text-green-400 transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back
-          </Button>
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg gradient-cyber flex items-center justify-center">
-              <HelpCircle className="w-4 h-4 text-[#060818]" />
-            </div>
-            <h1 className="text-xl font-bold"><span className="text-gradient">FAQ</span></h1>
+      <div className="bg-white border-b border-border/60 shadow-sm">
+        <div className="max-w-3xl mx-auto px-6 py-6 flex items-center gap-4">
+          <button onClick={() => setLocation("/dashboard")} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-extrabold text-foreground">FAQ</h1>
+            <p className="text-muted-foreground text-sm">Frequently asked questions</p>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-14">
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 tag-cyber mb-4">
-            <Zap className="w-3 h-3" /> Support
+      <div className="max-w-3xl mx-auto px-6 py-10 space-y-8">
+        {/* Hero */}
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <HelpCircle className="w-7 h-7 text-white" />
           </div>
-          <h2 className="text-4xl font-extrabold mb-3">Frequently Asked <span className="text-gradient">Questions</span></h2>
-          <p className="text-muted-foreground">Find answers to common questions about RewardsVerse</p>
+          <h2 className="text-3xl font-extrabold text-foreground mb-2">How can we help?</h2>
+          <p className="text-muted-foreground">Find answers to the most common questions below.</p>
         </div>
 
+        {/* Accordion */}
         <div className="space-y-3">
-          {faqs.map((faq, index) => (
-            <FAQItem key={index} question={faq.question} answer={faq.answer} index={index} />
+          {FAQS.map((faq, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+              className="faq-item overflow-hidden" data-open={open === i ? "true" : "false"}>
+              <button onClick={() => setOpen(open === i ? null : i)}
+                className="w-full flex items-center justify-between px-6 py-5 text-left gap-4">
+                <span className={`text-sm font-bold ${open === i ? "text-violet-700" : "text-foreground"}`}>{faq.q}</span>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${open === i ? "bg-violet-100" : "bg-gray-100"}`}>
+                  {open === i
+                    ? <ChevronUp className="w-4 h-4 text-violet-600" />
+                    : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                </div>
+              </button>
+              <AnimatePresence>
+                {open === i && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}>
+                    <div className="px-6 pb-5 border-l-2 border-violet-400 ml-6">
+                      <p className="text-muted-foreground text-sm leading-relaxed">{faq.a}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           ))}
         </div>
 
-        <div className="mt-14 cyber-card rounded-2xl p-8 text-center border-green-500/20">
-          <div className="w-14 h-14 rounded-2xl gradient-cyber flex items-center justify-center mx-auto mb-5 glow-green">
-            <HelpCircle className="w-7 h-7 text-[#060818]" />
-          </div>
-          <h3 className="text-xl font-bold mb-2">Still have questions?</h3>
-          <p className="text-muted-foreground mb-6">Our support team is ready to help you 24/7.</p>
-          <Button onClick={() => setLocation("/contact")} className="btn-cyber rounded-xl h-11 px-8 font-black tracking-widest uppercase text-sm">
-            Contact Support
-          </Button>
+        {/* Still need help */}
+        <div className="pc-card rounded-2xl p-8 text-center">
+          <MessageCircle className="w-10 h-10 text-violet-400 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-foreground mb-2">Still have questions?</h3>
+          <p className="text-muted-foreground text-sm mb-5">Our support team is here to help you 7 days a week.</p>
+          <button onClick={() => setLocation("/contact")} className="btn-primary px-7 py-3 rounded-xl text-sm font-bold inline-flex items-center gap-2">
+            Contact Support <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

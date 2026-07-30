@@ -3,14 +3,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
-  Zap, Shield, Clock, Coins, Trophy, ArrowRight,
-  CheckCircle2, Star, Users, ExternalLink, Smartphone,
-  Gamepad2, Wallet, MousePointer2, Eye, EyeOff, Lock, User,
-  TrendingUp, Clock3
+  Zap, Shield, Clock, Coins, Trophy, CheckCircle2, Star, Users,
+  Smartphone, Gamepad2, Wallet, MousePointer2, Eye, EyeOff,
+  TrendingUp, Gift, ArrowRight, Lock, User, ChevronRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,605 +19,458 @@ export default function Home() {
   const [showPassword, setShowPassword] = useState(false);
   const [refCode, setRefCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
   useEffect(() => {
     if (user && !loading) setLocation("/dashboard");
   }, [user, loading]);
 
-  const handleRegister = async () => {
+  const handleAuth = async () => {
     if (!username.trim() || username.length < 3) return;
     if (!password.trim() || password.length < 6) return;
     setIsSubmitting(true);
-    try { await register(username.trim(), password.trim(), refCode.trim() || undefined); }
-    finally { setIsSubmitting(false); }
-  };
-
-  const handleLogin = async () => {
-    if (!username.trim() || username.length < 3) return;
-    if (!password.trim() || password.length < 6) return;
-    setIsSubmitting(true);
-    try { await login(username.trim(), password.trim()); }
-    finally { setIsSubmitting(false); }
+    try {
+      if (activeTab === "register") await register(username.trim(), password.trim(), refCode.trim() || undefined);
+      else await login(username.trim(), password.trim());
+    } finally { setIsSubmitting(false); }
   };
 
   const tickerItems = activities && activities.length > 0
-    ? activities.slice(0, 12).map((a: any) => ({ type: a.type, user: a.username, desc: a.description, amount: a.amount }))
+    ? activities.slice(0, 12).map((a: any) => ({ type: a.type, user: a.username, amount: a.amount }))
     : [
-        { type: "offer_complete", user: "CryptoKing", desc: "earned $2.50 on Gemiwall", amount: "$2.50" },
-        { type: "withdrawal", user: "MoonWalker", desc: "withdrew $15.00 via BTC", amount: "$15.00" },
-        { type: "offer_complete", user: "NFTFan99", desc: "earned $1.25 on Taskwall", amount: "$1.25" },
-        { type: "daily_claim", user: "StreakPro", desc: "claimed daily bonus $0.25", amount: "$0.25" },
-        { type: "offer_complete", user: "DogeLover", desc: "earned $5.00 on Revtoo", amount: "$5.00" },
-        { type: "withdrawal", user: "ETHWhale", desc: "withdrew $8.75 via ETH", amount: "$8.75" },
+        { type: "offer_complete", user: "CryptoKing",  amount: "$2.50" },
+        { type: "withdrawal",     user: "MoonWalker",  amount: "$15.00" },
+        { type: "offer_complete", user: "NFTFan99",    amount: "$1.25" },
+        { type: "daily_claim",    user: "StreakPro",   amount: "$0.25" },
+        { type: "offer_complete", user: "DogeLover",   amount: "$5.00" },
+        { type: "withdrawal",     user: "ETHWhale",    amount: "$8.75" },
+        { type: "referral",       user: "ProInviter",  amount: "$1.00" },
+        { type: "offer_complete", user: "SurveyAce",   amount: "$3.50" },
       ];
 
-  const badgeColors: Record<string, string> = {
-    offer_complete: "bg-green-500/10 text-green-400 border-green-500/30",
-    withdrawal: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
-    daily_claim: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
-    referral: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  const tagStyle: Record<string, string> = {
+    offer_complete: "tag-primary",
+    withdrawal:     "tag-cyan",
+    daily_claim:    "tag-orange",
+    referral:       "tag-green",
   };
-  const badgeLabels: Record<string, string> = {
-    offer_complete: "EARNED", withdrawal: "WITHDRAW", daily_claim: "BONUS", referral: "REFERRAL",
+  const tagLabel: Record<string, string> = {
+    offer_complete: "Earned", withdrawal: "Withdraw", daily_claim: "Bonus", referral: "Referral",
   };
 
   const features = [
-    { icon: MousePointer2, title: "Simple Tasks", desc: "Earn by clicking, watching, and testing apps.", color: "text-green-400", glow: "rgba(0,255,135,0.15)" },
-    { icon: Gamepad2,      title: "Play Games",   desc: "Get paid to play your favorite mobile games.", color: "text-cyan-400", glow: "rgba(0,229,255,0.15)" },
-    { icon: Smartphone,    title: "App Testing",  desc: "Try new apps and share your feedback for rewards.", color: "text-blue-400", glow: "rgba(59,130,246,0.15)" },
-    { icon: Wallet,        title: "Fast Payouts", desc: "Withdraw your earnings via Crypto in under 24h.", color: "text-purple-400", glow: "rgba(168,85,247,0.15)" },
+    { icon: MousePointer2, title: "Paid Surveys",   desc: "Share opinions and get rewarded instantly.", color: "#7c3aed", bg: "rgba(124,58,237,0.08)" },
+    { icon: Gamepad2,      title: "Play & Earn",    desc: "Play mobile games and collect real rewards.", color: "#06b6d4", bg: "rgba(6,182,212,0.08)" },
+    { icon: Smartphone,    title: "App Testing",    desc: "Try apps, give feedback, earn cash.",          color: "#10b981", bg: "rgba(16,185,129,0.08)" },
+    { icon: Gift,          title: "Offer Walls",    desc: "Complete tasks from premium offer networks.",   color: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
+    { icon: Users,         title: "Refer Friends",  desc: "Earn 10% of your referrals' lifetime earnings.", color: "#ec4899", bg: "rgba(236,72,153,0.08)" },
+    { icon: Wallet,        title: "Fast Cashout",   desc: "Withdraw via crypto — processed in 24h.",       color: "#8b5cf6", bg: "rgba(139,92,246,0.08)" },
   ];
 
-  const testimonials = [
-    { name: "Alex J.",  text: "Best rewards site I've used. Withdrew $5 in Litecoin within hours!", rating: 5 },
-    { name: "Sarah K.", text: "The interface is so smooth. Love the daily streak bonus!", rating: 5 },
-    { name: "Mike R.",  text: "Fastest payouts in the industry. Highly recommended.", rating: 5 },
+  const steps = [
+    { n: "1", title: "Create Account",  desc: "Sign up free in under 30 seconds. No credit card needed." },
+    { n: "2", title: "Complete Tasks",  desc: "Browse hundreds of surveys, games, and offers available daily." },
+    { n: "3", title: "Get Paid",        desc: "Withdraw your earnings in Bitcoin, Ethereum, or Litecoin." },
   ];
 
   const stats = [
-    { value: "$125K+", label: "Paid Out" },
-    { value: "50K+",   label: "Users" },
-    { value: "2.5M+",  label: "Offers Done" },
-    { value: "4.9/5",  label: "Rating" },
+    { value: "$125K+", label: "Total Paid Out",   icon: TrendingUp, color: "#7c3aed" },
+    { value: "50K+",   label: "Active Members",   icon: Users,       color: "#06b6d4" },
+    { value: "2.5M+",  label: "Tasks Completed",  icon: CheckCircle2,color: "#10b981" },
+    { value: "4.9/5",  label: "User Rating",       icon: Star,        color: "#f59e0b" },
   ];
 
-  return (
-    <div className="min-h-screen bg-background text-foreground bg-grid bg-scan selection:bg-green-500/30">
+  const testimonials = [
+    { name: "Alex J.",  text: "Best rewards site I've used. Withdrew $5 in Litecoin within hours!", rating: 5, avatar: "1" },
+    { name: "Sarah K.", text: "The interface is smooth. Love the daily streak bonus!", rating: 5, avatar: "2" },
+    { name: "Mike R.",  text: "Fastest payouts in the industry. Highly recommended.", rating: 5, avatar: "3" },
+  ];
 
-      {/* ── Fixed cyber grid background ── */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-green-500/5 blur-[140px] rounded-full" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-cyan-500/5 blur-[140px] rounded-full" />
-        <div className="absolute top-[40%] left-[30%] w-[20%] h-[20%] bg-purple-500/4 blur-[100px] rounded-full" />
-        {/* vertical scan line */}
-        <div className="absolute inset-0 bg-scan opacity-30 pointer-events-none" />
-      </div>
+  const cryptos = ["Bitcoin", "Ethereum", "Litecoin", "USDT"];
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
 
       {/* ── Activity Ticker ── */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-9 bg-background/90 backdrop-blur-md border-b border-green-500/10 overflow-hidden flex items-center">
-        <div className="w-1 h-full bg-gradient-to-b from-green-400 to-cyan-400 shrink-0" />
-        <div className="animate-marquee whitespace-nowrap flex items-center gap-16 text-[11px] font-medium text-muted-foreground ml-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-16">
-              {tickerItems.map((item, idx) => (
-                <span key={`${i}-${idx}`} className="flex items-center gap-2">
-                  <Badge variant="outline" className={`${badgeColors[item.type] || badgeColors.offer_complete} py-0 h-5 font-bold tracking-wide`}>
-                    {badgeLabels[item.type] || "EARNED"}
-                  </Badge>
-                  <span className="text-white font-semibold">{item.user}</span>
-                  <span>{item.desc}</span>
-                  {item.amount && <span className="text-green-400 font-bold glow-text-green">{item.amount}</span>}
-                </span>
-              ))}
-            </div>
-          ))}
+      <div className="bg-white border-b border-border/60 h-9 overflow-hidden flex items-center shadow-sm">
+        <div className="w-20 shrink-0 gradient-primary flex items-center justify-center h-full">
+          <span className="text-white text-[10px] font-bold tracking-widest uppercase">LIVE</span>
+        </div>
+        <div className="overflow-hidden flex-1">
+          <div className="animate-marquee whitespace-nowrap flex items-center gap-12 text-[11px] text-muted-foreground ml-4">
+            {Array.from({ length: 3 }).map((_, ri) => (
+              <span key={ri} className="flex items-center gap-12">
+                {tickerItems.map((item, idx) => (
+                  <span key={`${ri}-${idx}`} className="flex items-center gap-2">
+                    <span className={`${tagStyle[item.type] || "tag-primary"} text-[10px] py-0 px-2`}>
+                      {tagLabel[item.type] || "Earned"}
+                    </span>
+                    <span className="font-semibold text-foreground">{item.user}</span>
+                    <span className="font-bold text-violet-600">{item.amount}</span>
+                  </span>
+                ))}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="relative z-40 pt-12 px-6 max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl gradient-cyber flex items-center justify-center glow-green shadow-lg">
-            <Coins className="w-6 h-6 text-[#060818]" />
+      <nav className="bg-white/90 backdrop-blur-md border-b border-border/50 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-md">
+              <Coins className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-lg font-bold">
+              <span className="text-gradient">Rewards</span>
+              <span className="text-foreground">Verse</span>
+            </span>
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">
-              <span className="text-gradient">Rewards</span><span className="text-white">Verse</span>
-            </h1>
-            <p className="text-[9px] text-green-400/70 tracking-[0.2em] uppercase font-bold">Fast Payouts</p>
-          </div>
-        </div>
 
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-          {["Features", "How to Earn", "Payouts"].map((link) => (
-            <a
-              key={link}
-              href={`#${link.toLowerCase().replace(/ /g, "-")}`}
-              className="hover:text-green-400 transition-colors relative group"
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+            {[["Features", "#features"], ["How It Works", "#how-it-works"], ["Payouts", "#payouts"]].map(([label, href]) => (
+              <a key={label} href={href} className="hover:text-violet-600 transition-colors">{label}</a>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-violet-600 font-semibold hover:bg-violet-50"
+              onClick={() => { setActiveTab("login"); document.getElementById("auth-section")?.scrollIntoView({ behavior: "smooth" }); }}
             >
-              {link}
-              <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-green-400 transition-all group-hover:w-full" />
-            </a>
-          ))}
+              Log In
+            </Button>
+            <Button
+              size="sm"
+              className="btn-primary text-sm px-5 py-2 rounded-xl"
+              onClick={() => { setActiveTab("register"); document.getElementById("auth-section")?.scrollIntoView({ behavior: "smooth" }); }}
+            >
+              Sign Up Free
+            </Button>
+          </div>
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-green-500/40 text-green-400 hover:bg-green-500/10 hover:border-green-400 hover:shadow-[0_0_16px_rgba(0,255,135,0.2)] transition-all font-bold tracking-wide"
-          onClick={() => {
-            setActiveTab("login");
-            document.getElementById("auth-card")?.scrollIntoView({ behavior: "smooth" });
-          }}
-        >
-          Sign In
-        </Button>
       </nav>
 
-      {/* ── Hero ── */}
-      <main className="relative z-10 pt-16 pb-24 px-6 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      {/* ── Hero Section ── */}
+      <section className="relative overflow-hidden hero-bg" style={{ background: "linear-gradient(135deg, #1e0533 0%, #0c0a2e 45%, #0a1a3e 100%)" }}>
+        {/* Blobs */}
+        <div className="hero-blob-1" style={{ top: "-100px", left: "-100px" }} />
+        <div className="hero-blob-2" style={{ bottom: "0px", right: "-80px" }} />
+        {/* Dot grid */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: "radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "28px 28px"
+        }} />
 
-          {/* Left: Copy */}
-          <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }}>
-            <div className="inline-flex items-center gap-2 bg-green-500/8 border border-green-500/25 rounded-full px-4 py-1.5 mb-8">
-              <Zap className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-xs font-bold text-green-400 tracking-wider uppercase">Trusted by 50,000+ Users</span>
-            </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 lg:py-32">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
 
-            <h2 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6">
-              Turn Your{" "}
-              <span className="text-gradient glow-text-green">Free Time</span>
-              <br />Into Crypto.
-            </h2>
-            <p className="text-lg text-muted-foreground mb-10 max-w-lg leading-relaxed">
-              Join the most professional rewards platform. Complete simple tasks, play games, and test apps to earn real money. Get paid instantly in your favorite cryptocurrency.
-            </p>
+            {/* Left copy */}
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-6">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-white/90 text-xs font-semibold tracking-wide">Trusted by 50,000+ Members</span>
+              </div>
 
-            <div className="flex flex-wrap gap-3 mb-12">
-              {[
-                { text: "Min. Withdrawal $0.50" },
-                { text: "Fast Payouts < 24h" },
-                { text: "0% Fees" },
-              ].map((item) => (
-                <div key={item.text} className="flex items-center gap-2 cyber-card rounded-full px-4 py-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
-                  <span className="text-xs font-semibold">{item.text}</span>
-                </div>
-              ))}
-            </div>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.06] tracking-tight mb-6">
+                <span className="text-gradient-white">Earn Real</span>
+                <br />
+                <span className="text-white">Cash Online</span>
+                <br />
+                <span style={{ background: "linear-gradient(135deg, #a78bfa, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                  In Minutes.
+                </span>
+              </h1>
 
-            {/* Social proof */}
-            <div className="flex items-center gap-6">
-              <div className="flex -space-x-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden ring-1 ring-green-500/20">
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`} alt="User" />
+              <p className="text-white/70 text-lg mb-8 max-w-lg leading-relaxed">
+                Complete surveys, play games, and test apps to earn cryptocurrency. Instant payouts, zero fees, and thousands of tasks available every day.
+              </p>
+
+              <div className="flex flex-wrap gap-3 mb-10">
+                {["Min. $0.50 Cashout", "0% Withdrawal Fees", "Paid in Crypto"].map((t) => (
+                  <div key={t} className="flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-white/85 text-xs font-medium">{t}</span>
                   </div>
                 ))}
-                <div className="w-10 h-10 rounded-full border-2 border-background gradient-cyber flex items-center justify-center text-[10px] font-black text-[#060818] ring-1 ring-green-500/40">
-                  +50k
-                </div>
               </div>
-              <div className="text-sm">
-                <div className="flex items-center gap-1 text-yellow-400 mb-0.5">
-                  {[1,2,3,4,5].map((i) => <Star key={i} size={12} fill="currentColor" />)}
-                </div>
-                <p className="text-muted-foreground font-medium">4.9/5 Average Rating</p>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  className="btn-white text-base font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-2"
+                  onClick={() => { setActiveTab("register"); document.getElementById("auth-section")?.scrollIntoView({ behavior: "smooth" }); }}
+                >
+                  Start Earning Free <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  className="flex items-center justify-center gap-2 text-white/80 font-medium text-sm border border-white/20 rounded-xl px-6 py-4 hover:bg-white/8 transition-colors"
+                  onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
+                >
+                  How it works <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-            </div>
-          </motion.div>
 
-          {/* Right: Auth Card */}
-          <motion.div
-            id="auth-card"
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="absolute -top-12 -right-12 w-40 h-40 bg-green-500/15 blur-[80px] rounded-full animate-pulse pointer-events-none" />
-            <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-cyan-500/15 blur-[80px] rounded-full animate-pulse pointer-events-none" />
-
-            <div className="cyber-card cyber-corner rounded-2xl p-0.5 glow-green">
-              <Card className="bg-transparent border-0 shadow-none">
-                <CardHeader className="text-center pb-2 pt-8">
-                  <div className="w-14 h-14 gradient-cyber rounded-2xl flex items-center justify-center mx-auto mb-4 glow-green">
-                    <Coins className="w-7 h-7 text-[#060818]" />
+              {/* Avatars */}
+              <div className="flex items-center gap-4 mt-10">
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <img key={i} src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 20}`}
+                      className="w-9 h-9 rounded-full border-2 border-[#0c0a2e] bg-violet-100" alt="User" />
+                  ))}
+                </div>
+                <div>
+                  <div className="flex gap-0.5 mb-0.5">
+                    {[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}
                   </div>
-                  <CardTitle className="text-2xl font-bold">Welcome to RewardsVerse</CardTitle>
-                  <p className="text-sm text-muted-foreground">Start earning in seconds</p>
-                </CardHeader>
-                <CardContent className="px-6 pb-8">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/30 border border-border/50">
-                      <TabsTrigger value="login" className="font-bold data-[state=active]:text-green-400">Login</TabsTrigger>
-                      <TabsTrigger value="register" className="font-bold data-[state=active]:text-green-400">Register</TabsTrigger>
-                    </TabsList>
+                  <span className="text-white/60 text-xs">4.9/5 from 2,000+ reviews</span>
+                </div>
+              </div>
+            </motion.div>
 
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={activeTab}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {/* LOGIN */}
-                        <TabsContent value="login" className="space-y-4 mt-0">
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                              <User className="w-3 h-3 text-green-400" /> Username
-                            </label>
-                            <Input
-                              placeholder="Enter your username"
-                              value={username}
-                              onChange={(e) => setUsername(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && password.trim().length >= 6 && handleLogin()}
-                              className="bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] h-12 transition-all"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                              <Lock className="w-3 h-3 text-green-400" /> Password
-                            </label>
-                            <div className="relative">
-                              <Input
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Enter your password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                                className="bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] h-12 pr-10 transition-all"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-green-400 transition-colors"
-                              >
-                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              </button>
-                            </div>
-                          </div>
-                          <Button
-                            onClick={handleLogin}
-                            disabled={isSubmitting || !username.trim() || username.length < 3 || !password.trim() || password.length < 6}
-                            className="w-full h-12 btn-cyber rounded-xl font-black tracking-widest uppercase text-sm"
-                          >
-                            {isSubmitting ? (
-                              <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-[#060818]/30 border-t-[#060818] rounded-full animate-spin" />
-                                Authenticating...
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                Sign In <ArrowRight className="w-4 h-4" />
-                              </div>
-                            )}
-                          </Button>
-                        </TabsContent>
+            {/* Right: Auth card */}
+            <motion.div id="auth-section" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15 }}>
+              <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto" style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.35)" }}>
+                {/* Tabs */}
+                <div className="flex rounded-xl bg-gray-100 p-1 mb-7">
+                  {(["login", "register"] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                        activeTab === tab
+                          ? "bg-white text-violet-700 shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {tab === "login" ? "Log In" : "Sign Up"}
+                    </button>
+                  ))}
+                </div>
 
-                        {/* REGISTER */}
-                        <TabsContent value="register" className="space-y-4 mt-0">
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                              <User className="w-3 h-3 text-green-400" /> Choose Username
-                            </label>
-                            <Input
-                              placeholder="e.g. CryptoKing"
-                              value={username}
-                              onChange={(e) => setUsername(e.target.value)}
-                              className="bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] h-12 transition-all"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                              <Lock className="w-3 h-3 text-green-400" /> Password
-                            </label>
-                            <div className="relative">
-                              <Input
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Min. 6 characters"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] h-12 pr-10 transition-all"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-green-400 transition-colors"
-                              >
-                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              </button>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider">
-                              Referral Code <span className="text-muted-foreground font-normal normal-case">(optional)</span>
-                            </label>
-                            <Input
-                              placeholder="Enter code for $0.10 bonus"
-                              value={refCode}
-                              onChange={(e) => setRefCode(e.target.value)}
-                              className="bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] h-12 transition-all"
-                            />
-                          </div>
-                          <Button
-                            onClick={handleRegister}
-                            disabled={isSubmitting || !username.trim() || username.length < 3 || !password.trim() || password.length < 6}
-                            className="w-full h-12 btn-cyber rounded-xl font-black tracking-widest uppercase text-sm"
-                          >
-                            {isSubmitting ? (
-                              <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-[#060818]/30 border-t-[#060818] rounded-full animate-spin" />
-                                Creating Account...
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                Join Now <ArrowRight className="w-4 h-4" />
-                              </div>
-                            )}
-                          </Button>
-                        </TabsContent>
-                      </motion.div>
-                    </AnimatePresence>
-                  </Tabs>
-
-                  {/* mini stats */}
-                  <div className="mt-6 grid grid-cols-3 gap-2 pt-5 border-t border-green-500/10">
-                    {[{ val: "24h", label: "Avg. Payout" }, { val: "0%", label: "Fees" }, { val: "$0.50", label: "Min. Withdraw" }].map((s) => (
-                      <div key={s.label} className="flex flex-col items-center">
-                        <span className="text-lg font-black text-gradient">{s.val}</span>
-                        <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wide">{s.label}</span>
+                <AnimatePresence mode="wait">
+                  <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+                    {activeTab === "register" && (
+                      <div className="mb-4 p-3.5 rounded-xl bg-violet-50 border border-violet-100 flex items-start gap-3">
+                        <Gift className="w-4 h-4 text-violet-600 mt-0.5 shrink-0" />
+                        <p className="text-xs text-violet-700 font-medium">🎉 New members get a $0.10 welcome bonus on signup!</p>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.div>
-        </div>
+                    )}
 
-        {/* ── Features ── */}
-        <section id="features" className="pt-32">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 tag-cyber mb-4">
-              <Zap className="w-3 h-3" /> Why Choose Us
-            </div>
-            <h3 className="text-4xl font-extrabold mb-4">Why Choose <span className="text-gradient">RewardsVerse?</span></h3>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              The most professional environment for earning rewards online — high-paying offers and reliable payouts.
-            </p>
-          </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs font-semibold text-foreground/70 mb-1.5 block uppercase tracking-wide">Username</label>
+                        <div className="relative">
+                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Enter username"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-border text-sm font-medium bg-gray-50 focus:bg-white input-pc transition-all outline-none"
+                            onKeyDown={(e) => e.key === "Enter" && handleAuth()}
+                          />
+                        </div>
+                      </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((f, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -6 }}
-                className="cyber-card cyber-corner p-6 rounded-2xl group cursor-default"
-              >
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                  style={{ background: f.glow }}>
-                  <f.icon className={`w-6 h-6 ${f.color}`} />
-                </div>
-                <h4 className="text-lg font-bold mb-2">{f.title}</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground/70 mb-1.5 block uppercase tracking-wide">Password</label>
+                        <div className="relative">
+                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter password"
+                            className="w-full pl-10 pr-11 py-3 rounded-xl border border-border text-sm font-medium bg-gray-50 focus:bg-white input-pc transition-all outline-none"
+                            onKeyDown={(e) => e.key === "Enter" && handleAuth()}
+                          />
+                          <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
 
-        {/* ── Stats Banner ── */}
-        <section id="payouts" className="mt-32 relative overflow-hidden rounded-3xl">
-          <div className="absolute inset-0 gradient-cyber opacity-90" />
-          <div className="absolute inset-0 bg-scan opacity-20" />
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-[#060818] p-10 md:p-14">
-            {stats.map((s, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <p className="text-5xl font-black mb-1">{s.value}</p>
-                <p className="text-xs font-black uppercase tracking-[0.2em] opacity-70">{s.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
+                      {activeTab === "register" && (
+                        <div>
+                          <label className="text-xs font-semibold text-foreground/70 mb-1.5 block uppercase tracking-wide">Referral Code <span className="font-normal normal-case text-muted-foreground">(optional)</span></label>
+                          <input
+                            type="text"
+                            value={refCode}
+                            onChange={(e) => setRefCode(e.target.value)}
+                            placeholder="Enter referral code"
+                            className="w-full px-4 py-3 rounded-xl border border-border text-sm font-medium bg-gray-50 focus:bg-white input-pc transition-all outline-none"
+                          />
+                        </div>
+                      )}
 
-        {/* ── How to Earn ── */}
-        <section id="how-to-earn" className="mt-32">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 tag-cyber mb-4">
-              <TrendingUp className="w-3 h-3" /> 3 Easy Steps
-            </div>
-            <h3 className="text-4xl font-extrabold mb-4">How to <span className="text-gradient">Earn</span></h3>
-            <p className="text-muted-foreground max-w-xl mx-auto">Three simple steps to start making money.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { step: "01", title: "Create Account", desc: "Register in 5 seconds and get $0.50 instantly.", icon: User, color: "text-green-400", glow: "rgba(0,255,135,0.15)" },
-              { step: "02", title: "Complete Offers", desc: "Browse 7+ offer walls and complete tasks to earn.", icon: Gamepad2, color: "text-cyan-400", glow: "rgba(0,229,255,0.15)" },
-              { step: "03", title: "Withdraw Crypto", desc: "Cash out to BTC, ETH, LTC, DOGE, SOL, or USDT.", icon: Wallet, color: "text-purple-400", glow: "rgba(168,85,247,0.15)" },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-                className="cyber-card p-8 rounded-2xl text-center group relative overflow-hidden"
-              >
-                {/* connector line */}
-                {i < 2 && (
-                  <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-px bg-gradient-to-r from-green-400/50 to-transparent z-10" />
-                )}
-                <div className="text-6xl font-black text-gradient mb-4 opacity-40">{item.step}</div>
-                <div className="w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
-                  style={{ background: item.glow }}>
-                  <item.icon className={`w-7 h-7 ${item.color}`} />
-                </div>
-                <h4 className="text-xl font-bold mb-2">{item.title}</h4>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Testimonials ── */}
-        <section className="mt-32">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 tag-cyan mb-4">
-              <Star className="w-3 h-3" /> Community
-            </div>
-            <h3 className="text-4xl font-extrabold mb-4">What Our <span className="text-gradient">Users Say</span></h3>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Join thousands of satisfied earners who are making money every day.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <div className="cyber-card p-6 rounded-2xl h-full flex flex-col">
-                  <div className="flex items-center gap-1 text-yellow-400 mb-4">
-                    {Array.from({ length: t.rating }).map((_, j) => <Star key={j} size={14} fill="currentColor" />)}
-                  </div>
-                  <p className="text-sm italic mb-6 leading-relaxed text-muted-foreground flex-1">"{t.text}"</p>
-                  <div className="flex items-center gap-3 pt-4 border-t border-green-500/10">
-                    <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-green-500/20">
-                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${t.name}`} alt={t.name} />
+                      <button
+                        onClick={handleAuth}
+                        disabled={isSubmitting}
+                        className="w-full btn-primary py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 mt-2"
+                      >
+                        {isSubmitting ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            {activeTab === "login" ? "Log In to Dashboard" : "Create Free Account"}
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
                     </div>
-                    <span className="text-sm font-bold">{t.name}</span>
-                  </div>
+
+                    <div className="mt-5 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        {activeTab === "login" ? "Don't have an account?" : "Already have an account?"}
+                        {" "}
+                        <button onClick={() => setActiveTab(activeTab === "login" ? "register" : "login")} className="text-violet-600 font-semibold hover:underline">
+                          {activeTab === "login" ? "Sign up free" : "Log in"}
+                        </button>
+                      </p>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="mt-5 pt-4 border-t border-border/60 flex items-center justify-center gap-4">
+                  {["SSL Secured", "Free to Join", "Instant Payouts"].map((t) => (
+                    <div key={t} className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                      {t}
+                    </div>
+                  ))}
                 </div>
-              </motion.div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Stats Strip ── */}
+      <section className="bg-white border-y border-border/60 py-10">
+        <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+          {stats.map((s, i) => (
+            <motion.div key={s.label} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} className="text-center">
+              <div className="text-3xl font-extrabold text-foreground mb-1" style={{ color: s.color }}>{s.value}</div>
+              <div className="text-sm text-muted-foreground font-medium">{s.label}</div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Features ── */}
+      <section id="features" className="py-24 max-w-7xl mx-auto px-6">
+        <div className="text-center mb-14">
+          <div className="tag-primary mb-4">Features</div>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4">Multiple Ways to Earn</h2>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">Choose from hundreds of tasks updated daily across all platforms.</p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f, i) => (
+            <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }} className="pc-card p-6 rounded-2xl">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: f.bg }}>
+                <f.icon className="w-6 h-6" style={{ color: f.color }} />
+              </div>
+              <h3 className="text-lg font-bold text-foreground mb-2">{f.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{f.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      <div className="divider-gradient mx-6" />
+
+      {/* ── How It Works ── */}
+      <section id="how-it-works" className="py-24 max-w-5xl mx-auto px-6">
+        <div className="text-center mb-14">
+          <div className="tag-primary mb-4">How It Works</div>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4">Start Earning in 3 Steps</h2>
+          <p className="text-muted-foreground text-lg">No experience needed. Simple, fast, and completely free.</p>
+        </div>
+        <div className="space-y-6">
+          {steps.map((s, i) => (
+            <motion.div key={s.n} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="pc-card p-7 rounded-2xl flex items-start gap-6">
+              <div className="step-circle shrink-0">{s.n}</div>
+              <div>
+                <h3 className="text-xl font-bold text-foreground mb-1.5">{s.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{s.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Payouts (dark) ── */}
+      <section id="payouts" style={{ background: "linear-gradient(135deg, #1e0533 0%, #0c0a2e 60%, #0a1a3e 100%)" }} className="py-24 relative overflow-hidden">
+        <div className="hero-blob-1 opacity-50" style={{ top: "-120px", right: "0" }} />
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-1.5 mb-6">
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-white/85 text-xs font-semibold">Lightning Fast Payouts</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">Get Paid in Crypto</h2>
+          <p className="text-white/65 text-lg mb-10 max-w-lg mx-auto">Withdraw your earnings to any cryptocurrency wallet. Minimum $0.50, processed within 24 hours.</p>
+          <div className="flex flex-wrap justify-center gap-4 mb-10">
+            {cryptos.map((c) => (
+              <div key={c} className="pc-card-dark rounded-xl px-6 py-4 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center">
+                  <Coins className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-white font-semibold">{c}</span>
+              </div>
             ))}
           </div>
-        </section>
+          <button className="btn-white text-base font-bold px-10 py-4 rounded-xl inline-flex items-center gap-2"
+            onClick={() => { setActiveTab("register"); document.getElementById("auth-section")?.scrollIntoView({ behavior: "smooth" }); }}>
+            Start Earning Now <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
 
-        {/* ── CTA ── */}
-        <section className="mt-32 text-center py-20 px-6 relative overflow-hidden rounded-3xl">
-          <div className="absolute inset-0 cyber-card bg-scan rounded-3xl" />
-          <div className="absolute inset-0 bg-grid opacity-50 rounded-3xl" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-px bg-gradient-to-r from-transparent via-green-400 to-transparent" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 tag-cyber mb-6">
-              <Zap className="w-3 h-3" /> Get Started
-            </div>
-            <h3 className="text-4xl md:text-5xl font-extrabold mb-6">
-              Ready to Start <span className="text-gradient">Earning?</span>
-            </h3>
-            <p className="text-lg text-muted-foreground mb-10 max-w-lg mx-auto">
-              Create your account in 5 seconds and get your $0.50 starting bonus immediately.
-            </p>
-            <Button
-              size="lg"
-              className="btn-cyber h-14 px-10 rounded-xl font-black tracking-widest uppercase text-sm animate-neon-pulse"
-              onClick={() => {
-                setActiveTab("register");
-                document.getElementById("auth-card")?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              Create Free Account <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            <p className="mt-6 text-xs text-muted-foreground flex flex-wrap items-center justify-center gap-5">
-              {["No KYC Required", "Global Access", "Instant Setup"].map((t) => (
-                <span key={t} className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> {t}
-                </span>
-              ))}
-            </p>
-          </div>
-        </section>
-      </main>
+      {/* ── Testimonials ── */}
+      <section className="py-24 max-w-6xl mx-auto px-6">
+        <div className="text-center mb-14">
+          <div className="tag-primary mb-4">Reviews</div>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4">Loved by Our Community</h2>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {testimonials.map((t, i) => (
+            <motion.div key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} className="pc-card p-7 rounded-2xl">
+              <div className="flex gap-0.5 mb-4">
+                {Array.from({ length: t.rating }).map((_, idx) => (
+                  <Star key={idx} className="w-4 h-4 text-amber-400 fill-amber-400" />
+                ))}
+              </div>
+              <p className="text-foreground/80 mb-5 leading-relaxed">"{t.text}"</p>
+              <div className="flex items-center gap-3">
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${parseInt(t.avatar) + 30}`} className="w-10 h-10 rounded-full bg-violet-100" alt={t.name} />
+                <div>
+                  <div className="font-bold text-sm text-foreground">{t.name}</div>
+                  <div className="text-[11px] text-muted-foreground">Verified Member</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-green-500/10 py-14 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
-          <div className="col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-9 h-9 rounded-xl gradient-cyber flex items-center justify-center glow-green">
-                <Coins className="w-5 h-5 text-[#060818]" />
-              </div>
-              <h1 className="text-lg font-bold">
-                <span className="text-gradient">Rewards</span>Verse
-              </h1>
+      <footer className="bg-white border-t border-border/60 py-10">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+              <Coins className="w-4 h-4 text-white" />
             </div>
-            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed mb-6">
-              The world's most professional GPT rewards platform. Industry-leading payout speeds and military-grade security.
-            </p>
-            <div className="flex items-center gap-3">
-              {[Users, Trophy, ExternalLink].map((Icon, i) => (
-                <div key={i} className="w-10 h-10 rounded-lg cyber-card flex items-center justify-center hover:text-green-400 transition-colors cursor-pointer hover:border-neon-green">
-                  <Icon size={16} />
-                </div>
-              ))}
-            </div>
+            <span className="font-bold text-foreground"><span className="text-gradient">Rewards</span>Verse</span>
           </div>
-
-          <div>
-            <h5 className="font-bold text-sm mb-6 text-gradient uppercase tracking-wider">Quick Links</h5>
-            <ul className="space-y-4 text-sm text-muted-foreground">
-              {["How it Works", "Offer Walls", "Referral Program", "Leaderboard"].map((link) => (
-                <li key={link}>
-                  <a href="#" className="hover:text-green-400 transition-colors flex items-center gap-2 group">
-                    <span className="w-1 h-1 rounded-full bg-green-400/40 group-hover:bg-green-400 transition-colors" />
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div className="flex gap-6 text-sm text-muted-foreground">
+            {[["Terms", "/terms"], ["Privacy", "/privacy"], ["Contact", "/contact"], ["FAQ", "/faq"]].map(([label, href]) => (
+              <a key={label} href={href} className="hover:text-violet-600 transition-colors">{label}</a>
+            ))}
           </div>
-
-          <div>
-            <h5 className="font-bold text-sm mb-6 text-gradient uppercase tracking-wider">Support</h5>
-            <ul className="space-y-4 text-sm text-muted-foreground">
-              {[
-                { label: "FAQ", path: "/faq" },
-                { label: "Terms of Service", path: "/terms" },
-                { label: "Privacy Policy", path: "/privacy" },
-                { label: "Contact Us", path: "/contact" },
-              ].map((item) => (
-                <li key={item.label}>
-                  <button
-                    onClick={() => setLocation(item.path)}
-                    className="hover:text-green-400 transition-colors flex items-center gap-2 group"
-                  >
-                    <span className="w-1 h-1 rounded-full bg-green-400/40 group-hover:bg-green-400 transition-colors" />
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="divider-cyber my-10" />
-
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
-          <p>&copy; 2025 RewardsVerse. Fast Payouts Guaranteed. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5"><Shield size={12} className="text-green-400" /> SSL Secured</span>
-            <span className="flex items-center gap-1.5"><Shield size={12} className="text-cyan-400" /> AES-256 Encryption</span>
-          </div>
+          <p className="text-xs text-muted-foreground">© 2024 RewardsVerse. All rights reserved.</p>
         </div>
       </footer>
     </div>
