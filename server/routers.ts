@@ -513,6 +513,23 @@ export const appRouter = router({
     getPendingWithdrawals: adminProcedure.query(async () => {
       return db.getAllWithdrawals("pending");
     }),
+
+    // Promote tài khoản đang đăng nhập thành admin bằng ADMIN_SECRET
+    promoteByPassword: protectedProcedure
+      .input(z.object({ secret: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        const adminSecret = ENV.adminSecret;
+        if (!adminSecret || adminSecret.length < 8) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "ADMIN_SECRET chưa được cấu hình trên server" });
+        }
+        if (input.secret !== adminSecret) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Mật khẩu admin không đúng" });
+        }
+        const user = await db.getUserByOpenId(ctx.user.openId);
+        if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.updateUserProfile(user.id, { role: "admin" });
+        return { success: true, message: "Tài khoản đã được cấp quyền Admin!" };
+      }),
   }),
 });
 
