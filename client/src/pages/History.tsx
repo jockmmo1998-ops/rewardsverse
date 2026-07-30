@@ -1,146 +1,287 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ChevronLeft, TrendingUp, Wallet, Gift, Users,
-  CheckCircle2, Clock, XCircle, Sparkles, ArrowUpRight,
+  Coins, LogOut, LayoutDashboard, Gift as OfferIcon, Wallet,
+  History as HistoryIcon, Sparkles, ArrowUpRight, ArrowDownLeft,
+  CheckCircle2, Clock, XCircle, Calendar, Zap, Trophy,
 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useSSE } from "@/hooks/useSSE";
 
-type Tab = "all" | "earnings" | "withdrawals";
+function getStatusIcon(status: string) {
+  if (status === "approved") return <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />;
+  if (status === "pending")  return <Clock className="w-3.5 h-3.5 text-yellow-400" />;
+  return <XCircle className="w-3.5 h-3.5 text-red-400" />;
+}
 
-const STATUS_MAP: Record<string, { icon: any; color: string; bg: string; label: string }> = {
-  completed: { icon: CheckCircle2, color: "#4ade80", bg: "rgba(74,222,128,0.10)",  label: "Completed" },
-  pending:   { icon: Clock,        color: "#fbbf24", bg: "rgba(251,191,36,0.10)",  label: "Pending"   },
-  failed:    { icon: XCircle,      color: "#f87171", bg: "rgba(248,113,113,0.10)", label: "Failed"    },
+const tickerBadge = (type: string) => {
+  const map: Record<string, string> = {
+    offer_complete: "bg-green-500/10 text-green-400 border-green-500/30",
+    withdrawal: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
+    daily_claim: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
+    referral: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  };
+  return map[type] || map.offer_complete;
 };
-
-const TYPE_MAP: Record<string, { icon: any; color: string; label: string }> = {
-  offer_complete: { icon: Sparkles, color: "#818cf8", label: "Offer"    },
-  withdrawal:     { icon: Wallet,   color: "#22d3ee", label: "Withdraw" },
-  daily_claim:    { icon: Gift,     color: "#fbbf24", label: "Bonus"    },
-  referral:       { icon: Users,    color: "#4ade80", label: "Referral" },
-};
+const tickerLabel = (type: string) =>
+  ({ offer_complete: "EARNED", withdrawal: "WITHDRAW", daily_claim: "BONUS", referral: "REFERRAL" }[type] || "EARNED");
 
 export default function History() {
-  const { user, refreshProfile } = useAuth();
+  const { user, loading, logout, isAdmin, refreshProfile, activities } = useAuth();
   const [, setLocation] = useLocation();
-  const [tab, setTab] = useState<Tab>("all");
-  const [page, setPage] = useState(1);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useSSE({ onPostback: () => { refetch(); refreshProfile(); }, enabled: !!user?.id });
+  const historyQuery = trpc.history.getAllHistory.useQuery();
+  const earnings    = historyQuery.data?.earnings    || [];
+  const withdrawals = historyQuery.data?.withdrawals || [];
 
-  const { data, isLoading, refetch } = trpc.user.getTransactions.useQuery(
-    { page, limit: 20, type: tab === "all" ? undefined : tab === "earnings" ? "earn" : "withdraw" },
-    { enabled: !!user?.id }
-  );
+  const mergedHistory = (() => {
+    const items: any[] = [];
+    earnings.forEach((e: any)    => items.push({ ...e, txType: "earning",    icon: ArrowDownLeft, colorClass: "green" }));
+    withdrawals.forEach((w: any) => items.push({ ...w, txType: "withdrawal", icon: ArrowUpRight,  colorClass: "cyan"  }));
+    return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  })();
 
-  useEffect(() => { setPage(1); }, [tab]);
+  useSSE({
+    onPostback: () => { historyQuery.refetch(); refreshProfile(); },
+    onError: (err) => console.error("[History] SSE:", err),
+    enabled: !!user?.id,
+  });
 
-  const transactions = data?.transactions || [];
-  const total = data?.total || 0;
+  useEffect(() => { if (!loading && !user) setLocation("/"); }, [user, loading, setLocation]);
+  useEffect(() => {
+    pollingIntervalRef.current = setInterval(() => { historyQuery.refetch(); refreshProfile(); }, 5000);
+    return () => { if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); };
+  }, []);
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "all",         label: "All" },
-    { key: "earnings",    label: "Earnings" },
-    { key: "withdrawals", label: "Withdrawals" },
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-10 h-10 border-2 border-green-400 border-t-transparent rounded-full animate-spin glow-green" /></div>;
+  if (!user) return null;
+
+  const balance = parseFloat(user.balance || "0") || 0;
+  const navItems = [
+    { label: "Dashboard",   icon: LayoutDashboard, path: "/dashboard",   active: false },
+    { label: "Offer Walls", icon: OfferIcon,        path: "/offers",      active: false },
+    { label: "Withdraw",    icon: Wallet,            path: "/withdraw",    active: false },
+    { label: "History",     icon: HistoryIcon,       path: "/history",     active: true  },
+    { label: "Leaderboard", icon: Trophy,            path: "/leaderboard", active: false },
+    ...(isAdmin ? [{ label: "Admin Panel", icon: Sparkles, path: "/admin", active: false }] : []),
   ];
 
+  const EmptyState = ({ icon: Icon, title, desc, action }: any) => (
+    <div className="cyber-card rounded-2xl p-16 text-center">
+      <Icon className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-30" />
+      <h3 className="font-bold text-lg mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground mb-6">{desc}</p>
+      {action}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen" style={{ background: "#0a0a0f", color: "#f4f4f8" }}>
-      <div className="noise-overlay" /><div className="grid-overlay" />
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div style={{ position:"absolute", top:"-10%", right:"-10%", width:"28%", height:"28%", background:"radial-gradient(circle, rgba(99,102,241,0.09), transparent 70%)", filter:"blur(60px)" }} />
+    <div className="min-h-screen bg-background bg-grid bg-scan">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[20%] h-[20%] bg-green-500/3 blur-[100px] rounded-full" />
+        <div className="absolute bottom-0 right-1/4 w-[20%] h-[20%] bg-cyan-500/3 blur-[100px] rounded-full" />
+      </div>
+
+      {/* Ticker */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-9 bg-background/90 backdrop-blur-md border-b border-green-500/10 overflow-hidden flex items-center">
+        <div className="w-1 h-full bg-gradient-to-b from-green-400 to-cyan-400 shrink-0" />
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-16 text-[11px] font-medium text-muted-foreground ml-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-16">
+              {activities.map((a: any) => (
+                <span key={`${i}-${a.id}`} className="flex items-center gap-2">
+                  <Badge variant="outline" className={`py-0 h-5 font-bold ${tickerBadge(a.type)}`}>{tickerLabel(a.type)}</Badge>
+                  <span className="text-white font-semibold">{a.username}</span>
+                  <span>{a.description}</span>
+                  {a.amount && <span className="text-green-400 font-bold">${parseFloat(a.amount).toFixed(2)}</span>}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Header */}
-      <div className="relative z-10" style={{ background:"rgba(10,10,15,0.88)", backdropFilter:"blur(20px)", borderBottom:"1px solid rgba(99,102,241,0.10)" }}>
-        <div className="max-w-4xl mx-auto px-5 py-5 flex items-center gap-4">
-          <button onClick={() => setLocation("/dashboard")} className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)" }}>
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-xl font-black">Transaction History</h1>
-            <p style={{ color:"rgba(255,255,255,0.35)", fontSize:"0.8rem" }}>{total} transactions total</p>
+      <header className="fixed top-9 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-b border-green-500/10">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl gradient-cyber flex items-center justify-center glow-green">
+              <Coins className="w-5 h-5 text-[#060818]" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold"><span className="text-gradient">Rewards</span>Verse</h1>
+              <p className="text-[9px] text-green-400/70 tracking-[0.2em] uppercase font-bold">Fast Payouts</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-green-500/8 border border-green-500/25 rounded-lg px-3 py-1.5">
+              <Coins className="w-4 h-4 text-green-400" />
+              <span className="text-green-400 font-black text-sm">${balance.toFixed(2)}</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={logout} className="text-muted-foreground hover:text-red-400"><LogOut className="w-4 h-4" /></Button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-5 py-8 space-y-6">
-
-        {/* Tabs */}
-        <div className="flex gap-0.5 p-1 rounded-xl w-fit" style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.06)" }}>
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className="px-5 py-2 rounded-lg text-sm font-bold transition-all"
-              style={tab === t.key
-                ? { background:"linear-gradient(135deg,#6366f1,#a855f7)", color:"#fff", boxShadow:"0 4px 16px rgba(99,102,241,0.35)" }
-                : { color:"rgba(255,255,255,0.38)" }}>
-              {t.label}
+      {/* Nav */}
+      <nav className="fixed top-[6.5rem] left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-green-500/10">
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 overflow-x-auto">
+          {navItems.map((item) => (
+            <button key={item.path} onClick={() => setLocation(item.path)}
+              className={`flex items-center gap-2 px-4 py-3 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${item.active ? "text-green-400 border-green-400 nav-item-active" : "text-muted-foreground border-transparent hover:text-green-400/70"}`}>
+              <item.icon className="w-3.5 h-3.5" />{item.label}
             </button>
           ))}
         </div>
+      </nav>
 
-        {/* List */}
-        <div className="space-y-2">
-          {isLoading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="glass rounded-2xl p-5 h-20 animate-pulse" style={{ background:"rgba(17,17,24,0.50)" }} />
-            ))
-          ) : transactions.length === 0 ? (
-            <div className="glass rounded-2xl p-16 text-center">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background:"rgba(99,102,241,0.12)" }}>
-                <TrendingUp className="w-8 h-8" style={{ color:"#818cf8" }} />
-              </div>
-              <h3 className="text-lg font-black mb-2">No transactions yet</h3>
-              <p style={{ color:"rgba(255,255,255,0.35)", fontSize:"0.875rem", marginBottom:"1.25rem" }}>Start completing offers to see your earnings here.</p>
-              <button onClick={() => setLocation("/offers")} className="btn-gpt inline-flex items-center gap-2 px-6 py-2.5">
-                Browse Offers <ArrowUpRight className="w-4 h-4" />
-              </button>
+      {/* Main */}
+      <main className="relative z-10 pt-[10.5rem] pb-10 px-4 max-w-7xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <div className="mb-10">
+            <div className="inline-flex items-center gap-2 tag-cyber mb-3">
+              <Zap className="w-3 h-3" /> Live Updates
             </div>
-          ) : (
-            transactions.map((tx: any, i: number) => {
-              const meta   = TYPE_MAP[tx.type]   || TYPE_MAP.offer_complete;
-              const status = STATUS_MAP[tx.status] || STATUS_MAP.completed;
-              return (
-                <motion.div key={tx.id || i} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.03 }}
-                  className="glass rounded-2xl p-4 flex items-center gap-4 tr-gpt transition-colors">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background:`${meta.color}15` }}>
-                    <meta.icon className="w-5 h-5" style={{ color:meta.color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-sm font-semibold truncate">{tx.description}</p>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background:status.bg, color:status.color }}>
-                        <status.icon className="w-3 h-3" />{status.label}
-                      </span>
-                    </div>
-                    <p style={{ color:"rgba(255,255,255,0.28)", fontSize:"0.75rem" }}>{new Date(tx.createdAt).toLocaleString()}</p>
-                  </div>
-                  <div className={`text-base font-black shrink-0 ${tx.type === "withdrawal" ? "" : ""}`}
-                    style={{ color: tx.type === "withdrawal" ? "#f87171" : "#4ade80" }}>
-                    {tx.type === "withdrawal" ? "-" : "+"}${parseFloat(tx.amount||"0").toFixed(2)}
-                  </div>
-                </motion.div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Pagination */}
-        {total > 20 && (
-          <div className="flex items-center justify-center gap-3">
-            <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1}
-              className="btn-surface px-4 py-2 rounded-xl text-sm disabled:opacity-30">Previous</button>
-            <span style={{ color:"rgba(255,255,255,0.35)", fontSize:"0.875rem" }}>Page {page} of {Math.ceil(total/20)}</span>
-            <button onClick={() => setPage(p => p+1)} disabled={page*20>=total}
-              className="btn-surface px-4 py-2 rounded-xl text-sm disabled:opacity-30">Next</button>
+            <h2 className="text-3xl font-extrabold">Transaction <span className="text-gradient">History</span></h2>
+            <p className="text-sm text-muted-foreground mt-1">All your earnings and withdrawals in real-time. Updates every 5 seconds.</p>
           </div>
-        )}
-      </div>
+
+          {/* Summary Cards */}
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            <div className="cyber-card rounded-2xl p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
+                <ArrowDownLeft className="w-6 h-6 text-green-400" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Total Earnings</p>
+                <p className="text-2xl font-black text-green-400">${parseFloat(user.totalEarned || "0").toFixed(2)}</p>
+              </div>
+            </div>
+            <div className="cyber-card rounded-2xl p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+                <ArrowUpRight className="w-6 h-6 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Withdrawn</p>
+                <p className="text-2xl font-black text-cyan-400">
+                  ${(withdrawals || []).filter((w: any) => w.status === "approved").reduce((acc: number, w: any) => acc + parseFloat(w.amount || "0"), 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="mb-6 h-12 bg-muted/20 border border-border/30">
+              <TabsTrigger value="all" className="h-10 px-6 font-bold text-xs data-[state=active]:text-green-400">
+                <Zap className="w-3.5 h-3.5 mr-1.5 text-purple-400" /> All ({mergedHistory.length})
+              </TabsTrigger>
+              <TabsTrigger value="earnings" className="h-10 px-6 font-bold text-xs data-[state=active]:text-green-400">
+                <ArrowDownLeft className="w-3.5 h-3.5 mr-1.5 text-green-400" /> Earnings ({earnings.length})
+              </TabsTrigger>
+              <TabsTrigger value="withdrawals" className="h-10 px-6 font-bold text-xs data-[state=active]:text-green-400">
+                <ArrowUpRight className="w-3.5 h-3.5 mr-1.5 text-cyan-400" /> Withdrawals ({withdrawals.length})
+              </TabsTrigger>
+            </TabsList>
+
+            {/* All tab */}
+            <TabsContent value="all" className="space-y-3">
+              {mergedHistory.length === 0
+                ? <EmptyState icon={HistoryIcon} title="No Transactions Yet" desc="Start earning or withdraw to see your history!" />
+                : mergedHistory.map((item: any, i: number) => {
+                    const isEarning = item.txType === "earning";
+                    return (
+                      <motion.div key={`${item.txType}-${item.id}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}>
+                        <div className={`cyber-card rounded-xl p-4 flex items-center justify-between ${isEarning ? "hover:border-green-500/30" : "hover:border-cyan-500/30"} transition-all`}>
+                          <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-xl ${isEarning ? "bg-green-500/10" : "bg-cyan-500/10"} flex items-center justify-center`}>
+                              <item.icon className={`w-5 h-5 ${isEarning ? "text-green-400" : "text-cyan-400"}`} />
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm">{isEarning ? item.source : `${item.cryptoType} Withdrawal`}</p>
+                              {!isEarning && (
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  {getStatusIcon(item.status)}
+                                  <Badge variant="outline" className={`text-[9px] py-0 h-4 ${item.status === "approved" ? "text-green-400 border-green-500/30 bg-green-500/10" : item.status === "pending" ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" : "text-red-400 border-red-500/30 bg-red-500/10"}`}>
+                                    {item.status.toUpperCase()}
+                                  </Badge>
+                                </div>
+                              )}
+                              <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <Calendar size={10} /> {new Date(item.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <p className={`font-black text-lg ${isEarning ? "text-green-400" : "text-cyan-400"}`}>
+                            {isEarning ? "+" : "-"}${parseFloat(item.amount || "0").toFixed(2)}
+                          </p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+            </TabsContent>
+
+            {/* Earnings tab */}
+            <TabsContent value="earnings" className="space-y-3">
+              {earnings.length === 0
+                ? <EmptyState icon={HistoryIcon} title="No Earnings Yet" desc="Complete some offer walls to start earning!"
+                    action={<Button onClick={() => setLocation("/offers")} variant="outline" className="border-green-500/30 hover:border-green-400 text-green-400">Go to Offer Walls</Button>} />
+                : earnings.map((e: any, i: number) => (
+                    <motion.div key={e.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}>
+                      <div className="cyber-card rounded-xl p-4 flex items-center justify-between hover:border-green-500/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                            <ArrowDownLeft className="w-5 h-5 text-green-400" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm">{e.source}</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1"><Calendar size={10} /> {new Date(e.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <p className="font-black text-lg text-green-400">+${parseFloat(e.amount || "0").toFixed(2)}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+            </TabsContent>
+
+            {/* Withdrawals tab */}
+            <TabsContent value="withdrawals" className="space-y-3">
+              {withdrawals.length === 0
+                ? <EmptyState icon={Wallet} title="No Withdrawals Yet" desc="Make your first withdrawal request!"
+                    action={<Button onClick={() => setLocation("/withdraw")} variant="outline" className="border-cyan-500/30 hover:border-cyan-400 text-cyan-400">Withdraw Now</Button>} />
+                : withdrawals.map((w: any, i: number) => (
+                    <motion.div key={w.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}>
+                      <div className="cyber-card rounded-xl p-4 flex items-center justify-between hover:border-cyan-500/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                            <ArrowUpRight className="w-5 h-5 text-cyan-400" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-sm">{w.cryptoType}</p>
+                              {getStatusIcon(w.status)}
+                              <Badge variant="outline" className={`text-[9px] py-0 h-4 ${w.status === "approved" ? "text-green-400 border-green-500/30 bg-green-500/10" : w.status === "pending" ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" : "text-red-400 border-red-500/30 bg-red-500/10"}`}>
+                                {w.status.toUpperCase()}
+                              </Badge>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground truncate max-w-[200px]">{w.walletAddress}</p>
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5"><Calendar size={10} /> {new Date(w.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <p className="font-black text-lg text-cyan-400">-${parseFloat(w.amount || "0").toFixed(2)}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+      </main>
     </div>
   );
 }
