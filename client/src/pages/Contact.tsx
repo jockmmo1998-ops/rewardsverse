@@ -1,181 +1,133 @@
-import { ArrowLeft, Mail, MessageSquare, Send } from "lucide-react";
+import { ArrowLeft, Mail, MessageSquare, Clock, Zap, CheckCircle2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 export default function Contact() {
   const [, setLocation] = useLocation();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
-      toast.error("Please fill in all fields");
+  const handleSubmit = () => {
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      toast.error("Please fill in all required fields.");
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      // Simulate sending email
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success("Message sent successfully! We'll get back to you soon.");
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    } catch (error) {
-      toast.error("Failed to send message. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    toast.success("Message sent! We'll reply within 24 hours.");
+    setSubmitted(true);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-background bg-grid bg-scan">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[30%] h-[30%] bg-cyan-500/4 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-green-500/4 blur-[120px] rounded-full" />
+      </div>
+
       {/* Header */}
-      <div className="border-b border-slate-800/50 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-40">
+      <div className="relative z-10 border-b border-green-500/10 bg-background/90 backdrop-blur-md sticky top-0">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="text-slate-400 hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+          <Button variant="ghost" size="sm" onClick={() => setLocation("/")} className="text-muted-foreground hover:text-green-400 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
-          <h1 className="text-xl font-bold text-white">Contact Us</h1>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg gradient-cyber flex items-center justify-center">
+              <Mail className="w-4 h-4 text-[#060818]" />
+            </div>
+            <h1 className="text-xl font-bold"><span className="text-gradient">Contact</span> Us</h1>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Contact Info */}
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-6">Get in Touch</h2>
-              <p className="text-slate-300 leading-relaxed mb-8">
-                Have questions or need support? We're here to help! Reach out to us through any of the methods below.
-              </p>
-            </div>
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-14">
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 tag-cyan mb-4">
+            <MessageSquare className="w-3 h-3" /> Support
+          </div>
+          <h2 className="text-4xl font-extrabold mb-3">Get in <span className="text-gradient">Touch</span></h2>
+          <p className="text-muted-foreground">Our team is available 24/7 to help you with any questions or issues.</p>
+        </div>
 
-            {/* Email */}
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                <Mail className="w-6 h-6 text-cyan-400" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white mb-1">Email</h3>
-                <p className="text-slate-300">support@rewardsverse.com</p>
-                <p className="text-slate-400 text-sm mt-1">We respond within 24 hours</p>
-              </div>
-            </div>
-
-            {/* Support */}
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                <MessageSquare className="w-6 h-6 text-green-400" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white mb-1">Live Chat</h3>
-                <p className="text-slate-300">Available on our website</p>
-                <p className="text-slate-400 text-sm mt-1">Monday - Friday, 9 AM - 6 PM UTC</p>
-              </div>
-            </div>
-
-            {/* FAQ */}
-            <div className="pt-4">
-              <Button
-                onClick={() => setLocation("/faq")}
-                className="w-full bg-slate-800 hover:bg-slate-700 text-white"
-              >
-                View FAQ
-              </Button>
-            </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Info cards */}
+          <div className="space-y-4">
+            {[
+              { icon: Mail,         color: "text-green-400", bg: "bg-green-500/10", title: "Email Support",    desc: "support@rewardsverse.com", sub: "Response within 24h" },
+              { icon: MessageSquare,color: "text-cyan-400",  bg: "bg-cyan-500/10",  title: "Live Chat",        desc: "Available on dashboard",    sub: "Response within 1h" },
+              { icon: Clock,        color: "text-purple-400",bg: "bg-purple-500/10",title: "Response Time",    desc: "< 24 hours typical",        sub: "Mon–Sun, 24/7" },
+            ].map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+                className="cyber-card rounded-xl p-5 flex items-start gap-4">
+                <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center shrink-0`}>
+                  <item.icon className={`w-5 h-5 ${item.color}`} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">{item.title}</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                  <p className="text-[10px] text-green-400/70 mt-0.5 font-bold uppercase tracking-wide">{item.sub}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
 
-          {/* Contact Form */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Name
-                </label>
-                <Input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Your name"
-                  className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="your@email.com"
-                  className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Subject
-                </label>
-                <Input
-                  type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="How can we help?"
-                  className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Message
-                </label>
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Tell us more..."
-                  rows={5}
-                  className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                {isSubmitting ? "Sending..." : "Send Message"}
-              </Button>
-            </form>
+          {/* Form */}
+          <div className="md:col-span-2">
+            {submitted ? (
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="cyber-card rounded-2xl p-10 text-center border-green-500/25 h-full flex flex-col items-center justify-center">
+                <div className="w-16 h-16 rounded-full gradient-cyber flex items-center justify-center mx-auto mb-6 glow-green">
+                  <CheckCircle2 className="w-8 h-8 text-[#060818]" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Message Sent!</h3>
+                <p className="text-muted-foreground mb-6">We'll get back to you within 24 hours.</p>
+                <Button onClick={() => { setSubmitted(false); setName(""); setEmail(""); setSubject(""); setMessage(""); }}
+                  variant="outline" className="border-green-500/30 hover:border-green-400 text-green-400 font-bold">
+                  Send Another
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
+                className="cyber-card cyber-corner rounded-2xl p-8 space-y-5 border-green-500/15">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-green-400" /> Send a Message
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Your Name *</label>
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe"
+                      className="h-11 bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Email Address *</label>
+                    <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" type="email"
+                      className="h-11 bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] transition-all" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Subject</label>
+                  <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Withdrawal issue"
+                    className="h-11 bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] transition-all" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Message *</label>
+                  <textarea
+                    value={message} onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Describe your issue in detail..."
+                    rows={5}
+                    className="w-full rounded-lg bg-background/60 border border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] text-sm px-4 py-3 resize-none outline-none transition-all text-foreground placeholder:text-muted-foreground"
+                  />
+                </div>
+                <Button onClick={handleSubmit} className="w-full h-12 btn-cyber rounded-xl font-black tracking-widest uppercase text-sm">
+                  Send Message →
+                </Button>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
