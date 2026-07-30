@@ -15,6 +15,8 @@ import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import path from "path";
 import { fileURLToPath } from "url";
+import bcrypt from "bcryptjs";
+import * as db from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -131,8 +133,41 @@ async function startServer() {
   });
 }
 
-// Chạy migration trước, sau đó mới start server
-runMigrations().then(() => startServer()).catch(console.error);
+// Tự động tạo tài khoản admin mặc định nếu chưa tồn tại
+async function seedAdminAccount() {
+  try {
+    const existing = await db.getUserByUsername("Admin");
+    const hashedPassword = await bcrypt.hash("Nkok123123", 10);
+    if (existing) {
+      // Đảm bảo role=admin và password đúng
+      await db.updateUserProfile(existing.id, { role: "admin", password: hashedPassword });
+      console.log("[Seed] ✅ Tài khoản Admin đã tồn tại — đã cập nhật role=admin & password.");
+    } else {
+      await db.upsertUser({
+        openId: "virtual_Admin_seeded",
+        username: "Admin",
+        password: hashedPassword,
+        name: "Admin",
+        role: "admin",
+        refCode: "ADMI0001",
+        balance: "0.00",
+        xp: 0,
+        streak: 0,
+        offersCompleted: 0,
+        totalEarned: "0.00",
+        refEarnings: "0.00",
+        loginMethod: "virtual",
+        lastSignedIn: new Date(),
+      });
+      console.log("[Seed] ✅ Đã tạo tài khoản Admin mới (username=Admin, role=admin).");
+    }
+  } catch (err) {
+    console.warn("[Seed] ⚠️ Không thể seed admin account:", err);
+  }
+}
+
+// Chạy migration → seed admin → start server
+runMigrations().then(() => seedAdminAccount()).then(() => startServer()).catch(console.error);
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
