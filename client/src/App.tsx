@@ -11,6 +11,7 @@ import OfferWalls from "./pages/OfferWalls";
 import Withdraw from "./pages/Withdraw";
 import History from "./pages/History";
 import AdminPanel from "./pages/AdminPanel";
+import AdminLogin from "./pages/AdminLogin";
 import Leaderboard from "./pages/Leaderboard";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/withdraw" component={Withdraw} />
       <Route path="/history" component={History} />
       <Route path="/admin" component={AdminPanel} />
+      <Route path="/admin-login" component={AdminLogin} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
