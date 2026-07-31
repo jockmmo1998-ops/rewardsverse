@@ -46,6 +46,7 @@ export default function Dashboard() {
       toast.success(`🎉 ${event.offerName} completed! +$${event.amount.toFixed(2)}`, { duration: 5000 });
       setTimeout(() => refreshProfile(), 500);
     },
+    onBalanceUpdate: () => refreshProfile(),
     onError: (error) => console.error("[Dashboard] SSE error:", error),
     enabled: !!user?.id,
   });
