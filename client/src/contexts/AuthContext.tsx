@@ -55,18 +55,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
 
   // Fetch profile directly - this is a publicProcedure that returns null if not authenticated
+  // staleTime=0 để refreshProfile() sau SSE luôn fetch mới, không bị cache chặn
   const profileQuery = trpc.user.getProfile.useQuery(undefined, {
     retry: false,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const activitiesQuery = trpc.user.getActivities.useQuery(undefined, {
     enabled: !!profileQuery.data,
     retry: false,
-    staleTime: 10000,
-    refetchInterval: 30000,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   // Handle initial load - profileQuery settles quickly (success with data or null, or error)
