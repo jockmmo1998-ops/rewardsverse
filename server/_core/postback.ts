@@ -1,26 +1,65 @@
 import { Express, Request, Response } from "express";
+import * as crypto from "crypto";
 import * as db from "../db";
 import { POSTBACK_SECRETS } from "../routers";
 import { sseManager } from "./sse";
 
 /**
  * Register postback endpoints for offer wall providers
- * 
+ *
  * Supported routes:
  * - GET  /api/postback                    → Health/info endpoint (returns available providers)
  * - POST /api/postback/:provider          → Primary postback handler
  * - GET  /api/postback/:provider          → Fallback for providers using GET callbacks
- * 
- * All fields are searched in: path params, query string, and JSON body
- * Provider names are matched case-insensitively
- * 
+ *
+ * Xác thực theo từng provider:
+ * - cointo / revtoo   : ?token= query param so sánh với POSTBACK_SECRETS (plain match) ✅
+ * - gemiwall          : secret nhúng trong đường dẫn URL → không gửi ?token=, bỏ qua kiểm tra token
+ * - clickwall         : secret nhúng trong đường dẫn URL → không gửi ?token=, bỏ qua kiểm tra token
+ * - taskwall          : app_id nhúng trong URL → không gửi ?token=, bỏ qua kiểm tra token
+ * - adswedmedia       : secret nhúng trong đường dẫn URL → không gửi ?token=, bỏ qua kiểm tra token
+ * - moustache         : gửi HMAC-SHA256 signature qua param ?signature=
+ * - klink             : gửi HMAC-SHA256 signature qua param ?signature=
+ *
  * Idempotency: duplicate externalId + provider combos are silently ignored
  */
+
+// Các provider không gửi ?token= vì secret đã nhúng trong URL path
+// → Server xác thực qua routing (URL path đã chứa secret), không cần token param
+const PATH_AUTH_PROVIDERS = new Set(["gemiwall", "clickwall", "taskwall", "adswedmedia"]);
+
+// Các provider dùng HMAC-SHA256 signature thay vì plain token
+const HMAC_PROVIDERS = new Set(["moustache", "klink"]);
+
+/**
+ * Xác minh HMAC signature cho moustache và klink
+ * Cả hai provider đều ký toàn bộ query string (không bao gồm param signature)
+ * bằng HMAC-SHA256 với key là secret của provider.
+ */
+function verifyHmacSignature(
+  provider: string,
+  secret: string,
+  params: Record<string, any>,
+  signature: string
+): boolean {
+  if (!signature) return false;
+  // Xây dựng chuỗi ký: sắp xếp các param theo alphabet, loại bỏ "signature"
+  const sortedKeys = Object.keys(params)
+    .filter((k) => k !== "signature")
+    .sort();
+  const message = sortedKeys.map((k) => `${k}=${params[k]}`).join("&");
+  const expected = crypto.createHmac("sha256", secret).update(message).digest("hex");
+  console.log(`[Postback][${provider}] HMAC message: ${message}`);
+  console.log(`[Postback][${provider}] HMAC expected: ${expected}, got: ${signature}`);
+  return expected === signature;
+}
+
 export function registerPostbackRoutes(app: Express) {
   // Health/info endpoint - GET /api/postback returns JSON instead of SPA HTML
   app.get("/api/postback", (req, res) => {
     const providers = Object.keys(POSTBACK_SECRETS).map(p => ({
       name: p,
+      authMethod: HMAC_PROVIDERS.has(p) ? "hmac-sha256" : PATH_AUTH_PROVIDERS.has(p) ? "path-embedded" : "token-query-param",
       hasSecret: !!POSTBACK_SECRETS[p],
     }));
     return res.json({
@@ -32,7 +71,7 @@ export function registerPostbackRoutes(app: Express) {
         "GET  /api/postback/:provider": "Fallback for GET callbacks",
       },
       supportedProviders: providers,
-      docs: "Send POST request with token, userId/username/openId, amount, externalId",
+      docs: "Auth methods: cointo/revtoo use ?token=, gemiwall/clickwall/taskwall/adswedmedia use path-embedded secret, moustache/klink use HMAC-SHA256 signature",
     });
   });
 
@@ -59,6 +98,7 @@ async function handlePostback(req: Request, res: Response) {
     const token = params.token as string || "";
 
     // User identification: accept all common parameter names
+    // Thứ tự ưu tiên: userId > user_id > username > sub_id > subid > openId
     const userId = (
       params.userId as string || params.userid as string || params.user_id as string ||
       params.username as string ||
@@ -66,23 +106,30 @@ async function handlePostback(req: Request, res: Response) {
       params.openId as string || params.open_id as string || ""
     );
 
-    // Transaction ID: accept all common parameter names
     // Offer ID (needed before effectiveExternalId)
-    const offerId = params.offerId as string || params.offer_id as string || params.company_id as string || params.campaign_id as string || "";
+    const offerId = (
+      params.offerId as string || params.offer_id as string ||
+      params.company_id as string || params.campaign_id as string || ""
+    );
 
-    // TaskWall does not send transId — use offerId/password as fallback
-    // adswedmedia uses lowercase "transid" (no camelCase)
+    // Transaction ID: accept all common parameter names
+    // - adswedmedia / cointo : "transid" (lowercase, no camelCase)
+    // - revtoo / clickwall / moustache / klink: "transaction_id"
+    // - gemiwall: "uuid"
+    // - taskwall: không gửi transId → fallback về offerId
     const externalId = (
-      params.transid as string || params.transId as string || params.transactionId as string || params.transaction_id as string ||
-      params.externalId as string || params.external_id as string || params.txid as string ||
+      params.transid as string || params.transId as string ||
+      params.transactionId as string || params.transaction_id as string ||
+      params.externalId as string || params.external_id as string ||
+      params.txid as string || params.uuid as string ||
       params.password as string || ""
     );
 
-    // If still no externalId but we have offerId, use provider:offerId combo
+    // Nếu vẫn chưa có externalId nhưng có offerId, dùng provider:offerId
     const effectiveExternalId = externalId || (offerId ? `${provider}:${offerId}` : "");
 
     // Reward amount: accept all common parameter names
-    // Priority: payout/reward (USD value) first, then amount (may be points)
+    // Thứ tự ưu tiên: payout > reward > reward_value > round_reward > amount > user_amount
     const amount = (
       params.payout as string || params.reward as string ||
       params.reward_value as string || params.round_reward as string ||
@@ -118,6 +165,7 @@ async function handlePostback(req: Request, res: Response) {
     console.log(`[Postback] URL:        ${req.originalUrl}`);
     console.log(`[Postback] Provider:   ${provider}`);
     console.log(`[Postback] Token:      ${token ? "***MASKED***" : "EMPTY"}`);
+    console.log(`[Postback] Signature:  ${signature ? signature.substring(0, 8) + "***" : "EMPTY"}`);
     console.log(`[Postback] Query:      ${JSON.stringify(req.query)}`);
     console.log(`[Postback] Body:       ${JSON.stringify(req.body)}`);
     console.log(`[Postback] Parsed:     userId=${userId}, amount=${amount}, externalId=${effectiveExternalId}, offerName=${offerName}, openId=${openId}, payout=${payout}, username=${username}, status=${status}, offerId=${offerId}, offerType=${offerType}, debug=${debug}, companyId=${companyId}, userIp=${userIp}, country=${country}`);
@@ -128,35 +176,51 @@ async function handlePostback(req: Request, res: Response) {
       return res.status(400).json({ success: false, message: "Provider is required in URL path (e.g., /api/postback/gemiwall)" });
     }
 
-    // ===== Validate token =====
+    // ===== Validate & authenticate by provider auth method =====
     const expectedSecret = POSTBACK_SECRETS[provider];
     if (!expectedSecret) {
       console.error(`[Postback] ERROR: Unknown provider "${provider}". Known providers: ${Object.keys(POSTBACK_SECRETS).join(", ")}`);
       return res.status(400).json({ success: false, message: `Unknown provider: ${provider}` });
     }
-    if (!token) {
-      console.error(`[Postback] ERROR: Missing token for provider "${provider}"`);
-      return res.status(401).json({ success: false, message: "Authentication token is required (use ?token=YOUR_SECRET)" });
+
+    if (HMAC_PROVIDERS.has(provider)) {
+      // moustache / klink: xác thực bằng HMAC-SHA256 signature
+      if (!verifyHmacSignature(provider, expectedSecret, params, signature)) {
+        console.error(`[Postback] ERROR: Invalid HMAC signature for provider "${provider}"`);
+        return res.status(401).json({ success: false, message: "Invalid HMAC signature" });
+      }
+      console.log(`[Postback] HMAC signature verified OK for provider: ${provider}`);
+    } else if (PATH_AUTH_PROVIDERS.has(provider)) {
+      // gemiwall / clickwall / taskwall / adswedmedia:
+      // Secret đã nhúng trong URL path → không cần ?token=
+      // Chỉ log, không từ chối request
+      console.log(`[Postback] Path-auth provider "${provider}": secret embedded in URL path, skipping token check`);
+    } else {
+      // cointo / revtoo: xác thực bằng ?token= query param (plain match)
+      if (!token) {
+        console.error(`[Postback] ERROR: Missing token for provider "${provider}"`);
+        return res.status(401).json({ success: false, message: "Authentication token is required (use ?token=YOUR_SECRET)" });
+      }
+      if (token !== expectedSecret) {
+        console.error(`[Postback] ERROR: Invalid token for provider "${provider}". Expected: ${expectedSecret.substring(0, 4)}***, Got: ${token.substring(0, 4)}***`);
+        return res.status(401).json({ success: false, message: "Invalid authentication token" });
+      }
+      console.log(`[Postback] Token verified OK for provider: ${provider}`);
     }
-    if (token !== expectedSecret) {
-      console.error(`[Postback] ERROR: Invalid token for provider "${provider}". Expected: ${expectedSecret.substring(0, 4)}***, Got: ${token.substring(0, 4)}***`);
-      return res.status(401).json({ success: false, message: "Invalid authentication token" });
-    }
-    console.log(`[Postback] Token verified OK for provider: ${provider}`);
 
     // ===== Validate required fields =====
     if (!amount) {
-      console.error(`[Postback] ERROR: Missing amount for provider "${provider}"`);
+      console.error(`[Postback] ERROR: Missing amount for provider "${provider}". All params: ${JSON.stringify(params)}`);
       return res.status(400).json({ success: false, message: "Amount is required" });
     }
     if (!effectiveExternalId) {
-      console.error(`[Postback] ERROR: Missing externalId/transactionId for provider "${provider}"`);
+      console.error(`[Postback] ERROR: Missing externalId/transactionId for provider "${provider}". All params: ${JSON.stringify(params)}`);
       return res.status(400).json({ success: false, message: "externalId or transaction_id is required" });
     }
 
     // Must have either userId, username, or openId
     if (!userId && !openId && !username) {
-      console.error(`[Postback] ERROR: Neither userId, username, nor openId provided for provider "${provider}"`);
+      console.error(`[Postback] ERROR: Neither userId, username, nor openId provided for provider "${provider}". All params: ${JSON.stringify(params)}`);
       return res.status(400).json({ success: false, message: "userId, username, or openId is required" });
     }
 
