@@ -17,14 +17,15 @@ import { sseManager } from "./sse";
  *     ?token= query param plain-match với POSTBACK_SECRETS
  *
  * Chi tiết param từng provider:
- * - revtoo:      user_id=USERNAME  reward=AMOUNT  transaction_id=TXID
- * - cointo:      user_id=USERNAME  reward=AMOUNT  transaction_id=TXID
- * - gemiwall:    sub_id=USERNAME   reward=AMOUNT  uuid=TXID
- * - taskwall:    userid=USERNAME   reward=AMOUNT  password=TXID
- * - clickwall:   user_id=USERNAME  payout=AMOUNT  transaction_id=TXID
- * - adswedmedia: sub=USERNAME      reward=AMOUNT  transid=TXID
- * - klink:       userId=USERNAME   payout=AMOUNT  conversionId=TXID  (POST JSON)
- * - moustache:   user_id=USERNAME  payout=AMOUNT  transaction_id=TXID  signature=HMAC (tùy chọn)
+ * - revtoo:      user_id=USERNAME  reward=AMOUNT    transaction_id=TXID
+ * - cointo:      user_id=USERNAME  reward=AMOUNT    transaction_id=TXID
+ * - gemiwall:    sub_id=USERNAME   reward=AMOUNT    uuid=TXID
+ * - taskwall:    userid=USERNAME   reward=AMOUNT    password=TXID
+ * - clickwall:   user_id=USERNAME  payout=AMOUNT    transaction_id=TXID
+ * - adswedmedia: sub=USERNAME      reward=AMOUNT    transid=TXID
+ * - klink (GET): subId=USERNAME    payout=AMOUNT    transId=TXID    (GET query params)
+ * - klink (POST JSON): userId=USERNAME  payout=AMOUNT  conversionId=TXID
+ * - moustache:   user_id=USERNAME  payout=AMOUNT    transaction_id=TXID
  *
  * Idempotency: duplicate externalId + provider combos silently ignored
  */
@@ -101,43 +102,55 @@ async function handlePostback(req: Request, res: Response) {
 
     const token = params.token as string || "";
 
+    // ===== Helper: chỉ lấy giá trị nếu parse được thành số dương =====
+    function pickNumeric(...candidates: (string | undefined)[]): string {
+      for (const v of candidates) {
+        if (!v) continue;
+        const n = Number(v);
+        if (!isNaN(n) && n > 0) return v;
+      }
+      return "";
+    }
+
     // User identification: accept all common parameter names per provider
-    // - revtoo / clickwall / moustache / klink: user_id=
+    // - klink (GET query):  subId=  (camelCase, từ URL template Klink)
+    // - klink (POST JSON):  userId= (camelCase trong body)
+    // - revtoo / clickwall / moustache: user_id=
     // - gemiwall:    sub_id=
-    // - taskwall:    userid=  (lowercase, không camelCase)
-    // - adswedmedia: sub=     (một chữ)
-    // - klink POST JSON: userId= (camelCase trong body)
+    // - taskwall:    userid=  (lowercase)
+    // - adswedmedia: sub=    (1 chữ)
     const userId = (
+      params.subId as string ||        // klink GET query (subId camelCase)
       params.userId as string ||       // klink POST JSON body
-      params.user_id as string ||       // revtoo, clickwall, moustache, klink query
-      params.userid as string ||        // taskwall (lowercase)
-      params.sub_id as string ||        // gemiwall
-      params.sub as string ||           // adswedmedia (1 chữ)
-      params.subId as string ||         // generic camelCase
-      params.subid as string ||         // generic lowercase
-      params.username as string ||      // generic fallback
+      params.user_id as string ||      // revtoo, clickwall, moustache
+      params.userid as string ||       // taskwall (lowercase)
+      params.sub_id as string ||       // gemiwall
+      params.sub as string ||          // adswedmedia (1 chữ)
+      params.subid as string ||        // generic lowercase
+      params.username as string ||     // generic fallback
       params.openId as string ||
       params.open_id as string || ""
     );
 
-    // Offer ID (needed before effectiveExternalId)
+    // Offer ID
     const offerId = (
       params.offerId as string || params.offer_id as string ||
       params.company_id as string || params.campaign_id as string || ""
     );
 
     // Transaction ID: accept all common parameter names per provider
-    // - klink POST JSON: conversionId=
+    // - klink (GET query): transId= (camelCase, từ URL template Klink)
+    // - klink (POST JSON): conversionId=
     // - revtoo / clickwall / moustache: transaction_id=
     // - gemiwall: uuid=
-    // - taskwall: password=  (taskwall dùng password field làm txid)
-    // - adswedmedia: transid=  (có thể là "auto-id" hoặc trống → fallback)
+    // - taskwall: password=
+    // - adswedmedia: transid=
     const rawTransId = (
+      params.transId as string ||         // klink GET query (camelCase)
       params.conversionId as string ||    // klink POST JSON
       params.transaction_id as string ||  // revtoo, clickwall, moustache
       params.transactionId as string ||   // camelCase fallback
       params.transid as string ||         // adswedmedia
-      params.transId as string ||         // camelCase transid
       params.uuid as string ||            // gemiwall
       params.password as string ||        // taskwall
       params.externalId as string ||
@@ -145,28 +158,40 @@ async function handlePostback(req: Request, res: Response) {
       params.txid as string || ""
     );
 
-    // Adswed transid auto-generated = "auto-id" string hoặc các giá trị không unique
-    // → tạo fallback unique từ timestamp + userId + offerId để tránh DUP CHECK block
+    // Adswed transid auto-generated = "auto-id" hoặc trống → fallback unique
     const isAutoTransId = !rawTransId || rawTransId === "auto-id" || rawTransId === "0";
     const externalId = isAutoTransId
       ? `${provider}:${userId || "u"}:${offerId || "o"}:${Date.now()}`
       : rawTransId;
 
-    // Nếu vẫn chưa có externalId nhưng có offerId, dùng provider:offerId
     const effectiveExternalId = externalId || (offerId ? `${provider}:${offerId}` : "");
 
-    // Reward amount: accept all common parameter names per provider
-    // - clickwall / moustache / klink POST JSON: payout=
-    // - revtoo / gemiwall / taskwall / adswedmedia / cointo: reward=
-    // - fallback: reward_value, round_reward, amount, user_amount
-    const amount = (
-      params.reward as string ||          // revtoo, gemiwall, taskwall, adswedmedia, cointo
-      params.payout as string ||          // clickwall, moustache, klink
-      params.reward_value as string ||
-      params.round_reward as string ||
-      params.amount as string ||
-      params.user_amount as string || ""
-    );
+    // Reward amount: ưu tiên theo provider để tránh nhận sai field
+    // Klink gửi cả reward= VÀ payout= trong cùng 1 request
+    // → Klink dùng payout= (reward= là tên offer wall nội bộ, không phải số tiền)
+    // → Các provider khác dùng reward= trước payout=
+    // Dùng pickNumeric() để bỏ qua các giá trị không parse được thành số (VD: template chưa fill)
+    let amount: string;
+    if (provider === "klink" || provider === "clickwall" || provider === "moustache") {
+      // provider dùng payout= là field chính
+      amount = pickNumeric(
+        params.payout as string,
+        params.reward as string,
+        params.reward_value as string,
+        params.amount as string,
+        params.user_amount as string,
+      );
+    } else {
+      // revtoo, gemiwall, taskwall, adswedmedia, cointo dùng reward= là field chính
+      amount = pickNumeric(
+        params.reward as string,
+        params.payout as string,
+        params.reward_value as string,
+        params.round_reward as string,
+        params.amount as string,
+        params.user_amount as string,
+      );
+    }
 
     // Offer name
     const offerName = params.offerName as string || params.offer_name as string || "";
