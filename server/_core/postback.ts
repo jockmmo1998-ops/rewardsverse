@@ -33,6 +33,8 @@ const USER_FIELDS = [
   "click_user",
   // OAuth
   "openId", "open_id",
+  // GemiAds specific
+  "publisher_sub_id", "pub_sub_id",
 ];
 
 /** All parameter names that carry a reward amount */
@@ -41,6 +43,8 @@ const REWARD_FIELDS = [
   "reward_amount", "reward_value", "round_reward",
   "coins", "points", "credit", "earnings",
   "user_amount",
+  // GemiAds specific
+  "sale_amount", "commission",
 ];
 
 /** All parameter names that carry a transaction / conversion ID */
@@ -50,13 +54,13 @@ const TXID_FIELDS = [
   // snake_case
   "transaction_id", "conversion_id",
   // short forms
-  "transid", "tid", "tx",
-  // UUID style (Gemiwall)
+  "transid", "tid", "tx", "txid",
+  // UUID style (Gemiwall / GemiAds)
   "uuid",
   // click / lead / event IDs
   "click_id", "clickid", "lead_id", "event_id",
   // generic
-  "id", "externalId", "external_id", "txid",
+  "id", "externalId", "external_id",
   // Taskwall quirk: password field carries txid
   "password",
 ];
@@ -68,9 +72,19 @@ const OFFER_NAME_FIELDS = [
   "task", "title", "app_name",
 ];
 
-/** Status values that mean "completed / approved" */
+/**
+ * Status values that mean "completed / approved".
+ * All comparisons are done after .trim().toLowerCase() so casing never matters.
+ * "conversion" is included because KlinkLabs sends eventType=conversion as a
+ * status signal.  "ok" and "confirm*" variants cover additional providers.
+ */
 const COMPLETED_STATUSES = new Set([
-  "approved", "complete", "completed", "1", "true", "success",
+  "approved", "approve",
+  "complete", "completed",
+  "success", "succeeded",
+  "confirmed", "confirm",
+  "conversion",            // KlinkLabs eventType value used as status
+  "1", "true", "ok",
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -89,18 +103,22 @@ function pick(params: Record<string, any>, fields: string[]): string {
 }
 
 /**
- * Pick the first value that parses as a positive finite number.
- * Skips template placeholders like "{REWARD}" or "0".
+ * Pick the first value that parses as a non-negative finite number.
+ * Returns the string as-is (e.g. "0", "0.50") so the caller can decide
+ * how to handle zero-value test postbacks.
+ * Skips template placeholders like "{REWARD}" or "[AMOUNT]".
  */
 function pickNumeric(params: Record<string, any>, fields: string[]): string {
   for (const f of fields) {
     const v = params[f];
-    if (!v) continue;
+    // Allow explicit "0" — only skip undefined/null/empty
+    if (v === undefined || v === null) continue;
     const s = String(v).trim();
-    // reject template placeholders e.g. {AMOUNT}, [AMOUNT]
+    if (s === "") continue;
+    // Reject template placeholders e.g. {AMOUNT}, [AMOUNT]
     if (/^[\[{]/.test(s)) continue;
     const n = Number(s);
-    if (!isNaN(n) && isFinite(n) && n > 0) return s;
+    if (!isNaN(n) && isFinite(n) && n >= 0) return s;
   }
   return "";
 }
@@ -207,14 +225,18 @@ async function handlePostback(req: Request, res: Response) {
   const rawQuery   = JSON.stringify(req.query);
   const rawBody    = JSON.stringify(req.body);
 
-  // Merge query + body — query takes priority for auth tokens, body for payload
-  const params: Record<string, any> = { ...req.body, ...req.query };
+  // Merge query + body.
+  // Body wins for payload fields (status, reward, userId) so that POST JSON /
+  // form-encoded providers like KlinkLabs are not overridden by query-string
+  // token params. Query wins only for fields not present in the body.
+  const params: Record<string, any> = { ...req.query, ...req.body };
 
   console.log(`[Postback] ──────────────────────────────────────────────`);
   console.log(`[Postback] RECEIVED  ${req.method} /api/postback/${provider}`);
   console.log(`[Postback] IP: ${remoteIp}  Time: ${timestamp}`);
-  console.log(`[Postback] Query:  ${rawQuery}`);
-  console.log(`[Postback] Body:   ${rawBody}`);
+  console.log(`[Postback] Query  : ${rawQuery}`);
+  console.log(`[Postback] Body   : ${rawBody}`);
+  console.log(`[Postback] Headers: content-type=${req.headers["content-type"] || "none"}`);
 
   // ── Helper: write detailed log row and return res ──────────────────────────
   async function respond(
@@ -299,31 +321,50 @@ async function handlePostback(req: Request, res: Response) {
       console.warn(`[Postback][${provider}] No secret configured — processing without auth`);
     }
 
-    // ── 3. Extract status (optional — some providers only ping on completion) ─
-    const statusRaw = pick(params, ["status", "state", "completed", "approved"]);
-    // If status is provided but is NOT a completed value, skip silently
-    if (statusRaw && !COMPLETED_STATUSES.has(statusRaw.toLowerCase())) {
-      console.log(`[Postback][${provider}] Status="${statusRaw}" is not a completed state — skipping`);
-      return respond(200, { success: true, message: "Postback received but status is not completed — skipped" },
-        "failed", 0, "", "", "");
+    // ── 3. Extract status ──────────────────────────────────────────────────
+    // Read from any common status field name. Note: "eventType" is included
+    // because KlinkLabs uses eventType=conversion as its completion signal.
+    // Field names "completed" and "approved" are intentionally NOT in this
+    // list as they are values, not field names — using them as keys caused
+    // false-positive skips when the field was absent (picked as undefined).
+    const statusRaw = pick(params, ["status", "state", "event_type", "eventType", "event", "type"]);
+    const statusNorm = statusRaw.toLowerCase().trim();
+
+    console.log(`[Postback][${provider}] Raw status field="${statusRaw}" normalised="${statusNorm}"`);
+
+    // If a status field IS present but is not a known completed value → skip.
+    // If NO status field is present (empty string) → assume completed (many
+    // providers only POST on completion and omit the status field entirely).
+    if (statusNorm !== "" && !COMPLETED_STATUSES.has(statusNorm)) {
+      console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed value — skipping`);
+      return respond(200, {
+        success: true,
+        message: `Postback received but status "${statusRaw}" is not a completed state — skipped`,
+        receivedStatus: statusRaw,
+        acceptedValues: Array.from(COMPLETED_STATUSES),
+      }, "failed", 0, "", "", "");
     }
 
     // ── 4. Extract user identifier ─────────────────────────────────────────
     const rawUserId = pick(params, USER_FIELDS);
     if (!rawUserId) {
-      console.error(`[Postback][${provider}] No user identifier found in params:`, rawQuery, rawBody);
+      console.error(`[Postback][${provider}] No user identifier found. Query: ${rawQuery}  Body: ${rawBody}`);
       return respond(400, {
         success: false,
         message: "Missing user identifier",
-        hint: `Provide one of: ${USER_FIELDS.slice(0, 8).join(", ")}, ...`,
+        hint: `Provide one of: ${USER_FIELDS.slice(0, 10).join(", ")}, ...`,
         receivedParams: Object.keys(params),
       }, "failed", 0, "", "", "", "missing_user_id");
     }
 
     // ── 5. Extract reward amount ───────────────────────────────────────────
     const rawAmount = pickNumeric(params, REWARD_FIELDS);
-    if (!rawAmount) {
-      console.error(`[Postback][${provider}] No valid reward amount in params:`, rawQuery, rawBody);
+
+    // Log every parsed field before any validation so debugging is easy
+    console.log(`[Postback][${provider}] Detected → status="${statusNorm}" user="${rawUserId}" reward="${rawAmount}" params=${JSON.stringify(Object.keys(params))}`);
+
+    if (rawAmount === "") {
+      console.error(`[Postback][${provider}] No numeric reward field found. Query: ${rawQuery}  Body: ${rawBody}`);
       return respond(400, {
         success: false,
         message: "Missing or invalid reward amount",
@@ -331,7 +372,20 @@ async function handlePostback(req: Request, res: Response) {
         receivedParams: Object.keys(params),
       }, "failed", 0, "", "", "", "missing_amount");
     }
+
     const reward = parseFloat(rawAmount);
+
+    // payout=0 is valid for test postbacks — log it clearly but continue
+    if (reward === 0) {
+      console.warn(`[Postback][${provider}] ⚠ Test reward = 0 (payout=0 received). Logging but NOT crediting balance.`);
+      return respond(200, {
+        success: true,
+        message: "Test postback received (reward=0) — balance not updated",
+        testPostback: true,
+        detectedUser: rawUserId,
+        detectedReward: "0",
+      }, "processed", 0, "0", "", "");
+    }
 
     // ── 6. Extract transaction ID ──────────────────────────────────────────
     let rawTxid = pick(params, TXID_FIELDS);
