@@ -40,6 +40,8 @@ const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
   cointo: (u) => `https://cointomedia.com/offer/Po5Qt6/${encodeURIComponent(u)}`,
   klink: (u) =>
     `https://offerwall.klinkfinance.com/wall?pub_id=b4f89770-d4da-42c1-8fee-03303dd14401&user_id=${encodeURIComponent(u)}`,
+  adswedmedia: (u) =>
+    `https://adswedmedia.com/offer/Ao6Po6/${encodeURIComponent(u)}`,
 };
 
 // ===== POSTBACK PROVIDER SECRETS =====
@@ -54,6 +56,7 @@ export const POSTBACK_SECRETS: Record<string, string> = {
   taskwall: "0640f51b6a17749572b508423c387b00",
   cointo: "Fp2Lr9Gx2Ay2Ri8",
   klink: "b4f89770-d4da-42c1-8fee-03303dd14401",
+  adswedmedia: "Au6Ue9Lg5Fh4Jr2",
 };
 
 export const appRouter = router({
