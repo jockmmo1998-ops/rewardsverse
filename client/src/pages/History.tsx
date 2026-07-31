@@ -50,6 +50,7 @@ export default function History() {
 
   useSSE({
     onPostback: () => { historyQuery.refetch(); refreshProfile(); },
+    onBalanceUpdate: () => { historyQuery.refetch(); refreshProfile(); },
     onError: (err) => console.error("[History] SSE:", err),
     enabled: !!user?.id,
   });
