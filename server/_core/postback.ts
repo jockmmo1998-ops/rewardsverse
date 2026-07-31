@@ -24,11 +24,14 @@ import { sseManager } from "./sse";
  * Idempotency: duplicate externalId + provider combos are silently ignored
  */
 
-// Các provider không gửi ?token= vì secret đã nhúng trong URL path
-// → Server xác thực qua routing (URL path đã chứa secret), không cần token param
-const PATH_AUTH_PROVIDERS = new Set(["gemiwall", "clickwall", "taskwall", "adswedmedia"]);
+// Các provider xác thực bằng ?token= plain-match trong query string
+// cointo / revtoo: token khớp là đủ, signature param (nếu có) bị bỏ qua
+// gemiwall / taskwall / adswedmedia / clickwall: URL postback có ?token= nhưng server
+//   vẫn dùng plain-match vì các provider này không dùng HMAC - chỉ cần token đúng
+const TOKEN_AUTH_PROVIDERS = new Set(["cointo", "revtoo", "gemiwall", "taskwall", "adswedmedia", "clickwall"]);
 
 // Các provider dùng HMAC-SHA256 signature thay vì plain token
+// moustache / klink: xác thực qua param ?signature= (HMAC-SHA256 toàn bộ query params)
 const HMAC_PROVIDERS = new Set(["moustache", "klink"]);
 
 /**
@@ -59,7 +62,7 @@ export function registerPostbackRoutes(app: Express) {
   app.get("/api/postback", (req, res) => {
     const providers = Object.keys(POSTBACK_SECRETS).map(p => ({
       name: p,
-      authMethod: HMAC_PROVIDERS.has(p) ? "hmac-sha256" : PATH_AUTH_PROVIDERS.has(p) ? "path-embedded" : "token-query-param",
+      authMethod: HMAC_PROVIDERS.has(p) ? "hmac-sha256" : "token-query-param",
       hasSecret: !!POSTBACK_SECRETS[p],
     }));
     return res.json({
@@ -71,7 +74,7 @@ export function registerPostbackRoutes(app: Express) {
         "GET  /api/postback/:provider": "Fallback for GET callbacks",
       },
       supportedProviders: providers,
-      docs: "Auth methods: cointo/revtoo use ?token=, gemiwall/clickwall/taskwall/adswedmedia use path-embedded secret, moustache/klink use HMAC-SHA256 signature",
+      docs: "Auth: moustache/klink use HMAC-SHA256 ?signature=; all others use plain ?token= match",
     });
   });
 
@@ -190,13 +193,9 @@ async function handlePostback(req: Request, res: Response) {
         return res.status(401).json({ success: false, message: "Invalid HMAC signature" });
       }
       console.log(`[Postback] HMAC signature verified OK for provider: ${provider}`);
-    } else if (PATH_AUTH_PROVIDERS.has(provider)) {
-      // gemiwall / clickwall / taskwall / adswedmedia:
-      // Secret đã nhúng trong URL path → không cần ?token=
-      // Chỉ log, không từ chối request
-      console.log(`[Postback] Path-auth provider "${provider}": secret embedded in URL path, skipping token check`);
     } else {
-      // cointo / revtoo: xác thực bằng ?token= query param (plain match)
+      // cointo / revtoo / gemiwall / taskwall / adswedmedia / clickwall:
+      // Xác thực bằng ?token= plain-match (signature param nếu có sẽ bị bỏ qua)
       if (!token) {
         console.error(`[Postback] ERROR: Missing token for provider "${provider}"`);
         return res.status(401).json({ success: false, message: "Authentication token is required (use ?token=YOUR_SECRET)" });
