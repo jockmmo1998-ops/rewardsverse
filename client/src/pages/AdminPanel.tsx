@@ -28,6 +28,9 @@ import {
   ArrowUpRight,
   Trophy,
   Copy,
+  Link2,
+  ShieldCheck,
+  Key,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -35,6 +38,77 @@ export default function AdminPanel() {
   const { user, loading, logout, isAdmin, refreshProfile, activities } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const BASE_URL = "https://rewardsverse.online";
+
+  // Danh sách postback URL cho tất cả 8 tường ưu đãi
+  // subId / userid / user_id = {placeholder} mà provider sẽ tự điền username của user
+  const POSTBACK_URLS: { provider: string; label: string; color: string; authMethod: string; url: string }[] = [
+    {
+      provider: "revtoo",
+      label: "Revtoo",
+      color: "text-blue-400 border-blue-500/30 bg-blue-500/10",
+      authMethod: "token",
+      url: `${BASE_URL}/api/postback/revtoo?token=7y9n22mjsz0c3ujyncuomz95k6p31p&subId={subId}&transId={transId}&payout={payout}&offer_name={offer_name}&status={status}`,
+    },
+    {
+      provider: "cointo",
+      label: "Cointo",
+      color: "text-green-400 border-green-500/30 bg-green-500/10",
+      authMethod: "token",
+      url: `${BASE_URL}/api/postback/cointo?token=Fp2Lr9Gx2Ay2Ri8&subId={subId}&transId={transId}&reward={reward}&payout={payout}&offer_name={offer_name}&status={status}`,
+    },
+    {
+      provider: "gemiwall",
+      label: "Gemiwall",
+      color: "text-yellow-400 border-yellow-500/30 bg-yellow-500/10",
+      authMethod: "token",
+      url: `${BASE_URL}/api/postback/gemiwall?token=6987046ad95123da06330801&subId={subId}&transId={transId}&reward={reward}&payout={payout}&offer_name={offer_name}&status={status}`,
+    },
+    {
+      provider: "taskwall",
+      label: "Taskwall",
+      color: "text-orange-400 border-orange-500/30 bg-orange-500/10",
+      authMethod: "token",
+      url: `${BASE_URL}/api/postback/taskwall?token=0640f51b6a17749572b508423c387b00&userid={userid}&user_amount={user_amount}&offer_name={offer_name}&offer_id={offer_id}&payout={payout}&password={password}&app_name={app_name}&date={date}`,
+    },
+    {
+      provider: "adswedmedia",
+      label: "Adswed Media",
+      color: "text-pink-400 border-pink-500/30 bg-pink-500/10",
+      authMethod: "token",
+      url: `${BASE_URL}/api/postback/adswedmedia?token=Au6Ue9Lg5Fh4Jr2&user_id={subId}&reward={payout}&transid={transid}&offer_name={offer_name}&offer_id={offer_id}`,
+    },
+    {
+      provider: "moustache",
+      label: "Moustache",
+      color: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
+      authMethod: "hmac",
+      url: `${BASE_URL}/api/postback/moustache?token=B6GScgjbtwvjAJRH4P5Fzhx4iXBk7I7L&subId={subId}&transId={transId}&reward={reward}&payout={payout}&offer_name={offer_name}&status={status}&signature={signature}&company_id={company_id}`,
+    },
+    {
+      provider: "klink",
+      label: "Klink Finance",
+      color: "text-purple-400 border-purple-500/30 bg-purple-500/10",
+      authMethod: "hmac",
+      url: `${BASE_URL}/api/postback/klink?token=b4f89770-d4da-42c1-8fee-03303dd14401&subId={subId}&transId={transId}&reward={reward}&payout={payout}&offer_name={offer_name}&status={status}&signature={signature}&company_id={company_id}`,
+    },
+    {
+      provider: "clickwall",
+      label: "Clickwall",
+      color: "text-red-400 border-red-500/30 bg-red-500/10",
+      authMethod: "token",
+      url: `${BASE_URL}/api/postback/clickwall?token=10621&subId={subId}&transId={transId}&reward={reward}&payout={payout}&offer_name={offer_name}&status={status}`,
+    },
+  ];
+
+  const copyToClipboard = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    toast.success("Đã copy Postback URL!");
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   const statsQuery = trpc.admin.getStats.useQuery();
   const withdrawalsQuery = trpc.admin.getWithdrawals.useQuery();
@@ -357,6 +431,70 @@ export default function AdminPanel() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Postback URLs */}
+          <Card className="border-border/50 bg-card/50 mt-6">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Link2 className="w-5 h-5 text-green-400" />
+                  Postback URLs — Cấu hình trong dashboard từng tường ưu đãi
+                </CardTitle>
+                <Badge variant="outline" className="text-[9px] px-2 py-0 h-5 border-green-500/30 text-green-400 bg-green-500/10 font-bold">
+                  8 PROVIDERS
+                </Badge>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Copy URL rồi dán vào mục "Postback URL" / "Callback URL" trong dashboard của từng nhà cung cấp.
+                Các placeholder như <code className="text-green-400">{"{subId}"}</code> sẽ được provider tự điền khi gửi về.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {POSTBACK_URLS.map((pb) => (
+                  <div key={pb.provider} className="rounded-lg border border-border/50 bg-background/50 p-3 hover:border-border transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={`text-[10px] px-2 py-0 h-5 font-bold ${pb.color}`}>
+                          {pb.label.toUpperCase()}
+                        </Badge>
+                        <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 ${
+                          pb.authMethod === "hmac"
+                            ? "border-purple-500/30 text-purple-400 bg-purple-500/10"
+                            : "border-cyan-500/30 text-cyan-400 bg-cyan-500/10"
+                        }`}>
+                          {pb.authMethod === "hmac" ? (
+                            <><ShieldCheck className="w-2.5 h-2.5 mr-1 inline" />HMAC-SHA256</>
+                          ) : (
+                            <><Key className="w-2.5 h-2.5 mr-1 inline" />TOKEN</>
+                          )}
+                        </Badge>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(pb.url, pb.provider)}
+                        className={`h-7 px-3 text-[10px] font-bold transition-all ${
+                          copiedKey === pb.provider
+                            ? "border-green-500/50 text-green-400 bg-green-500/10"
+                            : "border-border/50 text-muted-foreground hover:border-green-500/30 hover:text-green-400"
+                        }`}
+                      >
+                        {copiedKey === pb.provider ? (
+                          <><CheckCircle2 className="w-3 h-3 mr-1" />Copied!</>
+                        ) : (
+                          <><Copy className="w-3 h-3 mr-1" />Copy URL</>
+                        )}
+                      </Button>
+                    </div>
+                    <code className="block text-[10px] text-muted-foreground bg-background/80 rounded px-3 py-2 border border-border/30 break-all leading-relaxed font-mono select-all">
+                      {pb.url}
+                    </code>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       </main>
     </div>
