@@ -164,7 +164,8 @@ export async function updateUserProfile(userId: number, update: Partial<InsertUs
 
 export async function addBalance(userId: number, amount: number) {
   const db = await getDb();
-  if (!db) return;
+  // Throw rõ ràng nếu DB không kết nối được — không silent-return để caller biết lỗi
+  if (!db) throw new Error("[DB] DATABASE_URL not configured or DB connection failed — cannot credit user balance");
   await db
     .update(users)
     .set({
@@ -176,7 +177,7 @@ export async function addBalance(userId: number, amount: number) {
 
 export async function deductBalance(userId: number, amount: number) {
   const db = await getDb();
-  if (!db) return;
+  if (!db) throw new Error("[DB] DATABASE_URL not configured or DB connection failed — cannot deduct balance");
   await db
     .update(users)
     .set({ balance: sql`balance - ${amount}` })
@@ -185,7 +186,7 @@ export async function deductBalance(userId: number, amount: number) {
 
 export async function addXP(userId: number, amount: number) {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return; // XP là non-critical, không throw
   await db
     .update(users)
     .set({ xp: sql`xp + ${amount}` })
@@ -194,7 +195,7 @@ export async function addXP(userId: number, amount: number) {
 
 export async function incrementOffers(userId: number) {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return; // non-critical
   await db
     .update(users)
     .set({ offersCompleted: sql`offersCompleted + 1` })
