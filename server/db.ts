@@ -10,6 +10,7 @@ import {
   InsertWalletTransaction,
   InsertOfferHistory,
   InsertNotification,
+  InsertPostbackLog,
   users,
   withdrawals,
   earnings,
@@ -19,6 +20,7 @@ import {
   walletTransactions,
   offerHistory,
   notifications,
+  postbackLogs,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -494,4 +496,56 @@ export async function markAllNotificationsAsRead(userId: number) {
   const db = await getDb();
   if (!db) return;
   await db.update(notifications).set({ isRead: 1 }).where(and(eq(notifications.userId, userId), eq(notifications.isRead, 0)));
+}
+
+// ===== POSTBACK LOGS (detailed audit trail) =====
+
+export async function logPostbackDetail(data: InsertPostbackLog) {
+  const db = await getDb();
+  if (!db) return; // non-critical — never crash if DB unavailable
+  try {
+    await db.insert(postbackLogs).values({
+      ...data,
+      // Truncate headers/body to 8 KB each to avoid row size issues
+      headers:     data.headers?.substring(0, 8000),
+      queryParams: data.queryParams?.substring(0, 4000),
+      bodyParams:  data.bodyParams?.substring(0, 4000),
+      result:      data.result?.substring(0, 4000),
+      errorMessage: data.errorMessage?.substring(0, 1000),
+    });
+  } catch (err) {
+    console.warn("[DB] logPostbackDetail insert failed (non-critical):", (err as any)?.message);
+  }
+}
+
+export async function getPostbackLogs(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(postbackLogs)
+    .orderBy(desc(postbackLogs.createdAt))
+    .limit(limit);
+}
+
+export async function getPostbackLogsByProvider(provider: string, limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(postbackLogs)
+    .where(eq(postbackLogs.provider, provider))
+    .orderBy(desc(postbackLogs.createdAt))
+    .limit(limit);
+}
+
+export async function getPostbackLogsByUser(userId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(postbackLogs)
+    .where(eq(postbackLogs.userId, userId))
+    .orderBy(desc(postbackLogs.createdAt))
+    .limit(limit);
 }
