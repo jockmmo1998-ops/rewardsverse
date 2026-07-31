@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { playBellSound } from "@/utils/bellSound";
+import { useSSE } from "@/hooks/useSSE";
 import {
   LayoutDashboard, Gift as OfferIcon, Wallet, History as HistoryIcon,
   LogOut, Coins, X, ExternalLink, Star, DollarSign, Cpu, Users,
@@ -82,6 +83,16 @@ export default function OfferWalls() {
     setTimeout(() => refreshProfile(), 1000);
     setActiveWall(null); setWallUrl("");
   }, [refreshProfile]);
+
+  // ── Real-time SSE: nhận notification ngay khi postback đến ──
+  useSSE({
+    onPostback: async (event) => {
+      await playBellSound().catch(() => {});
+      toast.success(`🎉 +$${event.amount.toFixed(2)} từ ${event.provider}${event.offerName ? ` — ${event.offerName}` : ""}`, { duration: 6000 });
+      refreshProfile();
+      setTimeout(() => refreshProfile(), 1500);
+    },
+  });
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-10 h-10 border-2 border-green-400 border-t-transparent rounded-full animate-spin glow-green" /></div>;
   if (!user) return null;
