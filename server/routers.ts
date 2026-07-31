@@ -486,7 +486,7 @@ export const appRouter = router({
       return { earnings: earningsList, withdrawals: withdrawalList };
     }),
 
-    // NEW: Refresh history endpoint for client polling
+    // Refresh history endpoint for client polling
     refreshHistory: protectedProcedure.query(async ({ ctx }) => {
       const user = await db.getUserByOpenId(ctx.user.openId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
@@ -495,6 +495,49 @@ export const appRouter = router({
         db.getWithdrawalsByUserId(user.id),
       ]);
       return { earnings: earningsList, withdrawals: withdrawalList, timestamp: new Date().toISOString() };
+    }),
+
+    // Offer history (postback completions per provider)
+    getOfferHistory: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      return db.getOfferHistoryByUserId(user.id);
+    }),
+
+    // Wallet transactions (credit/debit ledger)
+    getWalletTransactions: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      return db.getWalletTransactionsByUserId(user.id);
+    }),
+  }),
+
+  // ===== NOTIFICATIONS =====
+  notifications: router({
+    getAll: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      return db.getNotificationsByUserId(user.id);
+    }),
+
+    getUnread: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      return db.getUnreadNotificationsByUserId(user.id);
+    }),
+
+    markRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.markNotificationAsRead(input.id);
+        return { success: true };
+      }),
+
+    markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      await db.markAllNotificationsAsRead(user.id);
+      return { success: true };
     }),
   }),
 
