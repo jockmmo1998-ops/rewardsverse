@@ -29,7 +29,9 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 
 // ===== OFFER WALL URL CONFIG =====
 const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
-  gemiwall: () => "https://gemiwall.com/6987046ad95123da06330801/jockmmo1998/",
+  // Gemiwall: userId phải được truyền qua query param sub_id để postback trả về đúng user
+  gemiwall: (u) =>
+    `https://gemiwall.com/6987046ad95123da06330801/${encodeURIComponent(u)}/`,
   revtoo: (u) =>
     `https://revtoo.com/offerwall/7y9n22mjsz0c3ujyncuomz95k6p31p/${encodeURIComponent(u)}`,
   clickwall: (u) => `https://clickwall.net/app/iframe/10621/${encodeURIComponent(u)}`,
