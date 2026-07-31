@@ -353,14 +353,30 @@ async function handlePostback(req: Request, res: Response) {
     console.log(`[Postback] User resolved: id=${user.id}, username=${user.username}, currentBalance=${user.balance}`);
 
     // ===== Credit the user =====
+    // QUAN TRỌNG: addBalance là critical — nếu fail thì trả 500, KHÔNG cộng tiền rồi bỏ qua
     console.log(`[Postback] Crediting $${reward.toFixed(2)} + 15 XP to user ${user.username} (id=${user.id})`);
 
     try {
       await db.addBalance(user.id, reward);
       console.log(`[Postback] Balance updated OK`);
-    } catch (err) {
-      console.error(`[Postback] ERROR: Failed to update balance:`, err);
-      throw err;
+    } catch (err: any) {
+      console.error(`[Postback] CRITICAL: addBalance FAILED for user ${user.id}:`, err?.message || err);
+      console.error(`[Postback] DATABASE_URL set?`, !!process.env.DATABASE_URL);
+      // Ghi log postback với status=failed để dễ debug
+      await db.logPostback({
+        provider,
+        externalId: String(effectiveExternalId),
+        userId: user.id,
+        amount: reward.toFixed(2),
+        offerName: offerName || "",
+        status: "failed",
+      }).catch(() => {});
+      return res.status(500).json({
+        success: false,
+        message: "Failed to credit user balance — DB error",
+        error: err?.message || String(err),
+        hint: "Check server logs. Possible causes: DATABASE_URL not set, DB connection failed, or missing migration.",
+      });
     }
 
     try {

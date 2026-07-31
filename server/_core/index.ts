@@ -77,6 +77,85 @@ async function startServer() {
   registerOAuthRoutes(app);
   registerPostbackRoutes(app);
 
+  // ── TEST ENDPOINT: Mô phỏng postback mà không cần offer wall thật ──
+  // Dùng để kiểm tra DB connection, balance credit, SSE end-to-end
+  // GET /api/postback/test?username=Admin&amount=0.01&provider=gemiwall
+  app.get("/api/postback/test", async (req, res) => {
+    const username = (req.query.username as string) || "Admin";
+    const amount   = parseFloat((req.query.amount as string) || "0.01");
+    const provider = (req.query.provider as string) || "test";
+
+    const dbConn = await (await import("../db")).getDb();
+    const dbStatus = dbConn ? "connected" : "DISCONNECTED — DATABASE_URL missing or invalid";
+
+    if (!dbConn) {
+      return res.status(500).json({
+        success: false,
+        step: "db_connect",
+        dbStatus,
+        hint: "Set DATABASE_URL in .env and restart server",
+      });
+    }
+
+    // Tìm user
+    const user = await (await import("../db")).getUserByUsername(username);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        step: "find_user",
+        dbStatus,
+        searched: username,
+        hint: `User "${username}" not found. Check username (case-insensitive). Registered users only.`,
+      });
+    }
+
+    const balanceBefore = parseFloat(user.balance || "0");
+
+    // Credit balance
+    try {
+      await (await import("../db")).addBalance(user.id, amount);
+    } catch (err: any) {
+      return res.status(500).json({
+        success: false,
+        step: "addBalance",
+        dbStatus,
+        error: err?.message,
+        hint: "DB connected but addBalance failed — check DB schema (run migrations).",
+      });
+    }
+
+    // Fetch updated balance
+    const updated = await (await import("../db")).getUserById(user.id);
+    const balanceAfter = parseFloat(updated?.balance || "0");
+
+    // Ghi earning
+    await (await import("../db")).addEarning({
+      userId: user.id,
+      amount: amount.toFixed(2),
+      type: "offer",
+      source: `[${provider}] Test postback`,
+    }).catch(() => {});
+
+    // Gửi SSE event
+    sseManager.sendPostbackEvent(user.id, {
+      type: "postback",
+      provider,
+      amount,
+      offerName: "Test Offer",
+      timestamp: new Date().toISOString(),
+    });
+
+    return res.json({
+      success: true,
+      message: `✅ Test postback OK — credited $${amount} to ${username}`,
+      user: { id: user.id, username: user.username },
+      balance: { before: balanceBefore.toFixed(2), after: balanceAfter.toFixed(2), credited: amount.toFixed(2) },
+      dbStatus,
+      sseSent: true,
+      hint: "Nếu balance tăng đúng → DB + postback flow hoạt động bình thường.",
+    });
+  });
+
   // SSE endpoint cho real-time notifications
   app.get("/api/sse/subscribe", (req, res) => {
     const userId = req.query.userId as string;
