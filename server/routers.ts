@@ -519,6 +519,22 @@ export const appRouter = router({
       return db.getAllWithdrawals("pending");
     }),
 
+    // Tra cứu user theo username để lấy userId cho việc test postback
+    getUserInfo: adminProcedure
+      .input(z.object({ username: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const user = await db.getUserByUsername(input.username);
+        if (!user) throw new TRPCError({ code: "NOT_FOUND", message: `User "${input.username}" không tồn tại` });
+        return {
+          id: user.id,
+          username: user.username,
+          openId: user.openId,
+          balance: user.balance,
+          xp: user.xp,
+          offersCompleted: user.offersCompleted,
+        };
+      }),
+
     // Promote tài khoản đang đăng nhập thành admin bằng ADMIN_SECRET
     promoteByPassword: protectedProcedure
       .input(z.object({ secret: z.string().min(1) }))
