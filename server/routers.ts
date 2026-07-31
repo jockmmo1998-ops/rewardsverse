@@ -29,35 +29,55 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 
 // ===== OFFER WALL URL CONFIG =====
 const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
-  // Gemiwall: userId phải được truyền qua query param sub_id để postback trả về đúng user
+  // Gemiwall: postback trả về sub_id=USERNAME → truyền username qua path (Gemiwall tự lấy)
   gemiwall: (u) =>
     `https://gemiwall.com/6987046ad95123da06330801/${encodeURIComponent(u)}/`,
+  // Revtoo: postback trả về user_id=USERNAME → OK (đã hoạt động)
   revtoo: (u) =>
     `https://revtoo.com/offerwall/7y9n22mjsz0c3ujyncuomz95k6p31p/${encodeURIComponent(u)}`,
+  // Clickwall: postback trả về user_id=USERNAME → OK
   clickwall: (u) => `https://clickwall.net/app/iframe/10621/${encodeURIComponent(u)}`,
+  // Moustache: postback trả về user_id=USERNAME → OK (token auth, không HMAC)
   moustache: (u) =>
     `https://offerwall.moustacheleads.com/offerwall?placement_id=ZVtFVRbd5DyrjELq&user_id=${encodeURIComponent(u)}&api_key=B6GScgjbtwvjAJRH4P5Fzhx4iXBk7I7L`,
+  // Taskwall: postback trả về userid=USERNAME (lowercase) → OK
   taskwall: (u) =>
     `https://wall.taskwall.io/?app_id=0640f51b6a17749572b508423c387b00&userid=${encodeURIComponent(u)}`,
+  // CoinToMedia: postback trả về user_id=USERNAME → OK (đã hoạt động)
   cointo: (u) => `https://cointomedia.com/offer/Po5Qt6/${encodeURIComponent(u)}`,
+  // Klink: POST JSON body với userId=USERNAME → OK
   klink: (u) =>
     `https://offerwall.klinkfinance.com/wall?pub_id=b4f89770-d4da-42c1-8fee-03303dd14401&user_id=${encodeURIComponent(u)}`,
+  // Adswedmedia: postback trả về sub=USERNAME (1 chữ) → đã fix trong postback.ts
   adswedmedia: (u) =>
     `https://adswedmedia.com/offer/Ao6Po6/${encodeURIComponent(u)}`,
 };
 
 // ===== POSTBACK PROVIDER SECRETS =====
-// Configure these secrets in your offer wall provider dashboards
-// and paste them here. The postback URL for each provider will be:
-// https://your-domain.com/api/postback/{provider_name}?token=YOUR_SECRET
+// Đây là các token xác thực mà offer wall gửi kèm trong postback request
+// dưới dạng ?token=SECRET. Cấu hình trong dashboard của từng provider.
+//
+// Postback URL template:
+//   https://your-domain.com/api/postback/{provider_name}?token=SECRET&user_id={USERNAME}&reward={AMOUNT}&...
+//
+// Provider  | Param user       | Param amount | Param txid        | Auth
+// ----------|------------------|--------------|-------------------|-----
+// revtoo    | user_id=         | reward=      | transaction_id=   | token
+// cointo    | user_id=         | reward=      | transaction_id=   | token  (đã hoạt động)
+// gemiwall  | sub_id=          | reward=      | uuid=             | token
+// taskwall  | userid=          | reward=      | password=         | token
+// clickwall | user_id=         | payout=      | transaction_id=   | token
+// adswedmedia| sub=            | reward=      | transid=          | token
+// klink     | userId= (JSON)   | payout=      | conversionId=     | token
+// moustache | user_id=         | payout=      | transaction_id=   | token
 export const POSTBACK_SECRETS: Record<string, string> = {
-  gemiwall: "6987046ad95123da06330801",
-  revtoo: "7y9n22mjsz0c3ujyncuomz95k6p31p",
-  clickwall: "10621",
-  moustache: "B6GScgjbtwvjAJRH4P5Fzhx4iXBk7I7L",
-  taskwall: "0640f51b6a17749572b508423c387b00",
-  cointo: "Fp2Lr9Gx2Ay2Ri8",
-  klink: "b4f89770-d4da-42c1-8fee-03303dd14401",
+  gemiwall:    "6987046ad95123da06330801",
+  revtoo:      "7y9n22mjsz0c3ujyncuomz95k6p31p",
+  clickwall:   "10621",
+  moustache:   "B6GScgjbtwvjAJRH4P5Fzhx4iXBk7I7L",
+  taskwall:    "0640f51b6a17749572b508423c387b00",
+  cointo:      "Fp2Lr9Gx2Ay2Ri8",
+  klink:       "b4f89770-d4da-42c1-8fee-03303dd14401",
   adswedmedia: "Au6Ue9Lg5Fh4Jr2",
 };
 
