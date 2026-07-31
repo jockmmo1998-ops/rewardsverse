@@ -71,8 +71,9 @@ async function handlePostback(req: Request, res: Response) {
     const offerId = params.offerId as string || params.offer_id as string || params.company_id as string || params.campaign_id as string || "";
 
     // TaskWall does not send transId — use offerId/password as fallback
+    // adswedmedia uses lowercase "transid" (no camelCase)
     const externalId = (
-      params.transId as string || params.transactionId as string || params.transaction_id as string ||
+      params.transid as string || params.transId as string || params.transactionId as string || params.transaction_id as string ||
       params.externalId as string || params.external_id as string || params.txid as string ||
       params.password as string || ""
     );
