@@ -246,5 +246,37 @@ export const notifications = mysqlTable(
   })
 );
 
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = typeof notifications.$inferInsert;
+/**
+ * Detailed postback audit log — every request in full, for debugging.
+ */
+export const postbackLogs = mysqlTable(
+  "postback_logs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    provider: varchar("provider", { length: 64 }).notNull(),
+    ip: varchar("ip", { length: 64 }),
+    method: varchar("method", { length: 8 }).notNull().default("GET"),
+    headers: text("headers"),
+    queryParams: text("queryParams"),
+    bodyParams: text("bodyParams"),
+    userId: int("userId").notNull().default(0),
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull().default("0.00"),
+    transactionId: varchar("transactionId", { length: 256 }),
+    offerName: text("offerName"),
+    status: mysqlEnum("status", ["processed", "duplicate", "failed"]).default("processed").notNull(),
+    result: text("result"),
+    errorMessage: text("errorMessage"),
+    processingMs: int("processingMs"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    providerIdx:  index("postback_logs_provider_idx").on(table.provider),
+    userIdIdx:    index("postback_logs_userId_idx").on(table.userId),
+    statusIdx:    index("postback_logs_status_idx").on(table.status),
+    createdIdx:   index("postback_logs_created_idx").on(table.createdAt),
+    txidIdx:      index("postback_logs_txid_idx").on(table.transactionId),
+  })
+);
+
+export type PostbackLog = typeof postbackLogs.$inferSelect;
+export type InsertPostbackLog = typeof postbackLogs.$inferInsert;
