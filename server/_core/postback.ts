@@ -13,29 +13,33 @@ import { sseManager } from "./sse";
  * - GET  /api/postback/:provider          → Fallback for GET callbacks
  *
  * Xác thực theo từng provider:
- * - cointo / revtoo / gemiwall / taskwall / adswedmedia / clickwall / klink:
+ * - cointo / revtoo / gemiwall / taskwall / adswedmedia / clickwall / klink / moustache:
  *     ?token= query param plain-match với POSTBACK_SECRETS
- * - moustache: HMAC-SHA256 signature qua ?signature=
  *
- * Klink gửi POST JSON (không có signature field) → dùng token auth
- * Adswed gửi transid có thể là "auto-id" hoặc trống → fallback về timestamp
+ * Chi tiết param từng provider:
+ * - revtoo:      user_id=USERNAME  reward=AMOUNT  transaction_id=TXID
+ * - cointo:      user_id=USERNAME  reward=AMOUNT  transaction_id=TXID
+ * - gemiwall:    sub_id=USERNAME   reward=AMOUNT  uuid=TXID
+ * - taskwall:    userid=USERNAME   reward=AMOUNT  password=TXID
+ * - clickwall:   user_id=USERNAME  payout=AMOUNT  transaction_id=TXID
+ * - adswedmedia: sub=USERNAME      reward=AMOUNT  transid=TXID
+ * - klink:       userId=USERNAME   payout=AMOUNT  conversionId=TXID  (POST JSON)
+ * - moustache:   user_id=USERNAME  payout=AMOUNT  transaction_id=TXID  signature=HMAC (tùy chọn)
  *
  * Idempotency: duplicate externalId + provider combos silently ignored
  */
 
-// Tất cả provider dùng ?token= plain-match (kể cả klink gửi POST JSON)
+// Tất cả provider dùng ?token= plain-match
 const TOKEN_AUTH_PROVIDERS = new Set([
   "cointo", "revtoo", "gemiwall", "taskwall",
-  "adswedmedia", "clickwall", "klink",
+  "adswedmedia", "clickwall", "klink", "moustache",
 ]);
 
-// Chỉ moustache dùng HMAC-SHA256 signature
-const HMAC_PROVIDERS = new Set(["moustache"]);
+// Không provider nào hiện tại dùng HMAC (để trống, giữ lại cho tương lai)
+const HMAC_PROVIDERS = new Set<string>([]);
 
 /**
- * Xác minh HMAC signature cho moustache
- * Ký toàn bộ query string (không bao gồm param signature)
- * bằng HMAC-SHA256 với key là secret của provider.
+ * Xác minh HMAC signature (dự phòng tương lai)
  */
 function verifyHmacSignature(
   provider: string,
@@ -44,7 +48,6 @@ function verifyHmacSignature(
   signature: string
 ): boolean {
   if (!signature) return false;
-  // Xây dựng chuỗi ký: sắp xếp các param theo alphabet, loại bỏ "signature"
   const sortedKeys = Object.keys(params)
     .filter((k) => k !== "signature")
     .sort();
@@ -98,14 +101,23 @@ async function handlePostback(req: Request, res: Response) {
 
     const token = params.token as string || "";
 
-    // User identification: accept all common parameter names
-    // Thứ tự ưu tiên: userId > user_id > username > sub_id > subid > openId
-    // Klink POST JSON: userId field trực tiếp trong body
+    // User identification: accept all common parameter names per provider
+    // - revtoo / clickwall / moustache / klink: user_id=
+    // - gemiwall:    sub_id=
+    // - taskwall:    userid=  (lowercase, không camelCase)
+    // - adswedmedia: sub=     (một chữ)
+    // - klink POST JSON: userId= (camelCase trong body)
     const userId = (
-      params.userId as string || params.userid as string || params.user_id as string ||
-      params.username as string ||
-      params.subId as string || params.sub_id as string || params.subid as string ||
-      params.openId as string || params.open_id as string || ""
+      params.userId as string ||       // klink POST JSON body
+      params.user_id as string ||       // revtoo, clickwall, moustache, klink query
+      params.userid as string ||        // taskwall (lowercase)
+      params.sub_id as string ||        // gemiwall
+      params.sub as string ||           // adswedmedia (1 chữ)
+      params.subId as string ||         // generic camelCase
+      params.subid as string ||         // generic lowercase
+      params.username as string ||      // generic fallback
+      params.openId as string ||
+      params.open_id as string || ""
     );
 
     // Offer ID (needed before effectiveExternalId)
@@ -114,19 +126,23 @@ async function handlePostback(req: Request, res: Response) {
       params.company_id as string || params.campaign_id as string || ""
     );
 
-    // Transaction ID: accept all common parameter names
-    // - adswedmedia: "transid" — có thể là "auto-id" string hoặc trống
-    // - klink POST JSON: "conversionId"
-    // - revtoo / clickwall / moustache: "transaction_id"
-    // - gemiwall: "uuid"
-    // - taskwall: "password" field
+    // Transaction ID: accept all common parameter names per provider
+    // - klink POST JSON: conversionId=
+    // - revtoo / clickwall / moustache: transaction_id=
+    // - gemiwall: uuid=
+    // - taskwall: password=  (taskwall dùng password field làm txid)
+    // - adswedmedia: transid=  (có thể là "auto-id" hoặc trống → fallback)
     const rawTransId = (
-      params.conversionId as string ||   // klink POST JSON
-      params.transid as string || params.transId as string ||
-      params.transactionId as string || params.transaction_id as string ||
-      params.externalId as string || params.external_id as string ||
-      params.txid as string || params.uuid as string ||
-      params.password as string || ""
+      params.conversionId as string ||    // klink POST JSON
+      params.transaction_id as string ||  // revtoo, clickwall, moustache
+      params.transactionId as string ||   // camelCase fallback
+      params.transid as string ||         // adswedmedia
+      params.transId as string ||         // camelCase transid
+      params.uuid as string ||            // gemiwall
+      params.password as string ||        // taskwall
+      params.externalId as string ||
+      params.external_id as string ||
+      params.txid as string || ""
     );
 
     // Adswed transid auto-generated = "auto-id" string hoặc các giá trị không unique
@@ -139,20 +155,25 @@ async function handlePostback(req: Request, res: Response) {
     // Nếu vẫn chưa có externalId nhưng có offerId, dùng provider:offerId
     const effectiveExternalId = externalId || (offerId ? `${provider}:${offerId}` : "");
 
-    // Reward amount: accept all common parameter names
-    // Thứ tự ưu tiên: payout > reward > reward_value > round_reward > amount > user_amount
-    // Klink POST JSON: payout field trực tiếp trong body
-    // Adswed: reward field (không phải payout)
+    // Reward amount: accept all common parameter names per provider
+    // - clickwall / moustache / klink POST JSON: payout=
+    // - revtoo / gemiwall / taskwall / adswedmedia / cointo: reward=
+    // - fallback: reward_value, round_reward, amount, user_amount
     const amount = (
-      params.payout as string || params.reward as string ||
-      params.reward_value as string || params.round_reward as string ||
-      params.amount as string || params.user_amount as string || ""
+      params.reward as string ||          // revtoo, gemiwall, taskwall, adswedmedia, cointo
+      params.payout as string ||          // clickwall, moustache, klink
+      params.reward_value as string ||
+      params.round_reward as string ||
+      params.amount as string ||
+      params.user_amount as string || ""
     );
 
     // Offer name
     const offerName = params.offerName as string || params.offer_name as string || "";
 
     // Additional provider-specific fields
+    // QUAN TRỌNG: openId chỉ dùng khi param thực sự là openId (Manus OAuth user)
+    // Không nhầm với userId đã được extract ở trên
     const openId = params.openId as string || params.open_id as string || "";
     const payout = params.payout as string || "";
     const username = params.username as string || "";
@@ -251,29 +272,42 @@ async function handlePostback(req: Request, res: Response) {
     console.log(`[Postback] No duplicate found for ${provider}/${effectiveExternalId}`);
 
     // ===== Find user =====
+    // Thứ tự tìm kiếm:
+    // 1. openId (chỉ dùng khi provider gửi openId thực — Manus OAuth user)
+    // 2. userId → tìm theo username (vì offer wall URL đặt username vào sub/user_id field)
+    // 3. username field riêng biệt
+    // 4. Thử cả userId như openId (phòng trường hợp provider gửi openId trong user_id field)
     let user = null;
 
-    // Try openId first (most reliable)
-    if (openId) {
+    // 1. Thử openId (chỉ khi param openId / open_id tồn tại riêng)
+    if (openId && openId !== userId) {
       user = await db.getUserByOpenId(String(openId));
       if (user) {
         console.log(`[Postback] User FOUND by openId: ${openId} → userId=${user.id}, username=${user.username}`);
       }
     }
 
-    // Try userId (usually the username from offer wall URL)
+    // 2. Thử userId as username (offer wall truyền username vào các field sub/user_id/userid/sub_id)
     if (!user && userId) {
       user = await db.getUserByUsername(String(userId));
       if (user) {
-        console.log(`[Postback] User FOUND by userId: ${userId} → dbId=${user.id}`);
+        console.log(`[Postback] User FOUND by username lookup (userId field): ${userId} → dbId=${user.id}`);
       }
     }
 
-    // Try username explicitly
-    if (!user && username) {
+    // 3. Thử username field rõ ràng
+    if (!user && username && username !== userId) {
       user = await db.getUserByUsername(String(username));
       if (user) {
-        console.log(`[Postback] User FOUND by username: ${username} → dbId=${user.id}`);
+        console.log(`[Postback] User FOUND by username field: ${username} → dbId=${user.id}`);
+      }
+    }
+
+    // 4. Thử userId như openId (phòng trường hợp provider gửi openId trong user_id)
+    if (!user && userId) {
+      user = await db.getUserByOpenId(String(userId));
+      if (user) {
+        console.log(`[Postback] User FOUND by openId fallback (userId field): ${userId} → dbId=${user.id}`);
       }
     }
 
