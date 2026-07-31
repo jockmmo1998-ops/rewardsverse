@@ -134,7 +134,12 @@ export async function getUserById(userId: number) {
 export async function getUserByUsername(username: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+  // Case-insensitive: offer wall gửi username dạng lowercase nhưng DB lưu đúng case
+  const result = await db
+    .select()
+    .from(users)
+    .where(sql`LOWER(username) = LOWER(${username})`)
+    .limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
