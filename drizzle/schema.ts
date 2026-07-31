@@ -246,6 +246,9 @@ export const notifications = mysqlTable(
   })
 );
 
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
 /**
  * Detailed postback audit log — every request in full, for debugging.
  */
