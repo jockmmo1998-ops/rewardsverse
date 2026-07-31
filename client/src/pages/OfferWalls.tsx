@@ -10,7 +10,7 @@ import { playBellSound } from "@/utils/bellSound";
 import {
   LayoutDashboard, Gift as OfferIcon, Wallet, History as HistoryIcon,
   LogOut, Coins, X, ExternalLink, Star, DollarSign, Cpu, Users,
-  Sparkles, Gift, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight, Trophy, Bell,
+  Sparkles, Gift, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight, Trophy, Bell, TrendingUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,6 +22,7 @@ const OFFER_WALLS = [
   { id: "taskwall",   name: "Taskwall",          desc: "Sign-up & engagement tasks",        reward: "$0.15–$6.00",  icon: Users,      color: "from-indigo-500 to-blue-500",   glow: "rgba(99,102,241,0.15)",  tag: "SIGN-UPS", rating: 4.6 },
   { id: "cointo",     name: "CoinToMedia",       desc: "Crypto-focused offers",             reward: "$0.20–$4.00",  icon: Coins,      color: "from-amber-500 to-yellow-500",  glow: "rgba(245,158,11,0.12)",  tag: "CRYPTO",   rating: 4.4 },
   { id: "klink",      name: "Klink Finance",     desc: "Finance & trading offers",          reward: "$0.30–$7.00",  icon: Cpu,        color: "from-teal-500 to-green-500",    glow: "rgba(20,184,166,0.15)",  tag: "FINANCE",  rating: 4.8 },
+  { id: "adswedmedia", name: "AdsWedMedia",     desc: "CPA & incent offers worldwide",      reward: "$0.10–$6.00",  icon: TrendingUp, color: "from-rose-500 to-pink-500",     glow: "rgba(244,63,94,0.15)",   tag: "NEW",      rating: 4.7 },
 ];
 
 const tickerBadge = (type: string) => {
