@@ -57,20 +57,45 @@ const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
 // Đây là các token xác thực mà offer wall gửi kèm trong postback request
 // dưới dạng ?token=SECRET. Cấu hình trong dashboard của từng provider.
 //
-// Postback URL template:
-//   https://your-domain.com/api/postback/{provider_name}?token=SECRET&user_id={USERNAME}&reward={AMOUNT}&...
+// ─────────────────────────────────────────────────────────────────────────────
+// POSTBACK SECRETS
+// Key   = provider name used in the URL path: /api/postback/{provider}
+// Value = secret token the offerwall sends as ?token= (or ?secret=, ?apikey=, etc.)
 //
-// Provider  | Param user       | Param amount | Param txid        | Auth
-// ----------|------------------|--------------|-------------------|-----
-// revtoo    | user_id=         | reward=      | transaction_id=   | token
-// cointo    | user_id=         | reward=      | transaction_id=   | token  (đã hoạt động)
-// gemiwall  | sub_id=          | reward=      | uuid=             | token
-// taskwall  | userid=          | reward=      | password=         | token
-// clickwall | user_id=         | payout=      | transaction_id=   | token
-// adswedmedia| sub=            | reward=      | transid=          | token
-// klink     | userId= (JSON)   | payout=      | conversionId=     | token
-// moustache | user_id=         | payout=      | transaction_id=   | token
+// Universal postback URL:
+//   https://YOUR_DOMAIN/api/postback/{provider}?token={SECRET}&{user_param}={USERNAME}&{reward_param}={AMOUNT}&{txid_param}={TXID}
+//
+// The backend auto-detects user/reward/txid parameter names — no per-provider code needed.
+// Supported user fields:    user_id, userid, userId, uid, user, username, member_id,
+//                           sub, subid, sub_id, sub1, sub2, sid, click_user, openId …
+// Supported reward fields:  reward, payout, amount, value, reward_amount, coins, points …
+// Supported txid fields:    transaction_id, transactionId, transid, tid, uuid, click_id,
+//                           conversion_id, lead_id, event_id, tx …
+//
+// Provider         | Example postback URL
+// -----------------|-----------------------------------------------------------------
+// revtoo           | …/api/postback/revtoo?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// cointo           | …/api/postback/cointo?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// gemiwall         | …/api/postback/gemiwall?token=SECRET&sub_id=USERNAME&reward=AMOUNT&uuid=TXID
+// taskwall         | …/api/postback/taskwall?token=SECRET&userid=USERNAME&reward=AMOUNT&password=TXID
+// clickwall        | …/api/postback/clickwall?token=SECRET&user_id=USERNAME&payout=AMOUNT&transaction_id=TXID
+// adswedmedia      | …/api/postback/adswedmedia?token=SECRET&sub=USERNAME&reward=AMOUNT&transid=TXID
+// klink (GET)      | …/api/postback/klink?token=SECRET&subId=USERNAME&payout=AMOUNT&transId=TXID
+// klink (POST JSON)| body: {token, userId, payout, conversionId}
+// moustache        | …/api/postback/moustache?token=SECRET&user_id=USERNAME&payout=AMOUNT&transaction_id=TXID
+// lootably         | …/api/postback/lootably?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// adgem            | …/api/postback/adgem?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// adgate           | …/api/postback/adgate?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// offertoro        | …/api/postback/offertoro?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// cpx              | …/api/postback/cpx?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// timewall         | …/api/postback/timewall?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// bitlabs          | …/api/postback/bitlabs?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// monlix           | …/api/postback/monlix?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// ayet             | …/api/postback/ayet?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// kiwiwall         | …/api/postback/kiwiwall?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// ─────────────────────────────────────────────────────────────────────────────
 export const POSTBACK_SECRETS: Record<string, string> = {
+  // ── Currently configured ──────────────────────────────────────────────────
   gemiwall:    "6987046ad95123da06330801",
   revtoo:      "7y9n22mjsz0c3ujyncuomz95k6p31p",
   clickwall:   "10621",
@@ -79,6 +104,19 @@ export const POSTBACK_SECRETS: Record<string, string> = {
   cointo:      "Fp2Lr9Gx2Ay2Ri8",
   klink:       "b4f89770-d4da-42c1-8fee-03303dd14401",
   adswedmedia: "Au6Ue9Lg5Fh4Jr2",
+
+  // ── Add your secret for each new provider below ───────────────────────────
+  // Replace "YOUR_SECRET_HERE" with the actual token from each offerwall dashboard.
+  lootably:    process.env.POSTBACK_SECRET_LOOTABLY    || "",
+  adgem:       process.env.POSTBACK_SECRET_ADGEM       || "",
+  adgate:      process.env.POSTBACK_SECRET_ADGATE      || "",
+  offertoro:   process.env.POSTBACK_SECRET_OFFERTORO   || "",
+  cpx:         process.env.POSTBACK_SECRET_CPX         || "",
+  timewall:    process.env.POSTBACK_SECRET_TIMEWALL     || "",
+  bitlabs:     process.env.POSTBACK_SECRET_BITLABS     || "",
+  monlix:      process.env.POSTBACK_SECRET_MONLIX      || "",
+  ayet:        process.env.POSTBACK_SECRET_AYET        || "",
+  kiwiwall:    process.env.POSTBACK_SECRET_KIWIWALL    || "",
 };
 
 export const appRouter = router({
