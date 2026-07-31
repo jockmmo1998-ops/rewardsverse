@@ -16,6 +16,7 @@ export interface SSEEvent {
 
 interface UseSSEOptions {
   onPostback?: (event: PostbackEvent) => void;
+  onBalanceUpdate?: () => void;
   onError?: (error: Error) => void;
   onConnected?: () => void;
   enabled?: boolean;
@@ -45,6 +46,7 @@ export function useSSE(options: UseSSEOptions = {}) {
 
   const {
     onPostback,
+    onBalanceUpdate,
     onError,
     onConnected,
     enabled = true,
@@ -81,6 +83,10 @@ export function useSSE(options: UseSSEOptions = {}) {
           } else if (data.type === "postback") {
             console.log("[SSE] Postback event received:", data);
             onPostback?.(data as PostbackEvent);
+          } else if (data.type === "balance_update") {
+            // Server gửi sau mỗi postback để client re-fetch profile ngay lập tức
+            console.log("[SSE] Balance update event received — refreshing profile");
+            onBalanceUpdate?.();
           } else if (data.type === "postback_error") {
             console.warn("[SSE] Postback error:", data);
             onError?.(new Error(data.message || "Postback error"));
@@ -120,7 +126,7 @@ export function useSSE(options: UseSSEOptions = {}) {
       console.error("[SSE] Failed to create EventSource:", err);
       onError?.(err instanceof Error ? err : new Error("Failed to create EventSource"));
     }
-  }, [user, enabled, onPostback, onError, onConnected]);
+  }, [user, enabled, onPostback, onBalanceUpdate, onError, onConnected]);
 
   const disconnect = useCallback(() => {
     if (eventSourceRef.current) {
