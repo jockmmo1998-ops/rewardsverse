@@ -84,7 +84,6 @@ export default function OfferWalls() {
     setActiveWall(null); setWallUrl("");
   }, [refreshProfile]);
 
-  // ── Real-time SSE: nhận notification ngay khi postback đến ──
   useSSE({
     onPostback: async (event) => {
       await playBellSound().catch(() => {});
@@ -92,6 +91,7 @@ export default function OfferWalls() {
       refreshProfile();
       setTimeout(() => refreshProfile(), 1500);
     },
+    onBalanceUpdate: () => refreshProfile(),
   });
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-10 h-10 border-2 border-green-400 border-t-transparent rounded-full animate-spin glow-green" /></div>;
@@ -172,7 +172,7 @@ export default function OfferWalls() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="mb-10">
             <div className="inline-flex items-center gap-2 tag-cyber mb-3">
-              <Zap className="w-3 h-3" /> 7 Providers
+              <Zap className="w-3 h-3" /> 8 Providers
             </div>
             <h2 className="text-3xl font-extrabold">Offer <span className="text-gradient">Walls</span></h2>
             <p className="text-sm text-muted-foreground mt-1">Select a provider to start earning rewards by completing simple tasks.</p>
