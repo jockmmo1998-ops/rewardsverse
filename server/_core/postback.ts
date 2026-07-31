@@ -8,35 +8,33 @@ import { sseManager } from "./sse";
  * Register postback endpoints for offer wall providers
  *
  * Supported routes:
- * - GET  /api/postback                    → Health/info endpoint (returns available providers)
+ * - GET  /api/postback                    → Health/info endpoint
  * - POST /api/postback/:provider          → Primary postback handler
- * - GET  /api/postback/:provider          → Fallback for providers using GET callbacks
+ * - GET  /api/postback/:provider          → Fallback for GET callbacks
  *
  * Xác thực theo từng provider:
- * - cointo / revtoo   : ?token= query param so sánh với POSTBACK_SECRETS (plain match) ✅
- * - gemiwall          : secret nhúng trong đường dẫn URL → không gửi ?token=, bỏ qua kiểm tra token
- * - clickwall         : secret nhúng trong đường dẫn URL → không gửi ?token=, bỏ qua kiểm tra token
- * - taskwall          : app_id nhúng trong URL → không gửi ?token=, bỏ qua kiểm tra token
- * - adswedmedia       : secret nhúng trong đường dẫn URL → không gửi ?token=, bỏ qua kiểm tra token
- * - moustache         : gửi HMAC-SHA256 signature qua param ?signature=
- * - klink             : gửi HMAC-SHA256 signature qua param ?signature=
+ * - cointo / revtoo / gemiwall / taskwall / adswedmedia / clickwall / klink:
+ *     ?token= query param plain-match với POSTBACK_SECRETS
+ * - moustache: HMAC-SHA256 signature qua ?signature=
  *
- * Idempotency: duplicate externalId + provider combos are silently ignored
+ * Klink gửi POST JSON (không có signature field) → dùng token auth
+ * Adswed gửi transid có thể là "auto-id" hoặc trống → fallback về timestamp
+ *
+ * Idempotency: duplicate externalId + provider combos silently ignored
  */
 
-// Các provider xác thực bằng ?token= plain-match trong query string
-// cointo / revtoo: token khớp là đủ, signature param (nếu có) bị bỏ qua
-// gemiwall / taskwall / adswedmedia / clickwall: URL postback có ?token= nhưng server
-//   vẫn dùng plain-match vì các provider này không dùng HMAC - chỉ cần token đúng
-const TOKEN_AUTH_PROVIDERS = new Set(["cointo", "revtoo", "gemiwall", "taskwall", "adswedmedia", "clickwall"]);
+// Tất cả provider dùng ?token= plain-match (kể cả klink gửi POST JSON)
+const TOKEN_AUTH_PROVIDERS = new Set([
+  "cointo", "revtoo", "gemiwall", "taskwall",
+  "adswedmedia", "clickwall", "klink",
+]);
 
-// Các provider dùng HMAC-SHA256 signature thay vì plain token
-// moustache / klink: xác thực qua param ?signature= (HMAC-SHA256 toàn bộ query params)
-const HMAC_PROVIDERS = new Set(["moustache", "klink"]);
+// Chỉ moustache dùng HMAC-SHA256 signature
+const HMAC_PROVIDERS = new Set(["moustache"]);
 
 /**
- * Xác minh HMAC signature cho moustache và klink
- * Cả hai provider đều ký toàn bộ query string (không bao gồm param signature)
+ * Xác minh HMAC signature cho moustache
+ * Ký toàn bộ query string (không bao gồm param signature)
  * bằng HMAC-SHA256 với key là secret của provider.
  */
 function verifyHmacSignature(
@@ -74,7 +72,7 @@ export function registerPostbackRoutes(app: Express) {
         "GET  /api/postback/:provider": "Fallback for GET callbacks",
       },
       supportedProviders: providers,
-      docs: "Auth: moustache/klink use HMAC-SHA256 ?signature=; all others use plain ?token= match",
+      docs: "Auth: moustache uses HMAC-SHA256 ?signature=; all others use plain ?token= match. Klink uses POST JSON.",
     });
   });
 
@@ -102,6 +100,7 @@ async function handlePostback(req: Request, res: Response) {
 
     // User identification: accept all common parameter names
     // Thứ tự ưu tiên: userId > user_id > username > sub_id > subid > openId
+    // Klink POST JSON: userId field trực tiếp trong body
     const userId = (
       params.userId as string || params.userid as string || params.user_id as string ||
       params.username as string ||
@@ -116,11 +115,13 @@ async function handlePostback(req: Request, res: Response) {
     );
 
     // Transaction ID: accept all common parameter names
-    // - adswedmedia / cointo : "transid" (lowercase, no camelCase)
-    // - revtoo / clickwall / moustache / klink: "transaction_id"
+    // - adswedmedia: "transid" — có thể là "auto-id" string hoặc trống
+    // - klink POST JSON: "conversionId"
+    // - revtoo / clickwall / moustache: "transaction_id"
     // - gemiwall: "uuid"
-    // - taskwall: không gửi transId → fallback về offerId
-    const externalId = (
+    // - taskwall: "password" field
+    const rawTransId = (
+      params.conversionId as string ||   // klink POST JSON
       params.transid as string || params.transId as string ||
       params.transactionId as string || params.transaction_id as string ||
       params.externalId as string || params.external_id as string ||
@@ -128,11 +129,20 @@ async function handlePostback(req: Request, res: Response) {
       params.password as string || ""
     );
 
+    // Adswed transid auto-generated = "auto-id" string hoặc các giá trị không unique
+    // → tạo fallback unique từ timestamp + userId + offerId để tránh DUP CHECK block
+    const isAutoTransId = !rawTransId || rawTransId === "auto-id" || rawTransId === "0";
+    const externalId = isAutoTransId
+      ? `${provider}:${userId || "u"}:${offerId || "o"}:${Date.now()}`
+      : rawTransId;
+
     // Nếu vẫn chưa có externalId nhưng có offerId, dùng provider:offerId
     const effectiveExternalId = externalId || (offerId ? `${provider}:${offerId}` : "");
 
     // Reward amount: accept all common parameter names
     // Thứ tự ưu tiên: payout > reward > reward_value > round_reward > amount > user_amount
+    // Klink POST JSON: payout field trực tiếp trong body
+    // Adswed: reward field (không phải payout)
     const amount = (
       params.payout as string || params.reward as string ||
       params.reward_value as string || params.round_reward as string ||
@@ -194,8 +204,9 @@ async function handlePostback(req: Request, res: Response) {
       }
       console.log(`[Postback] HMAC signature verified OK for provider: ${provider}`);
     } else {
-      // cointo / revtoo / gemiwall / taskwall / adswedmedia / clickwall:
-      // Xác thực bằng ?token= plain-match (signature param nếu có sẽ bị bỏ qua)
+      // cointo / revtoo / gemiwall / taskwall / adswedmedia / clickwall / klink:
+      // Xác thực bằng ?token= plain-match
+      // Klink gửi POST JSON — token có thể nằm trong body hoặc query string
       if (!token) {
         console.error(`[Postback] ERROR: Missing token for provider "${provider}"`);
         return res.status(401).json({ success: false, message: "Authentication token is required (use ?token=YOUR_SECRET)" });
