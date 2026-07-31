@@ -64,18 +64,21 @@ class SSEEventManager extends EventEmitter {
       return;
     }
 
-    const message = `data: ${JSON.stringify(data)}\n\n`;
+    // Gửi cả 2 events: "postback" (notification) + "balance_update" (trigger re-fetch profile)
+    const postbackMsg = `data: ${JSON.stringify(data)}\n\n`;
+    const balanceMsg = `data: ${JSON.stringify({ type: "balance_update", timestamp: data.timestamp })}\n\n`;
 
     userConnections.forEach((response) => {
       try {
-        response.write(message);
+        response.write(postbackMsg);
+        response.write(balanceMsg);
       } catch (error) {
         console.error(`[SSE] Error sending to user ${userId}:`, error);
         this.unregisterConnection(userId, response);
       }
     });
 
-    console.log(`[SSE] Sent postback event to user ${userId}: ${data.offerName} (+$${data.amount})`);
+    console.log(`[SSE] Sent postback+balance_update events to user ${userId}: ${data.offerName} (+$${data.amount})`);
   }
 
   /**
