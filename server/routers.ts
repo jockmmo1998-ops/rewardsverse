@@ -29,26 +29,30 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 
 // ===== OFFER WALL URL CONFIG =====
 const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
-  // Gemiwall: postback trả về sub_id=USERNAME → truyền username qua path (Gemiwall tự lấy)
+  // Gemiwall / GemiAds: postback returns sub_id=USERNAME
   gemiwall: (u) =>
     `https://gemiwall.com/6987046ad95123da06330801/${encodeURIComponent(u)}/`,
-  // Revtoo: postback trả về user_id=USERNAME → OK (đã hoạt động)
+  gemiads: (u) =>
+    `https://gemiwall.com/6987046ad95123da06330801/${encodeURIComponent(u)}/`,
+  // Revtoo: postback returns user_id=USERNAME
   revtoo: (u) =>
     `https://revtoo.com/offerwall/7y9n22mjsz0c3ujyncuomz95k6p31p/${encodeURIComponent(u)}`,
-  // Clickwall: postback trả về user_id=USERNAME → OK
+  // Clickwall: postback returns user_id=USERNAME
   clickwall: (u) => `https://clickwall.net/app/iframe/10621/${encodeURIComponent(u)}`,
-  // Moustache: postback trả về user_id=USERNAME → OK (token auth, không HMAC)
+  // Moustache: postback returns user_id=USERNAME
   moustache: (u) =>
     `https://offerwall.moustacheleads.com/offerwall?placement_id=ZVtFVRbd5DyrjELq&user_id=${encodeURIComponent(u)}&api_key=B6GScgjbtwvjAJRH4P5Fzhx4iXBk7I7L`,
-  // Taskwall: postback trả về userid=USERNAME (lowercase) → OK
+  // Taskwall: postback returns userid=USERNAME (lowercase)
   taskwall: (u) =>
     `https://wall.taskwall.io/?app_id=0640f51b6a17749572b508423c387b00&userid=${encodeURIComponent(u)}`,
-  // CoinToMedia: postback trả về user_id=USERNAME → OK (đã hoạt động)
+  // CoinToMedia: postback returns user_id=USERNAME
   cointo: (u) => `https://cointomedia.com/offer/Po5Qt6/${encodeURIComponent(u)}`,
-  // Klink: POST JSON body với userId=USERNAME → OK
+  // KlinkLabs / Klink: POST body with userId=USERNAME
   klink: (u) =>
     `https://offerwall.klinkfinance.com/wall?pub_id=b4f89770-d4da-42c1-8fee-03303dd14401&user_id=${encodeURIComponent(u)}`,
-  // Adswedmedia: postback trả về sub=USERNAME (1 chữ) → đã fix trong postback.ts
+  klinklabs: (u) =>
+    `https://offerwall.klinkfinance.com/wall?pub_id=b4f89770-d4da-42c1-8fee-03303dd14401&user_id=${encodeURIComponent(u)}`,
+  // Adswedmedia: postback returns sub=USERNAME
   adswedmedia: (u) =>
     `https://adswedmedia.com/offer/Ao6Po6/${encodeURIComponent(u)}`,
 };
@@ -67,21 +71,29 @@ const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
 //
 // The backend auto-detects user/reward/txid parameter names — no per-provider code needed.
 // Supported user fields:    user_id, userid, userId, uid, user, username, member_id,
-//                           sub, subid, sub_id, sub1, sub2, sid, click_user, openId …
-// Supported reward fields:  reward, payout, amount, value, reward_amount, coins, points …
+//                           sub, subid, sub_id, sub1, sub2, sid, click_user, openId,
+//                           publisher_sub_id, pub_sub_id …
+// Supported reward fields:  reward, payout, amount, value, reward_amount, coins, points,
+//                           sale_amount, commission …
 // Supported txid fields:    transaction_id, transactionId, transid, tid, uuid, click_id,
-//                           conversion_id, lead_id, event_id, tx …
+//                           conversion_id, lead_id, event_id, tx, txid …
+// Supported status values:  completed, complete, approved, approve, success, succeeded,
+//                           confirmed, confirm, conversion, 1, true, ok
+//   (status field absent   → assumed completed, many providers omit it)
+//   (eventType=conversion  → treated as completed, used by KlinkLabs)
 //
 // Provider         | Example postback URL
 // -----------------|-----------------------------------------------------------------
 // revtoo           | …/api/postback/revtoo?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
 // cointo           | …/api/postback/cointo?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
 // gemiwall         | …/api/postback/gemiwall?token=SECRET&sub_id=USERNAME&reward=AMOUNT&uuid=TXID
+// gemiads          | …/api/postback/gemiads?token=SECRET&sub_id=USERNAME&reward=AMOUNT&uuid=TXID
 // taskwall         | …/api/postback/taskwall?token=SECRET&userid=USERNAME&reward=AMOUNT&password=TXID
 // clickwall        | …/api/postback/clickwall?token=SECRET&user_id=USERNAME&payout=AMOUNT&transaction_id=TXID
 // adswedmedia      | …/api/postback/adswedmedia?token=SECRET&sub=USERNAME&reward=AMOUNT&transid=TXID
 // klink (GET)      | …/api/postback/klink?token=SECRET&subId=USERNAME&payout=AMOUNT&transId=TXID
 // klink (POST JSON)| body: {token, userId, payout, conversionId}
+// klinklabs (POST) | body: {status, eventType, payout, userId, ...} + ?token=SECRET
 // moustache        | …/api/postback/moustache?token=SECRET&user_id=USERNAME&payout=AMOUNT&transaction_id=TXID
 // lootably         | …/api/postback/lootably?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
 // adgem            | …/api/postback/adgem?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
@@ -96,17 +108,23 @@ const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
 // ─────────────────────────────────────────────────────────────────────────────
 export const POSTBACK_SECRETS: Record<string, string> = {
   // ── Currently configured ──────────────────────────────────────────────────
+  // Gemiwall / GemiAds — same dashboard token, two route aliases accepted
   gemiwall:    "6987046ad95123da06330801",
+  gemiads:     process.env.POSTBACK_SECRET_GEMIADS  || "6987046ad95123da06330801",
+
   revtoo:      "7y9n22mjsz0c3ujyncuomz95k6p31p",
   clickwall:   "10621",
   moustache:   "B6GScgjbtwvjAJRH4P5Fzhx4iXBk7I7L",
   taskwall:    "0640f51b6a17749572b508423c387b00",
   cointo:      "Fp2Lr9Gx2Ay2Ri8",
+
+  // KlinkLabs / Klink — same pub_id token, two route aliases accepted
   klink:       "b4f89770-d4da-42c1-8fee-03303dd14401",
+  klinklabs:   process.env.POSTBACK_SECRET_KLINKLABS || "b4f89770-d4da-42c1-8fee-03303dd14401",
+
   adswedmedia: "Au6Ue9Lg5Fh4Jr2",
 
   // ── Add your secret for each new provider below ───────────────────────────
-  // Replace "YOUR_SECRET_HERE" with the actual token from each offerwall dashboard.
   lootably:    process.env.POSTBACK_SECRET_LOOTABLY    || "",
   adgem:       process.env.POSTBACK_SECRET_ADGEM       || "",
   adgate:      process.env.POSTBACK_SECRET_ADGATE      || "",
