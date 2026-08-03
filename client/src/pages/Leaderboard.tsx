@@ -51,9 +51,10 @@ export default function Leaderboard() {
 
   return (
     <div className="min-h-screen bg-background bg-grid bg-scan">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[40%] h-[20%] bg-yellow-400/3 blur-[100px] rounded-full" />
-        <div className="absolute bottom-0 left-0 w-[20%] h-[20%] bg-green-500/4 blur-[120px] rounded-full" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="tech-orb tech-orb-1" />
+        <div className="tech-orb tech-orb-2" />
+        <div className="tech-orb tech-orb-3" />
       </div>
 
       {/* Ticker */}

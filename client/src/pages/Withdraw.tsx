@@ -75,9 +75,10 @@ export default function Withdraw() {
 
   return (
     <div className="min-h-screen bg-background bg-grid bg-scan">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-5%] w-[25%] h-[25%] bg-green-500/4 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[25%] h-[25%] bg-cyan-500/4 blur-[120px] rounded-full" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="tech-orb tech-orb-1" />
+        <div className="tech-orb tech-orb-2" />
+        <div className="tech-orb tech-orb-3" />
       </div>
 
       {/* Ticker */}

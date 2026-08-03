@@ -109,9 +109,10 @@ export default function OfferWalls() {
 
   return (
     <div className="min-h-screen bg-background bg-grid bg-scan">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[30%] h-[30%] bg-cyan-500/4 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-green-500/4 blur-[120px] rounded-full" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="tech-orb tech-orb-1" />
+        <div className="tech-orb tech-orb-2" />
+        <div className="tech-orb tech-orb-3" />
       </div>
 
       {/* Ticker */}

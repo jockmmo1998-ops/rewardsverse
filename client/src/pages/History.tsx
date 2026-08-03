@@ -85,9 +85,10 @@ export default function History() {
 
   return (
     <div className="min-h-screen bg-background bg-grid bg-scan">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[20%] h-[20%] bg-green-500/3 blur-[100px] rounded-full" />
-        <div className="absolute bottom-0 right-1/4 w-[20%] h-[20%] bg-cyan-500/3 blur-[100px] rounded-full" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="tech-orb tech-orb-1" />
+        <div className="tech-orb tech-orb-2" />
+        <div className="tech-orb tech-orb-3" />
       </div>
 
       {/* Ticker */}

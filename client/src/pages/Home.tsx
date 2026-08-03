@@ -10,7 +10,7 @@ import {
   Zap, Shield, Clock, Coins, Trophy, ArrowRight,
   CheckCircle2, Star, Users, ExternalLink, Smartphone,
   Gamepad2, Wallet, MousePointer2, Eye, EyeOff, Lock, User,
-  TrendingUp, Clock3
+  TrendingUp, Clock3, Gift, ChevronRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -90,9 +90,9 @@ export default function Home() {
 
       {/* ── Fixed cyber grid background ── */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-green-500/5 blur-[140px] rounded-full" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-cyan-500/5 blur-[140px] rounded-full" />
-        <div className="absolute top-[40%] left-[30%] w-[20%] h-[20%] bg-purple-500/4 blur-[100px] rounded-full" />
+        <div className="tech-orb tech-orb-1" />
+        <div className="tech-orb tech-orb-2" />
+        <div className="tech-orb tech-orb-3" />
         {/* vertical scan line */}
         <div className="absolute inset-0 bg-scan opacity-30 pointer-events-none" />
       </div>
@@ -551,6 +551,126 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {/* ── Offer Walls Showcase Section ── */}
+      <section className="py-20 px-6 border-t border-green-500/10">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.5 }}
+            className="text-center mb-14"
+          >
+            <div className="inline-flex items-center gap-2 tag-cyber mb-4">
+              <Gift className="w-3 h-3" /> 8 Nhà Cung Cấp Ưu Đãi
+            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
+              Tường Ưu Đãi <span className="text-gradient">Hàng Đầu</span>
+            </h2>
+            <p className="text-muted-foreground text-base max-w-xl mx-auto">
+              Hoàn thành nhiệm vụ đơn giản từ các nhà cung cấp uy tín toàn cầu và nhận thưởng ngay lập tức.
+            </p>
+          </motion.div>
+
+          {/* Offer Wall Cards Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            {[
+              { id: "gemiwall",    name: "Gemiwall",       reward: "$0.10–$5.00",  tag: "POPULAR",  rating: 4.8, color: "from-yellow-500 to-orange-500", glow: "rgba(245,158,11,0.15)",  logo: "https://gemiwall.com/favicon.ico" },
+              { id: "revtoo",      name: "Revtoo",         reward: "$0.25–$8.00",  tag: "HIGH PAY", rating: 4.9, color: "from-blue-500 to-cyan-500",     glow: "rgba(59,130,246,0.15)",  logo: "https://revtoo.com/assets/offerwall/images/revtoo-dark.svg" },
+              { id: "clickwall",   name: "Clickwall",      reward: "$0.10–$3.00",  tag: "EASY",     rating: 4.5, color: "from-green-500 to-emerald-500", glow: "rgba(0,255,135,0.15)",   logo: "https://www.google.com/s2/favicons?domain=clickwall.com&sz=128" },
+              { id: "moustache",   name: "MoustacheLeads", reward: "$0.50–$10.00", tag: "PREMIUM",  rating: 4.7, color: "from-purple-500 to-pink-500",   glow: "rgba(168,85,247,0.15)",  logo: "https://moustacheleads.com/logo.png" },
+              { id: "taskwall",    name: "Taskwall",       reward: "$0.15–$6.00",  tag: "SIGN-UPS", rating: 4.6, color: "from-indigo-500 to-blue-500",   glow: "rgba(99,102,241,0.15)",  logo: "https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg" },
+              { id: "cointo",      name: "CoinToMedia",    reward: "$0.20–$4.00",  tag: "CRYPTO",   rating: 4.4, color: "from-amber-500 to-yellow-500",  glow: "rgba(245,158,11,0.12)",  logo: "https://cointomedia.com/asset/images/iframe-logo.webp" },
+              { id: "klink",       name: "Klink Finance",  reward: "$0.30–$7.00",  tag: "FINANCE",  rating: 4.8, color: "from-teal-500 to-green-500",    glow: "rgba(20,184,166,0.15)",  logo: "https://assets.klink.finance/CDN/opengraph.jpg" },
+              { id: "adswedmedia", name: "AdsWedMedia",    reward: "$0.10–$6.00",  tag: "NEW",      rating: 4.7, color: "from-rose-500 to-pink-500",     glow: "rgba(244,63,94,0.15)",   logo: "https://adswedmedia.com/asset/storage/photos/logo-img.png" },
+            ].map((wall, i) => (
+              <motion.div
+                key={wall.id}
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ duration: 0.3, delay: i * 0.07 }}
+                whileHover={{ y: -4 }}
+              >
+                <div
+                  className="cyber-card cyber-corner rounded-2xl overflow-hidden cursor-pointer group h-full"
+                  onClick={() => {
+                    setActiveTab("register");
+                    document.getElementById("auth-card")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  style={{ boxShadow: `0 0 0 0 ${wall.glow}` }}
+                >
+                  <div className={`h-1 w-full bg-gradient-to-r ${wall.color}`} />
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-bold text-sm group-hover:text-green-400 transition-colors leading-tight">{wall.name}</h3>
+                          <span className="tag-cyber text-[9px] px-1.5 py-0">{wall.tag}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-yellow-400">
+                          <Star className="w-2.5 h-2.5 fill-current" />
+                          <span className="text-[11px] font-bold">{wall.rating}</span>
+                        </div>
+                      </div>
+                      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${wall.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg overflow-hidden`}>
+                        <img src={wall.logo} alt={wall.name} className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                    </div>
+                    <div className="divider-cyber mb-2" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-green-400 font-bold">{wall.reward}</span>
+                      <div className="flex items-center gap-0.5 text-green-400 text-[10px] font-bold group-hover:gap-1 transition-all">
+                        Earn <ChevronRight className="w-3 h-3" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* CTA Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}
+            className="cyber-card rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-green-500/20"
+            style={{ background: "linear-gradient(135deg, rgba(0,255,135,0.05), rgba(0,229,255,0.04), rgba(124,58,237,0.04))" }}
+          >
+            <div>
+              <h3 className="text-xl font-extrabold mb-1">
+                Sẵn sàng kiếm tiền? <span className="text-gradient">Đăng ký miễn phí!</span>
+              </h3>
+              <p className="text-sm text-muted-foreground">Truy cập 8 tường ưu đãi — nhận thưởng ngay sau khi hoàn thành nhiệm vụ.</p>
+            </div>
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="text-center">
+                <div className="text-2xl font-extrabold text-gradient">8+</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Providers</div>
+              </div>
+              <div className="w-px h-10 bg-green-500/20" />
+              <div className="text-center">
+                <div className="text-2xl font-extrabold text-green-400">$10</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Max/Offer</div>
+              </div>
+              <div className="w-px h-10 bg-green-500/20" />
+              <div className="text-center">
+                <div className="text-2xl font-extrabold text-cyan-400">50%</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Payout Rate</div>
+              </div>
+              <Button
+                size="sm"
+                className="btn-cyber rounded-xl px-6 font-bold text-sm ml-2"
+                onClick={() => {
+                  setActiveTab("register");
+                  document.getElementById("auth-card")?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Bắt Đầu <ArrowRight className="ml-1.5 w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* ── Footer ── */}
       <footer className="border-t border-green-500/10 py-14 px-6">
