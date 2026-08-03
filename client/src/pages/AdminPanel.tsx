@@ -71,7 +71,7 @@ export default function AdminPanel() {
       label: "Taskwall",
       color: "text-orange-400 border-orange-500/30 bg-orange-500/10",
       authMethod: "token",
-      url: `${BASE_URL}/api/postback/taskwall?token=0640f51b6a17749572b508423c387b00&userid={userid}&user_amount={user_amount}&offer_name={offer_name}&offer_id={offer_id}&payout={payout}&password={password}&app_name={app_name}&date={date}`,
+      url: `${BASE_URL}/api/postback/taskwall?token=0640f51b6a17749572b508423c387b00&userid={userid}&payout={payout}&offer_name={offer_name}&offer_id={offer_id}&password={password}&app_name={app_name}&date={date}`,
     },
     {
       provider: "adswedmedia",
