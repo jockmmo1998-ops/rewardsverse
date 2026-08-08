@@ -1,9 +1,90 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Target, Star, ChevronRight, Zap } from 'lucide-react';
+import { Target, Star, ChevronRight, Zap, Megaphone } from 'lucide-react';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { cn } from '@/lib/utils';
 import { fetchOfferwalls } from '@/api';
+
+/* ── Tường Ưu Đãi Adexium (Popunder Ad Wall) ── */
+function AdexiumAdWall() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    // Tải script Adexium nếu chưa có
+    const existing = document.querySelector('script[src="https://cdn.mangattec.online/assets/js/pp.min.js"]');
+    if (!existing) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.mangattec.online/assets/js/pp.min.js';
+      s.type = 'text/javascript';
+      s.async = true;
+      s.onload = () => initWidget();
+      document.head.appendChild(s);
+    } else {
+      initWidget();
+    }
+
+    function initWidget() {
+      try {
+        // @ts-ignore
+        if (typeof AdexiumWidget !== 'undefined') {
+          // @ts-ignore
+          const widget = new AdexiumWidget({
+            wid: 'cb68bc8c-4adc-4225-b98d-7342eff70d28',
+            firstAdImpressionIntervalInSeconds: 1,
+          });
+          widget.autoMode();
+        }
+      } catch (e) {
+        console.error('[Adexium] Khởi tạo widget thất bại:', e);
+      }
+      setLoaded(true);
+    }
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-5 md:p-6"
+    >
+      {/* Tiêu đề */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+          <Megaphone className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h3 className="font-heading font-bold text-base text-foreground">Tường Ưu Đãi</h3>
+          <p className="text-xs text-muted-foreground">Quảng cáo đối tác • Kiếm thêm phần thưởng</p>
+        </div>
+        <span className="ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary/15 text-primary border border-primary/25 uppercase tracking-wider">
+          Đang Hoạt Động
+        </span>
+      </div>
+
+      <div className="border-t border-border/50 pt-4">
+        {/* Vùng chứa quảng cáo — Adexium render vào đây qua autoMode() */}
+        <div
+          ref={containerRef}
+          id="adexium-adwall-container"
+          className="min-h-[120px] flex items-center justify-center rounded-xl bg-black/10"
+        >
+          {!loaded && (
+            <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">
+              <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              <span className="text-xs">Đang tải ưu đãi...</span>
+            </div>
+          )}
+        </div>
+
+        <p className="text-[10px] text-muted-foreground/50 mt-3 text-center">
+          Ưu đãi được cung cấp bởi đối tác Adexium. Chỉ dành cho lưu lượng thực từ người dùng.
+        </p>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function OfferwallsPage() {
   const [offerwalls, setOfferwalls] = useState<any[]>([]);
@@ -27,8 +108,11 @@ export default function OfferwallsPage() {
         </div>
       </PageHeader>
 
+      {/* Tường Ưu Đãi Adexium */}
+      <AdexiumAdWall />
+
       {loading ? (
-        <div className="text-center py-20 text-muted-foreground">Loading providers...</div>
+        <div className="text-center py-20 text-muted-foreground">Đang tải nhà cung cấp...</div>
       ) : offerwalls.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {offerwalls.map((wall, i) => (
