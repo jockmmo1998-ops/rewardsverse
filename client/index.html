@@ -1,23 +1,26 @@
 <!doctype html>
 <html lang="en">
-
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>RewardsVerse</title>    
-    <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    THIS IS THE END OF A COMMENT BLOCK, BLOCK TO BE DELETED -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>RewardsVerse</title>
+
     <!-- Adexium Popunder Ad -->
-    <script type="text/javascript" src="https://cdn.mangattec.online/assets/js/pp.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.mangattec.online/assets/js/pp.min.js"
+    ></script>
     <script type="text/javascript">
-      document.addEventListener('DOMContentLoaded', () => {
-        const adexiumWidget = new AdexiumWidget({wid: 'cb68bc8c-4adc-4225-b98d-7342eff70d28', firstAdImpressionIntervalInSeconds: 1});
-        adexiumWidget.autoMode();
+      document.addEventListener("DOMContentLoaded", () => {
+        try {
+          const adexiumWidget = new AdexiumWidget({
+            wid: "cb68bc8c-4adc-4225-b98d-7342eff70d28",
+            firstAdImpressionIntervalInSeconds: 1,
+          });
+          adexiumWidget.autoMode();
+        } catch (error) {
+          console.error("[Adexium] Initialization failed:", error);
+        }
       });
     </script>
   </head>
@@ -25,10 +28,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
   </body>
-
 </html>
