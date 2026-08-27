@@ -24,6 +24,8 @@ const OFFER_WALLS = [
   { id: "cointo",      name: "CoinToMedia",    desc: "Crypto-focused offers",          reward: "$0.20–$4.00",  logo: "https://cointomedia.com/asset/images/iframe-logo.webp",                         color: "from-amber-500 to-yellow-500",  glow: "rgba(245,158,11,0.12)",  tag: "CRYPTO",   rating: 4.4 },
   { id: "klink",       name: "Klink Finance",  desc: "Finance & trading offers",       reward: "$0.30–$7.00",  logo: "https://assets.klink.finance/CDN/opengraph.jpg",                                color: "from-teal-500 to-green-500",    glow: "rgba(20,184,166,0.15)",  tag: "FINANCE",  rating: 4.8 },
   { id: "adswedmedia", name: "AdsWedMedia",    desc: "CPA & incent offers worldwide",  reward: "$0.10–$6.00",  logo: "https://adswedmedia.com/asset/storage/photos/logo-img.png",                     color: "from-rose-500 to-pink-500",     glow: "rgba(244,63,94,0.15)",   tag: "NEW",      rating: 4.7 },
+  // AdMaxFlow — placement_id=143; user_id = username (postback uses subid=USERNAME)
+  { id: "admaxflow",   name: "AdMaxFlow",      desc: "Surveys, apps & tasks worldwide", reward: "$0.10–$5.00", logo: "https://www.google.com/s2/favicons?domain=admaxflow.com&sz=128",                color: "from-cyan-500 to-blue-500",     glow: "rgba(6,182,212,0.15)",   tag: "NEW",      rating: 4.6 },
 ];
 
 const tickerBadge = (type: string) => {
@@ -173,7 +175,7 @@ export default function OfferWalls() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="mb-10">
             <div className="inline-flex items-center gap-2 tag-cyber mb-3">
-              <Zap className="w-3 h-3" /> 8 Providers
+              <Zap className="w-3 h-3" /> 9 Providers
             </div>
             <h2 className="text-3xl font-extrabold">Offer <span className="text-gradient">Walls</span></h2>
             <p className="text-sm text-muted-foreground mt-1">Select a provider to start earning rewards by completing simple tasks.</p>
