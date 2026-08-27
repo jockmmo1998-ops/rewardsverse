@@ -58,6 +58,9 @@ const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
   // AdMaxFlow: postback returns subid=USERNAME, payout=AMOUNT
   admaxflow: (u) =>
     `https://admaxflow.com/offerwall.php?placement_id=${process.env.ADMAXFLOW_PLACEMENT_ID || "143"}&user_id=${encodeURIComponent(u)}`,
+  // Gaintwall: placement key B3z5xyDiTNxzeLLdeZSp0NSFysfX9Z9x; postback returns user_id=USERNAME, reward=AMOUNT
+  gaintwall: (u) =>
+    `https://gaintwall.com/offerwall?placement_key=${process.env.GAINTWALL_PLACEMENT_KEY || "B3z5xyDiTNxzeLLdeZSp0NSFysfX9Z9x"}&user_id=${encodeURIComponent(u)}`,
 };
 
 // ===== POSTBACK PROVIDER SECRETS =====
@@ -107,6 +110,7 @@ const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
 // bitlabs          | …/api/postback/bitlabs?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
 // monlix           | …/api/postback/monlix?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
 // ayet             | …/api/postback/ayet?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
+// gaintwall       | …/api/postback/gaintwall?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
 // kiwiwall         | …/api/postback/kiwiwall?token=SECRET&user_id=USERNAME&reward=AMOUNT&transaction_id=TXID
 // ─────────────────────────────────────────────────────────────────────────────
 export const POSTBACK_SECRETS: Record<string, string> = {
@@ -131,6 +135,10 @@ export const POSTBACK_SECRETS: Record<string, string> = {
   // currency_name, offer_name, ip_address, status
   // Postback URL: https://rewardsverse.online/api/postback/admaxflow?token=SECRET&subid={subid}&payout={payout}&currency_amount={currency_amount}&currency_name={currency_name}&offer_name={offer_name}&ip_address={ip_address}&status={status}
   admaxflow:   process.env.POSTBACK_SECRET_ADMAXFLOW || "",
+
+  // Gaintwall — placement_key=B3z5xyDiTNxzeLLdeZSp0NSFysfX9Z9x; postback params: user_id, reward, transaction_id, offer_name, status
+  // Postback URL: https://rewardsverse.online/api/postback/gaintwall?token=SECRET&user_id={user_id}&reward={reward}&transaction_id={transaction_id}&offer_name={offer_name}&status={status}
+  gaintwall:   process.env.POSTBACK_SECRET_GAINTWALL || "",
 
   // ── Add your secret for each new provider below ───────────────────────────
   lootably:    process.env.POSTBACK_SECRET_LOOTABLY    || "",
