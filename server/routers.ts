@@ -55,6 +55,9 @@ const OFFER_WALL_URLS: Record<string, (userId: string) => string> = {
   // Adswedmedia: postback returns sub=USERNAME
   adswedmedia: (u) =>
     `https://adswedmedia.com/offer/Ao6Po6/${encodeURIComponent(u)}`,
+  // AdMaxFlow: postback returns subid=USERNAME, payout=AMOUNT
+  admaxflow: (u) =>
+    `https://admaxflow.com/offerwall.php?placement_id=${process.env.ADMAXFLOW_PLACEMENT_ID || "143"}&user_id=${encodeURIComponent(u)}`,
 };
 
 // ===== POSTBACK PROVIDER SECRETS =====
@@ -123,6 +126,11 @@ export const POSTBACK_SECRETS: Record<string, string> = {
   klinklabs:   process.env.POSTBACK_SECRET_KLINKLABS || "b4f89770-d4da-42c1-8fee-03303dd14401",
 
   adswedmedia: "Au6Ue9Lg5Fh4Jr2",
+
+  // AdMaxFlow — placement_id=143; postback params: subid, payout, currency_amount,
+  // currency_name, offer_name, ip_address, status
+  // Postback URL: https://rewardsverse.online/api/postback/admaxflow?token=SECRET&subid={subid}&payout={payout}&currency_amount={currency_amount}&currency_name={currency_name}&offer_name={offer_name}&ip_address={ip_address}&status={status}
+  admaxflow:   process.env.POSTBACK_SECRET_ADMAXFLOW || "",
 
   // ── Add your secret for each new provider below ───────────────────────────
   lootably:    process.env.POSTBACK_SECRET_LOOTABLY    || "",
