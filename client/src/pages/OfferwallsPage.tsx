@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronRight, ExternalLink, Megaphone, RefreshCw, Star, Target, Zap } from "lucide-react";
+import { ChevronRight, ExternalLink, Megaphone, RefreshCw, Star, Zap } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { cn } from "@/lib/utils";
 import { fetchOfferwalls } from "@/api";
 
 const ADMAXFLOW_PLACEMENT_ID = "143";
 const ADMAXFLOW_BASE_URL = "https://admaxflow.com/offerwall.php";
+
+const GAINTWALL_PLACEMENT_KEY = "B3z5xyDiTNxzeLLdeZSp0NSFysfX9Z9x";
+const GAINTWALL_BASE_URL = "https://gaintwall.com/offerwall";
 
 function getStoredUserId(): string | null {
   const keys = ["user_id", "userId", "userid", "profile_id", "profileId"];
@@ -112,6 +115,88 @@ function AdmaxflowOfferwall() {
   );
 }
 
+function GaintwallOfferwall() {
+  const [userId, setUserId] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    const stored = getStoredUserId();
+    setUserId(stored || createAnonymousUserId());
+  }, []);
+
+  const offerwallUrl = useMemo(() => {
+    if (!userId) return "";
+    const url = new URL(GAINTWALL_BASE_URL);
+    url.searchParams.set("placement_key", GAINTWALL_PLACEMENT_KEY);
+    url.searchParams.set("user_id", userId);
+    return url.toString();
+  }, [userId]);
+
+  return (
+    <section className="rounded-2xl border border-primary/20 bg-card overflow-hidden shadow-sm">
+      <div className="p-5 md:p-6 border-b border-border bg-gradient-to-r from-pink-500/10 via-transparent to-transparent">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-pink-500/15 flex items-center justify-center">
+            <Zap className="w-5 h-5 text-pink-500" />
+          </div>
+          <div>
+            <h2 className="font-heading font-bold text-lg text-foreground">
+              Gaintwall Offer Wall
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Surveys, apps and tasks from Gaintwall
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-success/10 text-success border border-success/20 uppercase tracking-wider">
+              Active
+            </span>
+            <button
+              type="button"
+              onClick={() => setReloadKey((v) => v + 1)}
+              className="w-9 h-9 rounded-lg border border-border hover:bg-muted flex items-center justify-center transition-colors"
+              title="Reload offer wall"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <a
+              href={offerwallUrl || GAINTWALL_BASE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-9 h-9 rounded-lg border border-border hover:bg-muted flex items-center justify-center transition-colors"
+              title="Open in new tab"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-3 md:p-4">
+        {userId ? (
+          <iframe
+            key={`${offerwallUrl}-${reloadKey}`}
+            src={offerwallUrl}
+            title="Gaintwall Offer Wall"
+            className="w-full min-h-[720px] md:min-h-[820px] rounded-xl border border-border bg-background"
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="clipboard-write"
+          />
+        ) : (
+          <div className="min-h-[420px] flex items-center justify-center text-sm text-muted-foreground">
+            Loading your offer wall...
+          </div>
+        )}
+      </div>
+
+      <div className="px-5 pb-5 text-[11px] text-muted-foreground">
+        Placement Key: {GAINTWALL_PLACEMENT_KEY}. The user ID is attached automatically.
+      </div>
+    </section>
+  );
+}
+
 export default function OfferwallsPage() {
   const [offerwalls, setOfferwalls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,6 +221,8 @@ export default function OfferwallsPage() {
       </PageHeader>
 
       <AdmaxflowOfferwall />
+
+      <GaintwallOfferwall />
 
       {loading ? (
         <div className="text-center py-20 text-muted-foreground">
