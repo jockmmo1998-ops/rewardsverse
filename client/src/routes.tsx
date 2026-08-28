@@ -6,7 +6,7 @@ import { Navigate } from 'react-router-dom';
 const HomePage         = lazy(() => import('./pages/HomePage'));
 const DashboardPage    = lazy(() => import('./pages/DashboardPage'));
 // const EarnPage         = lazy(() => import('./pages/EarnPage'));
-const OfferwallsPage   = lazy(() => import('./pages/OfferwallsPage'));
+const OfferwallsPage   = lazy(() => import('./pages/OfferWalls'));
 const LeaderboardPage  = lazy(() => import('./pages/LeaderboardPage'));
 const AchievementsPage = lazy(() => import('./pages/AchievementsPage'));
 const HistoryPage      = lazy(() => import('./pages/HistoryPage'));
