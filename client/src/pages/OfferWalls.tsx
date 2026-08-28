@@ -10,20 +10,24 @@ import { playBellSound } from "@/utils/bellSound";
 import { useSSE } from "@/hooks/useSSE";
 import {
   LayoutDashboard, Gift as OfferIcon, Wallet, History as HistoryIcon,
-  LogOut, Coins, X, ExternalLink, Star, DollarSign, Cpu, Users,
-  Sparkles, Gift, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight, Trophy, Bell, TrendingUp,
+  LogOut, Coins, X, ExternalLink, Star,
+  Sparkles, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight, Trophy,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const OFFER_WALLS = [
-  { id: "gemiwall",   name: "Gemiwall",         desc: "Premium survey & offer wall",       reward: "$0.10–$5.00",  icon: Star,       color: "from-yellow-500 to-orange-500", glow: "rgba(245,158,11,0.15)", tag: "POPULAR",  rating: 4.8 },
-  { id: "revtoo",     name: "Revtoo",            desc: "High-paying mobile offers",         reward: "$0.25–$8.00",  icon: DollarSign, color: "from-blue-500 to-cyan-500",     glow: "rgba(59,130,246,0.15)",  tag: "HIGH PAY", rating: 4.9 },
-  { id: "clickwall",  name: "Clickwall",         desc: "Quick tasks & downloads",           reward: "$0.10–$3.00",  icon: Zap,        color: "from-green-500 to-emerald-500", glow: "rgba(0,255,135,0.15)",   tag: "EASY",     rating: 4.5 },
-  { id: "moustache",  name: "MoustacheLeads",    desc: "CPI & CPA offers worldwide",        reward: "$0.50–$10.00", icon: Gift,       color: "from-purple-500 to-pink-500",   glow: "rgba(168,85,247,0.15)",  tag: "PREMIUM",  rating: 4.7 },
-  { id: "taskwall",   name: "Taskwall",          desc: "Sign-up & engagement tasks",        reward: "$0.15–$6.00",  icon: Users,      color: "from-indigo-500 to-blue-500",   glow: "rgba(99,102,241,0.15)",  tag: "SIGN-UPS", rating: 4.6 },
-  { id: "cointo",     name: "CoinToMedia",       desc: "Crypto-focused offers",             reward: "$0.20–$4.00",  icon: Coins,      color: "from-amber-500 to-yellow-500",  glow: "rgba(245,158,11,0.12)",  tag: "CRYPTO",   rating: 4.4 },
-  { id: "klink",      name: "Klink Finance",     desc: "Finance & trading offers",          reward: "$0.30–$7.00",  icon: Cpu,        color: "from-teal-500 to-green-500",    glow: "rgba(20,184,166,0.15)",  tag: "FINANCE",  rating: 4.8 },
-  { id: "adswedmedia", name: "AdsWedMedia",     desc: "CPA & incent offers worldwide",      reward: "$0.10–$6.00",  icon: TrendingUp, color: "from-rose-500 to-pink-500",     glow: "rgba(244,63,94,0.15)",   tag: "NEW",      rating: 4.7 },
+  { id: "gemiwall",    name: "Gemiwall",       desc: "Premium survey & offer wall",    reward: "$0.10–$5.00",  logo: "https://gemiwall.com/favicon.ico",                                              color: "from-yellow-500 to-orange-500", glow: "rgba(245,158,11,0.15)", tag: "POPULAR",  rating: 4.8 },
+  { id: "revtoo",      name: "Revtoo",         desc: "High-paying mobile offers",      reward: "$0.25–$8.00",  logo: "https://revtoo.com/assets/offerwall/images/revtoo-dark.svg",                    color: "from-blue-500 to-cyan-500",     glow: "rgba(59,130,246,0.15)",  tag: "HIGH PAY", rating: 4.9 },
+  { id: "clickwall",   name: "Clickwall",      desc: "Quick tasks & downloads",        reward: "$0.10–$3.00",  logo: "https://www.google.com/s2/favicons?domain=clickwall.com&sz=128",                color: "from-green-500 to-emerald-500", glow: "rgba(0,255,135,0.15)",   tag: "EASY",     rating: 4.5 },
+  { id: "moustache",   name: "MoustacheLeads", desc: "CPI & CPA offers worldwide",     reward: "$0.50–$10.00", logo: "https://moustacheleads.com/logo.png",                                           color: "from-purple-500 to-pink-500",   glow: "rgba(168,85,247,0.15)",  tag: "PREMIUM",  rating: 4.7 },
+  { id: "taskwall",    name: "Taskwall",       desc: "Sign-up & engagement tasks",     reward: "$0.15–$6.00",  logo: "https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg",                color: "from-indigo-500 to-blue-500",   glow: "rgba(99,102,241,0.15)",  tag: "SIGN-UPS", rating: 4.6 },
+  { id: "cointo",      name: "CoinToMedia",    desc: "Crypto-focused offers",          reward: "$0.20–$4.00",  logo: "https://cointomedia.com/asset/images/iframe-logo.webp",                         color: "from-amber-500 to-yellow-500",  glow: "rgba(245,158,11,0.12)",  tag: "CRYPTO",   rating: 4.4 },
+  { id: "klink",       name: "Klink Finance",  desc: "Finance & trading offers",       reward: "$0.30–$7.00",  logo: "https://assets.klink.finance/CDN/opengraph.jpg",                                color: "from-teal-500 to-green-500",    glow: "rgba(20,184,166,0.15)",  tag: "FINANCE",  rating: 4.8 },
+  { id: "adswedmedia", name: "AdsWedMedia",    desc: "CPA & incent offers worldwide",  reward: "$0.10–$6.00",  logo: "https://adswedmedia.com/asset/storage/photos/logo-img.png",                     color: "from-rose-500 to-pink-500",     glow: "rgba(244,63,94,0.15)",   tag: "NEW",      rating: 4.7 },
+  // AdMaxFlow — placement_id=143; user_id = username (postback uses subid=USERNAME)
+  { id: "admaxflow",   name: "AdMaxFlow",      desc: "Surveys, apps & tasks worldwide", reward: "$0.10–$5.00", logo: "https://www.google.com/s2/favicons?domain=admaxflow.com&sz=128",                color: "from-cyan-500 to-blue-500",     glow: "rgba(6,182,212,0.15)",   tag: "NEW",      rating: 4.6 },
+  // Gaintwall — placement_key=B3z5xyDiTNxzeLLdeZSp0NSFysfX9Z9x; postback uses user_id=USERNAME
+  { id: "gaintwall",   name: "Gaintwall",      desc: "Earn with surveys & tasks worldwide", reward: "$0.10–$6.00", logo: "https://www.google.com/s2/favicons?domain=gaintwall.com&sz=128",             color: "from-pink-500 to-rose-500",     glow: "rgba(236,72,153,0.15)",  tag: "NEW",      rating: 4.7 },
 ];
 
 const tickerBadge = (type: string) => {
@@ -109,9 +113,10 @@ export default function OfferWalls() {
 
   return (
     <div className="min-h-screen bg-background bg-grid bg-scan">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[30%] h-[30%] bg-cyan-500/4 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-green-500/4 blur-[120px] rounded-full" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="tech-orb tech-orb-1" />
+        <div className="tech-orb tech-orb-2" />
+        <div className="tech-orb tech-orb-3" />
       </div>
 
       {/* Ticker */}
@@ -172,7 +177,7 @@ export default function OfferWalls() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="mb-10">
             <div className="inline-flex items-center gap-2 tag-cyber mb-3">
-              <Zap className="w-3 h-3" /> 8 Providers
+              <Zap className="w-3 h-3" /> 10 Providers
             </div>
             <h2 className="text-3xl font-extrabold">Offer <span className="text-gradient">Walls</span></h2>
             <p className="text-sm text-muted-foreground mt-1">Select a provider to start earning rewards by completing simple tasks.</p>
@@ -194,8 +199,8 @@ export default function OfferWalls() {
                         </div>
                         <p className="text-xs text-muted-foreground">{wall.desc}</p>
                       </div>
-                      <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${wall.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg`}>
-                        <wall.icon className="w-5 h-5 text-white" />
+                      <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${wall.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg overflow-hidden`}>
+                        <img src={wall.logo} alt={wall.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       </div>
                     </div>
                     <div className="divider-cyber mb-4" />
