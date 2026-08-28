@@ -1,5 +1,5 @@
 import { eq, desc, sql, and } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import type { MySql2Database } from "drizzle-orm/mysql2";
 import {
   InsertUser,
   InsertWithdrawal,
@@ -24,12 +24,16 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
-let _db: ReturnType<typeof drizzle> | null = null;
+// Lazy-initialized DB instance — never imported at module load time so the
+// server starts successfully even when DATABASE_URL is absent.
+let _db: MySql2Database<Record<string, never>> | null = null;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      // Dynamic import prevents mysql2 from being required at startup
+      const { drizzle } = await import("drizzle-orm/mysql2");
+      _db = drizzle(process.env.DATABASE_URL) as MySql2Database<Record<string, never>>;
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
