@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Zap, Trophy, Award, History, Users, Wallet, ArrowDownToLine, User, Settings, HelpCircle, ShieldAlert, LogOut, Grid3X3, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
@@ -26,11 +25,11 @@ const accountItems = [
 
 export function AppSidebar({ onClose }: { onClose?: () => void }) {
   const location = useLocation();
-  const { profile } = useAuth(); // lấy profile từ context
+  const { profile, logout } = useAuth();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/login';
+    await logout();
+    window.location.href = '/home';
   };
 
   const NavLink = ({ item, isHot = false, className = '' }: { item: any, isHot?: boolean, className?: string }) => {

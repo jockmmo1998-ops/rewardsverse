@@ -29,7 +29,7 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
       <div className="flex items-center gap-3 md:gap-5">
         <Link to="/wallet" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-border hover:bg-white/10 transition-colors">
           <span className="text-xs text-muted-foreground hidden sm:inline-block">Balance</span>
-          <span className="font-heading font-bold text-sm text-primary">${(profile?.balance || 0).toFixed(2)}</span>
+          <span className="font-heading font-bold text-sm text-primary">${Number(profile?.balance || 0).toFixed(2)}</span>
         </Link>
         
         <button className="relative p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-white/5 transition-colors">
