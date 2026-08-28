@@ -25,4 +25,52 @@ services:
         value: ""
       - key: VITE_OAUTH_PORTAL_URL
         value: ""
+      - key: PUBLIC_APP_URL
+        value: https://rewardsverse.online
+      - key: GEMIWALL_PLACEMENT_ID
+        sync: false
+      - key: GEMIWALL_POSTBACK_SECRET
+        sync: false
+      - key: REVTOO_PLACEMENT_ID
+        sync: false
+      - key: REVTOO_POSTBACK_SECRET
+        sync: false
+      - key: CLICKWALL_PLACEMENT_ID
+        sync: false
+      - key: CLICKWALL_POSTBACK_SECRET
+        sync: false
+      - key: MOUSTACHE_PLACEMENT_ID
+        sync: false
+      - key: MOUSTACHE_API_KEY
+        sync: false
+      - key: MOUSTACHE_POSTBACK_SECRET
+        sync: false
+      - key: TASKWALL_APP_ID
+        sync: false
+      - key: TASKWALL_POSTBACK_SECRET
+        sync: false
+      - key: COINTO_PLACEMENT_ID
+        sync: false
+      - key: COINTO_POSTBACK_SECRET
+        sync: false
+      - key: KLINK_PUBLISHER_ID
+        sync: false
+      - key: KLINK_POSTBACK_SECRET
+        sync: false
+      - key: ADSWEDMEDIA_PLACEMENT_ID
+        sync: false
+      - key: ADSWEDMEDIA_POSTBACK_SECRET
+        sync: false
+      - key: ADMAXFLOW_PLACEMENT_ID
+        sync: false
+      - key: ADMAXFLOW_POSTBACK_SECRET
+        sync: false
+      - key: GAINTWALL_PLACEMENT_KEY
+        sync: false
+      - key: GAINTWALL_POSTBACK_SECRET
+        sync: false
+      - key: BUCKSWALL_OFFERWALL_URL
+        sync: false
+      - key: BUCKSWALL_POSTBACK_SECRET
+        sync: false
     healthCheckPath: /
