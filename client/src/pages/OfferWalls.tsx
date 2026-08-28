@@ -1,4 +1,4 @@
-import { useAuth } from "@/contexts/AuthContext";
+fimport { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ const OFFER_WALLS = [
   { id: "admaxflow",   name: "AdMaxFlow",      desc: "Surveys, apps & tasks worldwide", reward: "$0.10–$5.00", logo: "https://www.google.com/s2/favicons?domain=admaxflow.com&sz=128",                color: "from-cyan-500 to-blue-500",     glow: "rgba(6,182,212,0.15)",   tag: "NEW",      rating: 4.6 },
   // Gaintwall — placement_key=B3z5xyDiTNxzeLLdeZSp0NSFysfX9Z9x; postback uses user_id=USERNAME
   { id: "gaintwall",   name: "Gaintwall",      desc: "Earn with surveys & tasks worldwide", reward: "$0.10–$6.00", logo: "https://www.google.com/s2/favicons?domain=gaintwall.com&sz=128",             color: "from-pink-500 to-rose-500",     glow: "rgba(236,72,153,0.15)",  tag: "NEW",      rating: 4.7 },
+  { id: "buckswall",   name: "BucksWall",       desc: "Mobile apps, surveys & gaming offers", reward: "$0.10–$6.00", logo: "https://buckswall.com/favicon.ico",                                       color: "from-sky-500 to-blue-500",      glow: "rgba(14,165,233,0.15)",   tag: "SETUP",    rating: 4.6, externalUrl: "https://buckswall.com/" },
 ];
 
 const tickerBadge = (type: string) => {
@@ -81,7 +82,15 @@ export default function OfferWalls() {
     return () => document.removeEventListener("visibilitychange", fn);
   }, [activeWall, refreshProfile]);
 
-  const openWall = (wallId: string) => { setActiveWall(wallId); setWallUrl(""); };
+  const openWall = (wallId: string) => {
+    const wall = OFFER_WALLS.find((item) => item.id === wallId);
+    if (wall?.externalUrl) {
+      window.open(wall.externalUrl, "_blank", "noopener,noreferrer");
+      toast.info("BucksWall cần Placement ID riêng để nhúng offerwall và nhận postback.");
+      return;
+    }
+    setActiveWall(wallId); setWallUrl("");
+  };
   const closeWall = useCallback(() => {
     refreshProfile();
     setTimeout(() => refreshProfile(), 1000);
@@ -177,7 +186,7 @@ export default function OfferWalls() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="mb-10">
             <div className="inline-flex items-center gap-2 tag-cyber mb-3">
-              <Zap className="w-3 h-3" /> 10 Providers
+              <Zap className="w-3 h-3" /> 11 Providers
             </div>
             <h2 className="text-3xl font-extrabold">Offer <span className="text-gradient">Walls</span></h2>
             <p className="text-sm text-muted-foreground mt-1">Select a provider to start earning rewards by completing simple tasks.</p>
