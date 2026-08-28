@@ -10,9 +10,6 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { sseManager } from "./sse";
-import { migrate } from "drizzle-orm/mysql2/migrator";
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
 import path from "path";
 import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
@@ -37,7 +34,7 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
-// Tự động chạy migration khi server khởi động
+// Run database migrations at startup (only when DATABASE_URL is set)
 async function runMigrations() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -46,11 +43,12 @@ async function runMigrations() {
   }
   try {
     console.log("[Migration] Running database migrations...");
-    const connection = await mysql.createConnection(databaseUrl);
-    const db = drizzle(connection);
-    // Tính migration path dựa trên môi trường:
-    // - Prod: node dist/index.js  → __dirname = dist/ → dist/drizzle (đã cp vào build)
-    // - Dev:  tsx server/_core/index.ts → dùng process.cwd()/drizzle (source folder)
+    // Lazy-import mysql2 and drizzle so the server starts without a DB
+    const mysql = await import("mysql2/promise");
+    const { drizzle } = await import("drizzle-orm/mysql2");
+    const { migrate } = await import("drizzle-orm/mysql2/migrator");
+    const connection = await mysql.default.createConnection(databaseUrl);
+    const drizzleDb = drizzle(connection);
     const isProd = process.env.NODE_ENV === "production";
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
@@ -58,12 +56,12 @@ async function runMigrations() {
       ? path.resolve(__dirname, "drizzle")
       : path.resolve(process.cwd(), "drizzle");
     console.log("[Migration] Migrations folder:", migrationsFolder);
-    await migrate(db, { migrationsFolder });
+    await migrate(drizzleDb, { migrationsFolder });
     await connection.end();
     console.log("[Migration] ✅ Migrations completed successfully");
   } catch (error) {
-    console.error("[Migration] ❌ Migration failed:", error);
-    // Không crash server nếu migration lỗi (bảng đã tồn tại thì OK)
+    console.error("[Migration] ❌ Migration failed (non-fatal):", error);
+    // Do not crash the server — tables may already exist
   }
 }
 
