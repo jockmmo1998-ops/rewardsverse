@@ -1,66 +1,111 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { useCallback, useMemo } from "react";
+import { trpc } from "@/lib/trpc";
+import { useAuth as useCoreAuth } from "@/_core/hooks/useAuth";
+
+type AuthResult = {
+  error: Error | null;
+  data?: unknown;
+};
 
 type AuthContextType = {
   user: any | null;
   profile: any | null;
+  activities: any[];
   loading: boolean;
-  refreshProfile: () => void;
+  isAdmin: boolean;
+  refreshProfile: () => Promise<unknown>;
+  logout: () => Promise<void>;
+  register: (username: string, password: string, refCode?: string) => Promise<AuthResult>;
+  login: (username: string, password: string) => Promise<AuthResult>;
+  signUpWithUsername: (username: string, password: string, refCode?: string) => Promise<AuthResult>;
+  signInWithUsername: (username: string, password: string) => Promise<AuthResult>;
 };
 
-const AuthContext = createContext<AuthContextType>({ user: null, profile: null, loading: true, refreshProfile: () => {} });
+const toError = (error: unknown): Error =>
+  error instanceof Error ? error : new Error(String(error || "Request failed"));
 
+/**
+ * Compatibility layer for older pages while the application uses the current
+ * tRPC/MySQL authentication flow. This keeps every route on one session source
+ * and removes the legacy Supabase dependency from the active app.
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const refreshProfile = async () => {
-    if (!user?.id) return;
-    try {
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (data) setProfile(data);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        supabase.from('profiles').select('*').eq('id', session.user.id).single().then(({ data }) => {
-          setProfile(data);
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        supabase.from('profiles').select('*').eq('id', session.user.id).single().then(({ data }) => {
-          setProfile(data);
-          setLoading(false);
-        });
-      } else {
-        setProfile(null);
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  return (
-    <AuthContext.Provider value={{ user, profile, loading, refreshProfile }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <>{children}</>;
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth(): AuthContextType {
+  const coreAuth = useCoreAuth();
+  const profileQuery = trpc.user.getProfile.useQuery(undefined, {
+    enabled: Boolean(coreAuth.user),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const activitiesQuery = trpc.user.getActivities.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const registerMutation = trpc.virtual.register.useMutation();
+  const loginMutation = trpc.virtual.login.useMutation();
+
+  const profile = useMemo(() => {
+    const value = profileQuery.data ?? coreAuth.user ?? null;
+    if (!value) return null;
+    return {
+      ...value,
+      // Legacy pages use snake_case profile fields.
+      is_admin: value.is_admin ?? value.role === "admin",
+      ref_code: value.ref_code ?? value.refCode,
+      referred_by: value.referred_by ?? value.referredBy,
+      lifetime_earnings: value.lifetime_earnings ?? value.totalEarned,
+      completed_offers: value.completed_offers ?? value.offersCompleted,
+    };
+  }, [profileQuery.data, coreAuth.user]);
+
+  const refreshProfile = useCallback(async () => {
+    await Promise.all([coreAuth.refresh(), profileQuery.refetch()]);
+  }, [coreAuth.refresh, profileQuery.refetch]);
+
+  const register = useCallback(
+    async (username: string, password: string, refCode?: string): Promise<AuthResult> => {
+      try {
+        const data = await registerMutation.mutateAsync({
+          username,
+          password,
+          refCode: refCode ?? "",
+        });
+        await refreshProfile();
+        return { error: null, data };
+      } catch (error) {
+        return { error: toError(error) };
+      }
+    },
+    [registerMutation, refreshProfile],
+  );
+
+  const login = useCallback(
+    async (username: string, password: string): Promise<AuthResult> => {
+      try {
+        const data = await loginMutation.mutateAsync({ username, password });
+        await refreshProfile();
+        return { error: null, data };
+      } catch (error) {
+        return { error: toError(error) };
+      }
+    },
+    [loginMutation, refreshProfile],
+  );
+
+  return {
+    user: profile ?? coreAuth.user ?? null,
+    profile,
+    activities: activitiesQuery.data ?? [],
+    loading: coreAuth.loading || profileQuery.isLoading,
+    isAdmin: profile?.role === "admin" || profile?.is_admin === true,
+    refreshProfile,
+    logout: coreAuth.logout,
+    register,
+    login,
+    signUpWithUsername: register,
+    signInWithUsername: login,
+  };
+}
