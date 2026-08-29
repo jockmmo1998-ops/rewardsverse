@@ -9,7 +9,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { playBellSound } from "@/utils/bellSound";
 import { useSSE } from "@/hooks/useSSE";
 import {
-  LogOut, Coins, X, Star,
+  X, Star,
   Sparkles, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,18 +27,6 @@ const OFFER_WALLS = [
   { id: "gaintwall",   name: "Gaintwall",      desc: "Earn with surveys & tasks worldwide", reward: "$0.10–$6.00", logo: "https://www.google.com/s2/favicons?domain=gaintwall.com&sz=128",             color: "from-pink-500 to-rose-500",     glow: "rgba(236,72,153,0.15)",  tag: "NEW",      rating: 4.7 },
   { id: "buckswall",   name: "BucksWall",       desc: "Mobile apps, surveys & gaming offers", reward: "$0.10–$6.00", logo: "https://www.google.com/s2/favicons?domain=buckswall.com&sz=128",                                       color: "from-sky-500 to-blue-500",      glow: "rgba(14,165,233,0.15)",   tag: "SETUP",    rating: 4.6 },
 ];
-
-const tickerBadge = (type: string) => {
-  const map: Record<string, string> = {
-    offer_complete: "bg-green-500/10 text-green-400 border-green-500/30",
-    withdrawal: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
-    daily_claim: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
-    referral: "bg-purple-500/10 text-purple-400 border-purple-500/30",
-  };
-  return map[type] || map.offer_complete;
-};
-const tickerLabel = (type: string) =>
-  ({ offer_complete: "EARNED", withdrawal: "WITHDRAW", daily_claim: "BONUS", referral: "REFERRAL" }[type] || "EARNED");
 
 export default function OfferWalls() {
   const { user, loading, logout, isAdmin, refreshProfile, activities } = useAuth();
@@ -130,56 +118,15 @@ export default function OfferWalls() {
   const balance = parseFloat(user?.balance || "0") || 0;
 
   return (
-    <div className="min-h-screen bg-[#060818] bg-grid bg-scan bg-[radial-gradient(circle_at_top_right,rgba(0,255,135,0.08),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(0,200,255,0.07),transparent_40%)]">
+    <div className="min-h-screen bg-transparent">
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="tech-orb tech-orb-1" />
         <div className="tech-orb tech-orb-2" />
         <div className="tech-orb tech-orb-3" />
       </div>
 
-      {/* Ticker */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-9 bg-background/90 backdrop-blur-md border-b border-green-500/10 overflow-hidden flex items-center">
-        <div className="w-1 h-full bg-gradient-to-b from-green-400 to-cyan-400 shrink-0" />
-        <div className="animate-marquee whitespace-nowrap flex items-center gap-16 text-[11px] font-medium text-muted-foreground ml-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-16">
-              {activities.map((a: any) => (
-                <span key={`${i}-${a.id}`} className="flex items-center gap-2">
-                  <Badge variant="outline" className={`py-0 h-5 font-bold ${tickerBadge(a.type)}`}>{tickerLabel(a.type)}</Badge>
-                  <span className="text-white font-semibold">{a.username}</span>
-                  <span>{a.description}</span>
-                  {a.amount && <span className="text-green-400 font-bold">${parseFloat(a.amount).toFixed(2)}</span>}
-                </span>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Header */}
-      <header className="fixed top-9 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-b border-green-500/10">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl gradient-cyber flex items-center justify-center glow-green">
-              <Coins className="w-5 h-5 text-[#060818]" />
-            </div>
-            <div>
-              <h1 className="text-base font-bold"><span className="text-gradient">Rewards</span>Verse</h1>
-              <p className="text-[9px] text-green-400/70 tracking-[0.2em] uppercase font-bold">Fast Payouts</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-green-500/8 border border-green-500/25 rounded-lg px-3 py-1.5">
-              <Coins className="w-4 h-4 text-green-400" />
-              <span className="text-green-400 font-black text-sm">${balance.toFixed(2)}</span>
-            </div>
-            <Button variant="ghost" size="sm" onClick={logout} className="text-muted-foreground hover:text-red-400"><LogOut className="w-4 h-4" /></Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main */}
-      <main className="relative z-10 pt-[7rem] pb-10 px-4 max-w-7xl mx-auto">
+      {/* Main: the shared AppLayout TopBar and vertical sidebar remain in place */}
+      <main className="relative z-10 pt-6 pb-10 px-4 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="mb-10">
             <div className="inline-flex items-center gap-2 tag-cyber mb-3">
