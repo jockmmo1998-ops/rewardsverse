@@ -445,3 +445,52 @@
 .app-shell .btn-cyber:hover {
   box-shadow: 0 0 30px rgba(0, 255, 135, 0.42), 0 8px 24px rgba(0, 0, 0, 0.4);
 }
+
+/* ── Sidebar backdrop: keep Main Menu in the same green honeycomb world ── */
+.app-shell .sidebar-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: rgba(4, 24, 14, 0.58) !important;
+  border-right-color: rgba(0, 255, 135, 0.20);
+}
+.app-shell .sidebar-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: url('/assets/rewardsverse-honeycomb-green.png');
+  background-size: cover;
+  background-position: 18% center;
+  background-repeat: no-repeat;
+  opacity: 0.62;
+  filter: saturate(1.08) brightness(1.08);
+}
+.app-shell .sidebar-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4, 24, 14, 0.34), rgba(3, 14, 9, 0.68)),
+    linear-gradient(90deg, rgba(0, 255, 135, 0.06), transparent 72%);
+}
+.app-shell .sidebar-panel > * {
+  position: relative;
+  z-index: 1;
+}
+.app-shell .sidebar-panel .bg-card\/20 {
+  background-color: rgba(5, 28, 16, 0.28) !important;
+}
+.app-shell .sidebar-panel .bg-card\/80 {
+  background-color: rgba(5, 28, 16, 0.42) !important;
+}
+.app-shell .sidebar-panel .text-muted-foreground {
+  color: rgba(216, 255, 231, 0.76);
+}
+.app-shell .sidebar-panel a:hover,
+.app-shell .sidebar-panel button:hover {
+  background-color: rgba(0, 255, 135, 0.12);
+}
