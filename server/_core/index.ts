@@ -69,6 +69,11 @@ async function runMigrations() {
       return;
     } catch (error) {
       lastError = error;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (/Table [^\n]*users[^\n]*already exists/i.test(errorMessage)) {
+        console.warn("[Migration] Existing users table detected; continuing startup.");
+        return;
+      }
       console.error(`[Migration] Attempt ${attempt} failed:`, error);
       if (attempt < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, attempt * 3_000));
