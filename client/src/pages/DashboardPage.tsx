@@ -7,11 +7,16 @@ import { GlassCard } from '@/components/shared/GlassCard';
 import { ProgressBar } from '@/components/shared/ProgressBar';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchUserTransactions } from '@/api';
+import { trpc } from '@/lib/trpc';
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const featuredOffersQuery = trpc.user.getFeaturedOffers.useQuery(undefined, {
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
     if (user?.id) {
@@ -49,6 +54,51 @@ export default function DashboardPage() {
         <StatCard title="Lifetime Earnings" value={`$${lifetime.toFixed(2)}`} icon={<TrendingUp className="w-5 h-5 text-success" />} delay={0.2} />
         <StatCard title="Offers Completed" value={completed.toString()} icon={<Target className="w-5 h-5 text-cyan-400" />} delay={0.3} />
       </div>
+
+      {/* Featured Offers */}
+      <GlassCard className="p-5 md:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-heading font-semibold text-lg flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-yellow-400" /> Featured Offers
+          </h3>
+          <Link to="/offerwalls" className="text-sm text-primary hover:underline flex items-center gap-1">
+            Browse all <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {featuredOffersQuery.isLoading ? (
+          <p className="text-center text-sm text-muted-foreground py-4">Loading featured offers...</p>
+        ) : featuredOffersQuery.data && featuredOffersQuery.data.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {featuredOffersQuery.data.map((offer, index) => (
+              <Link key={`${offer.provider}-${offer.offerName || 'offer'}`} to="/offerwalls" className="group rounded-xl border border-white/10 bg-black/20 p-4 transition hover:border-primary/40 hover:bg-primary/5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold group-hover:text-primary transition-colors">
+                      {offer.offerName || `${offer.provider} offer`}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{offer.provider}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-yellow-400/10 px-2 py-1 text-[10px] font-bold text-yellow-300">
+                    #{index + 1}
+                  </span>
+                </div>
+                <div className="mt-4 flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{offer.completionCount} completions</span>
+                  <span className="font-semibold text-success">Avg. ${offer.averageReward}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-white/10 py-6 text-center">
+            <p className="text-sm text-muted-foreground">Featured offers will appear as users complete offers.</p>
+            <Link to="/offerwalls" className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline">
+              Explore offer walls <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+      </GlassCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Progress & Activity */}
