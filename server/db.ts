@@ -483,6 +483,31 @@ export async function getOfferHistoryByUserId(userId: number) {
     .orderBy(desc(offerHistory.createdAt));
 }
 
+
+export async function getFeaturedOffers(limit = 6) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const rows = await db
+    .select({
+      provider: offerHistory.provider,
+      offerName: offerHistory.offerName,
+      completionCount: sql<number>`count(*)`,
+      averageReward: sql<string>`coalesce(avg(${offerHistory.amount}), 0)`,
+      lastCompletedAt: sql<Date>`max(${offerHistory.createdAt})`,
+    })
+    .from(offerHistory)
+    .where(eq(offerHistory.status, "completed"))
+    .groupBy(offerHistory.provider, offerHistory.offerName)
+    .orderBy(desc(sql`count(*)`), desc(sql`max(${offerHistory.createdAt})`))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    ...row,
+    completionCount: Number(row.completionCount || 0),
+    averageReward: Number(row.averageReward || 0).toFixed(2),
+  }));
+}
 // ===== NOTIFICATIONS =====
 
 export async function addNotification(data: InsertNotification) {
