@@ -1,7 +1,13 @@
 import { Express, Request, Response } from "express";
 import * as crypto from "crypto";
 import * as db from "../db";
-import { POSTBACK_SECRETS } from "../routers";
+import {
+  OFFER_WALL_IDS,
+  POSTBACK_PARAM_SPECS,
+  POSTBACK_SECRETS,
+  OFFER_WALL_LABELS,
+  type PostbackParamSpec,
+} from "../offerwall-config";
 import { sseManager } from "./sse";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -92,6 +98,12 @@ const COMPLETED_STATUSES = new Set([
   "1", "true", "ok",
 ]);
 
+/** Status values used by offerwall networks for a reversal/chargeback. */
+const CHARGEBACK_STATUSES = new Set([
+  "2", "reversed", "reverse", "chargeback", "refund", "refunded",
+  "cancelled", "canceled", "debit",
+]);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -131,29 +143,65 @@ function pickNumeric(params: Record<string, any>, fields: string[]): string {
 /** Accept any of several common auth-token field names */
 const TOKEN_FIELDS = ["token", "secret", "apikey", "api_key", "hash", "key"];
 
-function extractToken(params: Record<string, any>): string {
-  return pick(params, TOKEN_FIELDS);
+function extractToken(params: Record<string, any>, spec?: PostbackParamSpec): string {
+  return pick(params, [...(spec?.authFields || []), ...TOKEN_FIELDS]);
+}
+
+function constantTimeEqual(left: string, right: string): boolean {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+  return leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+/**
+ * Revtoo, Cointo and AdswedMedia document the same MD5 formula:
+ * md5(user + transaction + reward + secret).
+ */
+function verifyProviderMd5Signature(
+  secret: string,
+  params: Record<string, any>,
+  spec: PostbackParamSpec,
+): boolean {
+  if (!spec.transaction) return false;
+  const user = pick(params, [spec.user]);
+  const transaction = pick(params, [spec.transaction]);
+  const reward = pick(params, [spec.reward]);
+  const signature = extractSignature(params);
+  if (!user || !transaction || !reward || !signature) return false;
+  const expected = crypto
+    .createHash("md5")
+    .update(`${user}${transaction}${reward}${secret}`)
+    .digest("hex");
+  return constantTimeEqual(expected, signature.toLowerCase());
+}
+
+/**
+ * Some networks (notably TaskWall) do not provide a stable transaction ID.
+ * Hashing the canonical, non-auth payload makes retries idempotent while still
+ * allowing different offers/dates to create different events.
+ */
+function buildDeterministicEventId(provider: string, params: Record<string, any>): string {
+  const authFields = new Set([
+    ...TOKEN_FIELDS,
+    "password",
+    "signature",
+    "sig",
+    "hash",
+    "key",
+  ]);
+  const canonical = Object.entries(params)
+    .filter(([key, value]) => !authFields.has(key) && value !== undefined && value !== null)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}=${String(value)}`)
+    .join("&");
+  const digest = crypto.createHash("sha256").update(canonical).digest("hex").slice(0, 48);
+  return `${provider}:${digest}`;
 }
 
 function extractSignature(params: Record<string, any>): string {
   return pick(params, ["signature", "sig", "hash"]);
 }
 
-/** Verify HMAC-SHA256 over sorted key=value pairs (future use) */
-function verifyHmacSignature(
-  secret: string,
-  params: Record<string, any>,
-  signature: string
-): boolean {
-  if (!signature) return false;
-  const msg = Object.keys(params)
-    .filter((k) => !["signature", "sig"].includes(k))
-    .sort()
-    .map((k) => `${k}=${params[k]}`)
-    .join("&");
-  const expected = crypto.createHmac("sha256", secret).update(msg).digest("hex");
-  return expected === signature;
-}
 
 /**
  * Register postback endpoints for offer wall providers
@@ -164,25 +212,24 @@ function verifyHmacSignature(
  * - GET  /api/postback/:provider          → Fallback for GET callbacks
  *
  * Xác thực theo từng provider:
- * - cointo / revtoo / gemiwall / taskwall / adswedmedia / clickwall / klink / moustache:
- *     ?token= query param plain-match với POSTBACK_SECRETS
+ * - gemiwall / taskwall / clickwall / moustache / klink / admaxflow / gaintwall / buckswall:
+ *     token/password query field plain-matches the provider secret
+ * - revtoo / cointo / adswedmedia:
+ *     signature=md5(user + transaction + reward + secret)
  *
  * Chi tiết param từng provider:
- * - revtoo:      user_id=USERNAME  reward=AMOUNT    transaction_id=TXID
- * - cointo:      user_id=USERNAME  reward=AMOUNT    transaction_id=TXID
+ * - revtoo:      subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
+ * - cointo:      subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
  * - gemiwall:    sub_id=USERNAME   reward=AMOUNT    uuid=TXID
- * - taskwall:    userid=USERNAME   reward=AMOUNT    password=TXID
- * - clickwall:   user_id=USERNAME  payout=AMOUNT    transaction_id=TXID
- * - adswedmedia: sub=USERNAME      reward=AMOUNT    transid=TXID
+ * - taskwall:    userid=USERNAME   user_amount=AMOUNT password=AUTH_PASSWORD
+ * - clickwall:   user_id=USERNAME  amount=AMOUNT    txid=TXID
+ * - adswedmedia: subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
  * - klink (GET): subId=USERNAME    payout=AMOUNT    transId=TXID    (GET query params)
  * - klink (POST JSON): userId=USERNAME  payout=AMOUNT  conversionId=TXID
  * - moustache:   user_id=USERNAME  payout=AMOUNT    transaction_id=TXID
  *
  * Idempotency: duplicate externalId + provider combos silently ignored
  */
-
-// HMAC providers (future expansion — currently none require it)
-const HMAC_PROVIDERS = new Set<string>([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ROUTE REGISTRATION
@@ -191,19 +238,25 @@ const HMAC_PROVIDERS = new Set<string>([]);
 export function registerPostbackRoutes(app: Express) {
   // Health / info
   app.get("/api/postback", (_req, res) => {
-    const configured = Object.keys(POSTBACK_SECRETS).map((p) => ({
-      provider: p,
-      authMethod: HMAC_PROVIDERS.has(p) ? "hmac-sha256" : "token",
-      configured: true,
-    }));
+    const configured = OFFER_WALL_IDS.map((provider) => {
+      const spec = POSTBACK_PARAM_SPECS[provider];
+      return {
+        provider,
+        label: OFFER_WALL_LABELS[provider] || provider,
+        authMethod: spec.auth,
+        configured: Boolean(POSTBACK_SECRETS[provider]),
+        response: spec.response,
+      };
+    });
     return res.json({
       success: true,
       message: "RewardsVerse Universal Postback API",
       version: "2.0",
       supportedMethods: ["GET", "POST", "application/json", "application/x-www-form-urlencoded", "multipart/form-data"],
       configuredProviders: configured,
-      universalMode: "Any unknown provider is accepted when ?token= matches POSTBACK_SECRETS entry",
-      postbackUrl: "https://YOUR_DOMAIN/api/postback/{provider}?token={YOUR_SECRET}&{user_param}={USERNAME}&{reward_param}={AMOUNT}&{txid_param}={TXID}",
+      universalMode: "Only the 11 supported providers are accepted; every callback must be authenticated",
+      postbackUrl: "Use the provider-specific callback URL from the admin panel",
+      supportedProviders: OFFER_WALL_IDS,
       userFields: USER_FIELDS,
       rewardFields: REWARD_FIELDS,
       txidFields: TXID_FIELDS,
@@ -252,7 +305,8 @@ async function handlePostback(req: Request, res: Response) {
     resolvedAmount: string,
     resolvedTxid: string,
     resolvedOfferName: string,
-    errorMsg?: string
+    errorMsg?: string,
+    dedupeKey?: string,
   ): Promise<Response> {
     const ms = Date.now() - startTime;
     // Log to detailed postback_logs table (non-critical — never crash on failure)
@@ -277,7 +331,7 @@ async function handlePostback(req: Request, res: Response) {
     if (resolvedUserId && logStatus !== "duplicate") {
       db.logPostback({
         provider,
-        externalId: resolvedTxid || `${provider}:noid:${Date.now()}`,
+        externalId: dedupeKey || resolvedTxid || `${provider}:noid:${Date.now()}`,
         userId: resolvedUserId,
         amount: resolvedAmount || "0",
         offerName: resolvedOfferName,
@@ -286,6 +340,13 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     console.log(`[Postback] RESPOND ${httpStatus} — ${logStatus} (${ms}ms):`, JSON.stringify(payload));
+    // Several networks require a short plain-text acknowledgement instead of
+    // JSON. Keep JSON for internal/test providers and error responses.
+    const providerSpec = POSTBACK_PARAM_SPECS[provider];
+    if (providerSpec?.response === "ok" && httpStatus < 300) {
+      const body = logStatus === "duplicate" && provider === "adswedmedia" ? "DUP" : "OK";
+      return res.status(httpStatus).type("text/plain").send(body);
+    }
     return res.status(httpStatus).json(payload);
   }
 
@@ -297,34 +358,43 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 2. Authentication ───────────────────────────────────────────────────
+    const spec = POSTBACK_PARAM_SPECS[provider];
     const expectedSecret = POSTBACK_SECRETS[provider];
-    if (expectedSecret) {
-      if (HMAC_PROVIDERS.has(provider)) {
-        const sig = extractSignature(params);
-        if (!verifyHmacSignature(expectedSecret, params, sig)) {
-          console.error(`[Postback][${provider}] HMAC signature mismatch`);
-          return respond(401, { success: false, message: "Invalid HMAC signature" },
-            "failed", 0, "", "", "", "hmac_mismatch");
-        }
-      } else {
-        // Token / secret match — accept any of several field names
-        const token = extractToken(params);
-        if (!token) {
-          console.error(`[Postback][${provider}] Missing auth token`);
-          return respond(401, { success: false, message: "Authentication token required (?token=YOUR_SECRET)" },
-            "failed", 0, "", "", "", "missing_token");
-        }
-        if (token !== expectedSecret) {
-          console.error(`[Postback][${provider}] Token mismatch. Got: ${token.substring(0, 4)}***`);
-          return respond(401, { success: false, message: "Invalid authentication token" },
-            "failed", 0, "", "", "", "invalid_token");
-        }
-      }
-      console.log(`[Postback][${provider}] Auth OK`);
-    } else {
-      // Unknown provider — still process but log warning
-      console.warn(`[Postback][${provider}] No secret configured — processing without auth`);
+    if (!spec || !(OFFER_WALL_IDS as readonly string[]).includes(provider)) {
+      return respond(404, {
+        success: false,
+        message: "Unknown offerwall provider",
+        supportedProviders: OFFER_WALL_IDS,
+      }, "failed", 0, "", "", "", "unknown_provider");
     }
+    if (!expectedSecret) {
+      console.error(`[Postback][${provider}] Provider secret is not configured`);
+      return respond(503, {
+        success: false,
+        message: "Offerwall provider is not configured",
+      }, "failed", 0, "", "", "", "provider_not_configured");
+    }
+
+    if (spec.auth === "md5") {
+      if (!verifyProviderMd5Signature(expectedSecret, params, spec)) {
+        console.error(`[Postback][${provider}] MD5 signature mismatch`);
+        return respond(401, { success: false, message: "Invalid postback signature" },
+          "failed", 0, "", "", "", "signature_mismatch");
+      }
+    } else {
+      const token = extractToken(params, spec);
+      if (!token) {
+        console.error(`[Postback][${provider}] Missing auth token/password`);
+        return respond(401, { success: false, message: "Authentication token/password required" },
+          "failed", 0, "", "", "", "missing_token");
+      }
+      if (!constantTimeEqual(token, expectedSecret)) {
+        console.error(`[Postback][${provider}] Token mismatch. Got: ${token.substring(0, 4)}***`);
+        return respond(401, { success: false, message: "Invalid authentication token/password" },
+          "failed", 0, "", "", "", "invalid_token");
+      }
+    }
+    console.log(`[Postback][${provider}] Auth OK (${spec.auth})`);
 
     // ── 3. Extract status ──────────────────────────────────────────────────
     // Read from any common status field name. Note: "eventType" is included
@@ -340,18 +410,19 @@ async function handlePostback(req: Request, res: Response) {
     // If a status field IS present but is not a known completed value → skip.
     // If NO status field is present (empty string) → assume completed (many
     // providers only POST on completion and omit the status field entirely).
-    if (statusNorm !== "" && !COMPLETED_STATUSES.has(statusNorm)) {
-      console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed value — skipping`);
+    const isChargeback = CHARGEBACK_STATUSES.has(statusNorm);
+    if (statusNorm !== "" && !COMPLETED_STATUSES.has(statusNorm) && !isChargeback) {
+      console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed or chargeback value — skipping`);
       return respond(200, {
         success: true,
         message: `Postback received but status "${statusRaw}" is not a completed state — skipped`,
         receivedStatus: statusRaw,
-        acceptedValues: Array.from(COMPLETED_STATUSES),
+        acceptedValues: [...Array.from(COMPLETED_STATUSES), ...Array.from(CHARGEBACK_STATUSES)],
       }, "failed", 0, "", "", "");
     }
 
     // ── 4. Extract user identifier ─────────────────────────────────────────
-    const rawUserId = pick(params, USER_FIELDS);
+    const rawUserId = pick(params, [spec.user, ...USER_FIELDS]);
     if (!rawUserId) {
       console.error(`[Postback][${provider}] No user identifier found. Query: ${rawQuery}  Body: ${rawBody}`);
       return respond(400, {
@@ -363,7 +434,7 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 5. Extract reward amount ───────────────────────────────────────────
-    const rawAmount = pickNumeric(params, REWARD_FIELDS);
+    const rawAmount = pickNumeric(params, [spec.reward, ...REWARD_FIELDS]);
 
     // Log every parsed field before any validation so debugging is easy
     console.log(`[Postback][${provider}] Detected → status="${statusNorm}" user="${rawUserId}" reward="${rawAmount}" params=${JSON.stringify(Object.keys(params))}`);
@@ -393,14 +464,16 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 6. Extract transaction ID ──────────────────────────────────────────
-    let rawTxid = pick(params, TXID_FIELDS);
-    // Skip "password" field if it looks like an actual password (no digits / too short)
-    if (rawTxid && rawTxid === params.password && rawTxid.length < 6) rawTxid = "";
-    // Auto-generate if missing or placeholder
+    // Use only the documented transaction field for providers that have one.
+    // TaskWall has no transaction ID, so derive a stable id from the payload;
+    // never use its callback password as an idempotency key.
+    let rawTxid = spec.transaction ? pick(params, [spec.transaction]) : "";
+    if (!rawTxid && spec.transaction) rawTxid = pick(params, TXID_FIELDS);
     if (!rawTxid || rawTxid === "0" || rawTxid === "auto-id" || /^[\[{]/.test(rawTxid)) {
-      rawTxid = `${provider}:${rawUserId}:${Date.now()}`;
+      rawTxid = buildDeterministicEventId(provider, params);
     }
     const txid = rawTxid;
+    const eventKey = isChargeback ? `${txid}:chargeback` : txid;
 
     // ── 7. Extract offer name ──────────────────────────────────────────────
     const offerName = pick(params, OFFER_NAME_FIELDS);
@@ -411,15 +484,15 @@ async function handlePostback(req: Request, res: Response) {
     console.log(`[Postback][${provider}] Parsed → user="${rawUserId}" amount=${reward} txid="${txid}" offer="${offerName}"`);
 
     // ── 9. Duplicate check ────────────────────────────────────────────────
-    const existing = await db.checkPostbackDuplicate(provider, txid);
+    const existing = await db.checkPostbackDuplicate(provider, eventKey);
     if (existing) {
       console.log(`[Postback][${provider}] DUPLICATE txid=${txid} — processed at ${existing.createdAt}`);
-      return respond(409, {
+      return respond(200, {
         success: true,
         message: "Duplicate transaction — already processed",
         duplicate: true,
         originalTimestamp: existing.createdAt,
-      }, "duplicate", 0, rawAmount, txid, offerName);
+      }, "duplicate", 0, rawAmount, txid, offerName, undefined, eventKey);
     }
 
     // ── 10. Resolve user ──────────────────────────────────────────────────
@@ -457,17 +530,18 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 11. Credit user (wrapped — critical path) ─────────────────────────
-    console.log(`[Postback][${provider}] Crediting $${reward.toFixed(2)} to ${user.username} (id=${user.id})`);
+    const balanceDelta = isChargeback ? -reward : reward;
+    console.log(`[Postback][${provider}] ${isChargeback ? "Reversing" : "Crediting"} $${reward.toFixed(2)} ${isChargeback ? "from" : "to"} ${user.username} (id=${user.id})`);
 
     try {
-      await db.addBalance(user.id, reward);
+      await db.addBalance(user.id, balanceDelta);
       console.log(`[Postback][${provider}] Balance updated OK`);
     } catch (err: any) {
       console.error(`[Postback][${provider}] CRITICAL: addBalance FAILED:`, err?.message);
       console.error(`[Postback] DATABASE_URL present:`, !!process.env.DATABASE_URL);
       await respond(500, {
         success: false,
-        message: "Failed to credit user — database error",
+        message: isChargeback ? "Failed to reverse reward — database error" : "Failed to credit user — database error",
         error: err?.message,
         hint: "Check DATABASE_URL env var and run migrations (0002_add_wallet_offer_notifications.sql)",
       }, "failed", user.id, rawAmount, txid, offerName, err?.message);
@@ -477,52 +551,79 @@ async function handlePostback(req: Request, res: Response) {
     // ── 12. Non-critical side-effects (fire and log, never crash) ─────────
     const creditLabel = offerName ? `[${provider}] ${offerName}` : `[${provider}] Offer`;
 
-    await Promise.allSettled([
-      db.addXP(user.id, 15),
-      db.incrementOffers(user.id),
-      db.addEarning({ userId: user.id, amount: reward.toFixed(2), type: "offer", source: creditLabel }),
-      db.addActivity({
-        userId: user.id,
-        username: user.username || "User",
-        type: "offer_complete",
-        description: `earned $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
-        amount: reward.toFixed(2),
-      }),
-      db.addWalletTransaction({
-        userId: user.id,
-        type: "credit",
-        amount: reward.toFixed(2),
-        description: `Earned $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
-        source: provider,
-      }),
-      db.addOfferHistory({
-        userId: user.id,
-        provider,
-        offerName: offerName || undefined,
-        amount: reward.toFixed(2),
-        externalId: txid,
-        status: "completed",
-      }),
-      db.addNotification({
-        userId: user.id,
-        title: `Reward Received: $${reward.toFixed(2)}`,
-        message: `You earned $${reward.toFixed(2)} from ${provider}${offerName ? ` — ${offerName}` : ""}. Balance updated.`,
-        type: "reward",
-        isRead: 0,
-      }),
-      // Update leaderboard after a short re-fetch to get updated totalEarned
-      db.getUserById(user.id).then((u) => {
-        if (u?.username) db.updateLeaderboard(u.id, u.username, parseFloat(u.totalEarned || "0")).catch(() => {});
-      }),
-    ]);
+    if (isChargeback) {
+      await Promise.allSettled([
+        db.addWalletTransaction({
+          userId: user.id,
+          type: "debit",
+          amount: reward.toFixed(2),
+          description: `Reward reversed $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
+          source: provider,
+        }),
+        db.addOfferHistory({
+          userId: user.id,
+          provider,
+          offerName: offerName || undefined,
+          amount: reward.toFixed(2),
+          externalId: eventKey,
+          status: "failed",
+        }),
+        db.addNotification({
+          userId: user.id,
+          title: `Reward Reversed: $${reward.toFixed(2)}`,
+          message: `A ${provider} reward${offerName ? ` — ${offerName}` : ""} was reversed. Your balance was adjusted.`,
+          type: "reward",
+          isRead: 0,
+        }),
+      ]);
+    } else {
+      await Promise.allSettled([
+        db.addXP(user.id, 15),
+        db.incrementOffers(user.id),
+        db.addEarning({ userId: user.id, amount: reward.toFixed(2), type: "offer", source: creditLabel }),
+        db.addActivity({
+          userId: user.id,
+          username: user.username || "User",
+          type: "offer_complete",
+          description: `earned $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
+          amount: reward.toFixed(2),
+        }),
+        db.addWalletTransaction({
+          userId: user.id,
+          type: "credit",
+          amount: reward.toFixed(2),
+          description: `Earned $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
+          source: provider,
+        }),
+        db.addOfferHistory({
+          userId: user.id,
+          provider,
+          offerName: offerName || undefined,
+          amount: reward.toFixed(2),
+          externalId: eventKey,
+          status: "completed",
+        }),
+        db.addNotification({
+          userId: user.id,
+          title: `Reward Received: $${reward.toFixed(2)}`,
+          message: `You earned $${reward.toFixed(2)} from ${provider}${offerName ? ` — ${offerName}` : ""}. Balance updated.`,
+          type: "reward",
+          isRead: 0,
+        }),
+        // Update leaderboard after a short re-fetch to get updated totalEarned
+        db.getUserById(user.id).then((u) => {
+          if (u?.username) db.updateLeaderboard(u.id, u.username, parseFloat(u.totalEarned || "0")).catch(() => {});
+        }),
+      ]);
+    }
 
     // ── 13. SSE real-time push ────────────────────────────────────────────
     try {
       sseManager.sendPostbackEvent(user.id, {
         type: "postback",
         provider,
-        amount: reward,
-        offerName: offerName || "Offer",
+        amount: balanceDelta,
+        offerName: isChargeback ? (offerName ? `Chargeback — ${offerName}` : "Chargeback") : (offerName || "Offer"),
         timestamp: new Date().toISOString(),
       });
     } catch (e) {
@@ -533,17 +634,20 @@ async function handlePostback(req: Request, res: Response) {
     console.log(`[Postback][${provider}] ✅ SUCCESS — $${reward.toFixed(2)} credited to ${user.username}`);
     return respond(200, {
       success: true,
-      message: `Credited $${reward.toFixed(2)} to ${user.username}`,
+      message: isChargeback
+        ? `Reversed $${reward.toFixed(2)} from ${user.username}`
+        : `Credited $${reward.toFixed(2)} to ${user.username}`,
       data: {
         userId: user.id,
         username: user.username,
-        amount: reward.toFixed(2),
+        amount: balanceDelta.toFixed(2),
         provider,
         offerName,
         txid,
         offerId,
+        eventType: isChargeback ? "chargeback" : "credit",
       },
-    }, "processed", user.id, rawAmount, txid, offerName);
+    }, "processed", user.id, rawAmount, txid, offerName, undefined, eventKey);
 
   } catch (error: any) {
     console.error(`[Postback][${provider}] FATAL:`, error?.message, error?.stack);
