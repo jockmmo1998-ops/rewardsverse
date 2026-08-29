@@ -42,7 +42,7 @@ export function getDatabaseConnectionOptions(databaseUrl: string) {
     connectTimeout: 20_000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10_000,
-    ...(useTls ? { ssl: { rejectUnauthorized: false } } : {}),
+    ...(useTls ? { ssl: { minVersion: "TLSv1.2", rejectUnauthorized: true } } : {}),
   };
 }
 
