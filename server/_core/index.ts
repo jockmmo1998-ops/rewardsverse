@@ -69,7 +69,10 @@ async function runMigrations() {
       return;
     } catch (error) {
       lastError = error;
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = [
+        error instanceof Error ? error.message : String(error),
+        error && typeof error === "object" && "cause" in error ? String((error as { cause?: unknown }).cause) : "",
+      ].join(" ");
       if (/Table [^\n]*users[^\n]*already exists/i.test(errorMessage)) {
         console.warn("[Migration] Existing users table detected; continuing startup.");
         return;
