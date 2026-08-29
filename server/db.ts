@@ -32,7 +32,9 @@ let _db: MySql2Database<Record<string, never>> | null = null;
 // commonly require TLS and may close plaintext connections immediately.
 export function getDatabaseConnectionOptions(databaseUrl: string) {
   const url = new URL(databaseUrl);
-  const useTls = process.env.DATABASE_SSL !== "false";
+  // TiDB Cloud public endpoints require TLS; do not allow a stale
+  // DATABASE_SSL=false variable to silently downgrade the connection.
+  const useTls = true;
   return {
     host: url.hostname,
     port: url.port ? Number(url.port) : 3306,
