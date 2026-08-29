@@ -57,10 +57,16 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              to="/dashboard"
+              to="/register"
               className="w-full sm:w-auto px-8 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 active:scale-95 transition-all duration-150 shadow-[0_0_20px_rgba(0,245,160,0.3)]"
             >
-              Go to Dashboard
+              Create Free Account
+            </Link>
+            <Link
+              to="/login"
+              className="w-full sm:w-auto px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-foreground font-semibold hover:bg-white/10 active:scale-95 transition-all duration-150"
+            >
+              Sign In
             </Link>
             <Link
               to="/offerwalls"
