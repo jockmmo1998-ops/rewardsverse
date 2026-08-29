@@ -9,9 +9,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { playBellSound } from "@/utils/bellSound";
 import { useSSE } from "@/hooks/useSSE";
 import {
-  LayoutDashboard, Gift as OfferIcon, Wallet, History as HistoryIcon,
-  LogOut, Coins, X, ExternalLink, Star,
-  Sparkles, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight, Trophy,
+  LogOut, Coins, X, Star,
+  Sparkles, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -129,17 +128,9 @@ export default function OfferWalls() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-10 h-10 border-2 border-green-400 border-t-transparent rounded-full animate-spin glow-green" /></div>;
 
   const balance = parseFloat(user?.balance || "0") || 0;
-  const navItems = [
-    { label: "Dashboard",   icon: LayoutDashboard, path: "/dashboard", active: false },
-    { label: "Offer Walls", icon: OfferIcon,        path: "/offerwalls",    active: true },
-    { label: "Withdraw",    icon: Wallet,            path: "/withdraw",  active: false },
-    { label: "History",     icon: HistoryIcon,       path: "/history",   active: false },
-    { label: "Leaderboard", icon: Trophy,            path: "/leaderboard", active: false },
-    ...(isAdmin ? [{ label: "Admin Panel", icon: Sparkles, path: "/admin", active: false }] : []),
-  ];
 
   return (
-    <div className="min-h-screen bg-background bg-grid bg-scan">
+    <div className="min-h-screen bg-[#060818] bg-grid bg-scan bg-[radial-gradient(circle_at_top_right,rgba(0,255,135,0.08),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(0,200,255,0.07),transparent_40%)]">
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="tech-orb tech-orb-1" />
         <div className="tech-orb tech-orb-2" />
@@ -187,20 +178,8 @@ export default function OfferWalls() {
         </div>
       </header>
 
-      {/* Nav */}
-      <nav className="fixed top-[6.5rem] left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-green-500/10">
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 overflow-x-auto">
-          {navItems.map((item) => (
-            <button key={item.path} onClick={() => setLocation(item.path)}
-              className={`flex items-center gap-2 px-4 py-3 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${item.active ? "text-green-400 border-green-400 nav-item-active" : "text-muted-foreground border-transparent hover:text-green-400/70"}`}>
-              <item.icon className="w-3.5 h-3.5" />{item.label}
-            </button>
-          ))}
-        </div>
-      </nav>
-
       {/* Main */}
-      <main className="relative z-10 pt-[10.5rem] pb-10 px-4 max-w-7xl mx-auto">
+      <main className="relative z-10 pt-[7rem] pb-10 px-4 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="mb-10">
             <div className="inline-flex items-center gap-2 tag-cyber mb-3">
