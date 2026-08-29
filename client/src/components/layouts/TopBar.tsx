@@ -15,15 +15,6 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl gradient-cyber flex items-center justify-center glow-green">
-            <Coins className="w-5 h-5 text-[#06140f]" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold"><span className="text-gradient">Rewards</span>Verse</h1>
-            <p className="text-[9px] text-green-300/70 tracking-[0.2em] uppercase font-bold">Fast Payouts</p>
-          </div>
-        </Link>
       </div>
 
       <Link to="/wallet" className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-400/10 border border-green-400/25 hover:bg-green-400/20 transition-colors">
