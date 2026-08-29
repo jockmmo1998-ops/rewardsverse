@@ -9,23 +9,23 @@ const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string 
 
   if (/failed query|sql|mysql|database|drizzle|er_[a-z0-9_]+|select `|insert `|unknown column|table .* doesn't exist/.test(normalized)) {
     return isRegister
-      ? "Hệ thống đăng ký đang tạm thời gặp lỗi dữ liệu. Vui lòng thử lại sau ít phút hoặc liên hệ hỗ trợ."
-      : "Hệ thống đăng nhập đang tạm thời gặp lỗi dữ liệu. Vui lòng thử lại sau ít phút hoặc liên hệ hỗ trợ.";
+      ? "The registration system is temporarily experiencing a data error. Please try again in a few minutes or contact support."
+      : "The login system is temporarily experiencing a data error. Please try again in a few minutes or contact support.";
   }
 
   if (normalized.includes("username already taken")) {
-    return "Username này đã được sử dụng. Vui lòng chọn username khác.";
+    return "This username is already taken. Please choose a different username.";
   }
   if (normalized.includes("user not found")) {
-    return "Không tìm thấy tài khoản này.";
+    return "Account not found.";
   }
   if (normalized.includes("incorrect password")) {
-    return "Mật khẩu không chính xác.";
+    return "Incorrect password.";
   }
 
   return isRegister
-    ? "Không thể đăng ký lúc này. Vui lòng kiểm tra thông tin và thử lại."
-    : "Không thể đăng nhập lúc này. Vui lòng kiểm tra thông tin và thử lại.";
+    ? "Unable to register right now. Please check your information and try again."
+    : "Unable to log in right now. Please check your information and try again.";
 };
 
 export default function AuthPage() {
@@ -61,19 +61,19 @@ export default function AuthPage() {
 
     const cleanUsername = username.trim();
     if (cleanUsername.length < 3) {
-      setError("Username phải có ít nhất 3 ký tự.");
+      setError("Username must be at least 3 characters.");
       return;
     }
     if (!/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
-      setError("Username chỉ được dùng chữ cái, số và dấu gạch dưới.");
+      setError("Username may only contain letters, numbers, and underscores.");
       return;
     }
     if (password.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự.");
+      setError("Password must be at least 6 characters.");
       return;
     }
     if (isRegister && password !== confirmPassword) {
-      setError("Mật khẩu xác nhận chưa khớp.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -88,7 +88,7 @@ export default function AuthPage() {
         return;
       }
 
-      setNotice(isRegister ? "Đăng ký thành công. Đang mở tài khoản của bạn…" : "Đăng nhập thành công.");
+      setNotice(isRegister ? "Registration successful. Opening your account…" : "Login successful.");
       navigate("/dashboard", { replace: true });
     } finally {
       setSubmitting(false);
@@ -106,7 +106,7 @@ export default function AuthPage() {
             <span>Rewards<span className="text-emerald-400">Verse</span></span>
           </Link>
           <p className="mt-3 text-sm text-muted-foreground">
-            {isRegister ? "Tạo tài khoản miễn phí để bắt đầu kiếm thưởng." : "Đăng nhập để tiếp tục kiếm thưởng."}
+            {isRegister ? "Create a free account to start earning rewards." : "Log in to continue earning rewards."}
           </p>
         </div>
 
@@ -117,14 +117,14 @@ export default function AuthPage() {
               onClick={() => switchMode(false)}
               className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${!isRegister ? "bg-emerald-500 text-black" : "text-muted-foreground hover:text-foreground"}`}
             >
-              Đăng nhập
+              Log in
             </button>
             <button
               type="button"
               onClick={() => switchMode(true)}
               className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${isRegister ? "bg-emerald-500 text-black" : "text-muted-foreground hover:text-foreground"}`}
             >
-              Đăng ký
+              Sign up
             </button>
           </div>
 
@@ -137,7 +137,7 @@ export default function AuthPage() {
                   id="username"
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
-                  placeholder="Nhập username"
+                  placeholder="Enter username"
                   autoComplete="username"
                   className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
                 />
@@ -145,7 +145,7 @@ export default function AuthPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Mật khẩu</label>
+              <label htmlFor="password" className="text-sm font-medium">Password</label>
               <div className="relative">
                 <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -153,11 +153,11 @@ export default function AuthPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Ít nhất 6 ký tự"
+                  placeholder="At least 6 characters"
                   autoComplete={isRegister ? "new-password" : "current-password"}
                   className="h-11 w-full rounded-lg border border-border bg-background px-10 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
                 />
-                <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Hiện hoặc ẩn mật khẩu">
+                <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Show or hide password">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -166,7 +166,7 @@ export default function AuthPage() {
             {isRegister && (
               <>
                 <div className="space-y-2">
-                  <label htmlFor="confirmPassword" className="text-sm font-medium">Nhập lại mật khẩu</label>
+                  <label htmlFor="confirmPassword" className="text-sm font-medium">Re-enter password</label>
                   <div className="relative">
                     <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
@@ -174,23 +174,23 @@ export default function AuthPage() {
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(event) => setConfirmPassword(event.target.value)}
-                      placeholder="Nhập lại mật khẩu"
+                      placeholder="Re-enter password"
                       autoComplete="new-password"
                       className="h-11 w-full rounded-lg border border-border bg-background px-10 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
                     />
-                    <button type="button" onClick={() => setShowConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Hiện hoặc ẩn mật khẩu xác nhận">
+                    <button type="button" onClick={() => setShowConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Show or hide password xác nhận">
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="refCode" className="text-sm font-medium">Mã giới thiệu <span className="text-muted-foreground">(không bắt buộc)</span></label>
+                  <label htmlFor="refCode" className="text-sm font-medium">Referral code <span className="text-muted-foreground">(optional)</span></label>
                   <input
                     id="refCode"
                     value={refCode}
                     onChange={(event) => setRefCode(event.target.value)}
-                    placeholder="Nhập mã nếu bạn có"
+                    placeholder="Enter your code if you have one"
                     className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
                   />
                 </div>
@@ -205,19 +205,19 @@ export default function AuthPage() {
               disabled={submitting || loading}
               className="h-11 w-full rounded-lg bg-emerald-500 px-4 text-sm font-bold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Đang xử lý…" : isRegister ? "Tạo tài khoản" : "Đăng nhập"}
+              {submitting ? "Processing…" : isRegister ? "Create account" : "Log in"}
             </button>
           </form>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            {isRegister ? "Đã có tài khoản?" : "Chưa có tài khoản?"}{" "}
+            {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
             <button type="button" onClick={() => switchMode(!isRegister)} className="font-semibold text-emerald-400 hover:text-emerald-300">
-              {isRegister ? "Đăng nhập ngay" : "Đăng ký miễn phí"}
+              {isRegister ? "Log in ngay" : "Sign up miễn phí"}
             </button>
           </p>
         </section>
 
-        <p className="mt-5 text-center text-xs text-muted-foreground">Không cần email xác thực hoặc mã OTP.</p>
+        <p className="mt-5 text-center text-xs text-muted-foreground">No email verification or OTP required.</p>
       </div>
     </main>
   );
