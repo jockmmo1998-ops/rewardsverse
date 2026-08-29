@@ -203,6 +203,10 @@ export const appRouter = router({
       return db.getRecentActivities(30);
     }),
 
+    getFeaturedOffers: publicProcedure.query(async () => {
+      return db.getFeaturedOffers(6);
+    }),
+
     claimDaily: protectedProcedure.mutation(async ({ ctx }) => {
       const user = await db.getUserByOpenId(ctx.user.openId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
