@@ -1,31 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, Trophy, TrendingUp, Users, ArrowRight, Activity, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GlassCard } from '@/components/shared/GlassCard';
-import { fetchPlatformStats, fetchOfferwalls, fetchFeaturedOffers, fetchLatestWithdrawals, fetchLiveActivity } from '@/api';
+import { fetchPlatformStats, fetchOfferwalls, fetchLatestWithdrawals, fetchLiveActivity } from '@/api';
+import { trpc } from '@/lib/trpc';
 
 export default function HomePage() {
   const [stats, setStats] = useState({ totalPaidOut: 0, activeUsers: 0, offersAvailable: 0, avgDailyEarn: 0 });
   const [offerwalls, setOfferwalls] = useState<any[]>([]);
-  const [featuredOffers, setFeaturedOffers] = useState<any[]>([]);
   const [latestWithdrawals, setLatestWithdrawals] = useState<any[]>([]);
   const [liveActivity, setLiveActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [featuredSort, setFeaturedSort] = useState<'popular' | 'recent' | 'reward'>('popular');
+  const featuredOffersQuery = trpc.user.getFeaturedOffers.useQuery(undefined, {
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const sortedFeaturedOffers = useMemo(() => {
+    const offers = featuredOffersQuery.data || [];
+    return [...offers].sort((a, b) => {
+      if (featuredSort === 'recent') {
+        return new Date(b.lastCompletedAt || 0).getTime() - new Date(a.lastCompletedAt || 0).getTime();
+      }
+      if (featuredSort === 'reward') {
+        return Number(b.averageReward || 0) - Number(a.averageReward || 0);
+      }
+      return Number(b.completionCount || 0) - Number(a.completionCount || 0);
+    });
+  }, [featuredOffersQuery.data, featuredSort]);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [s, ows, offers, wds, acts] = await Promise.all([
+          const [s, ows, wds, acts] = await Promise.all([
           fetchPlatformStats(),
           fetchOfferwalls(),
-          fetchFeaturedOffers(),
           fetchLatestWithdrawals(),
           fetchLiveActivity()
         ]);
         setStats(s);
         setOfferwalls(ows);
-        setFeaturedOffers(offers);
         setLatestWithdrawals(wds);
         setLiveActivity(acts);
       } catch (err) {
@@ -137,30 +152,47 @@ export default function HomePage() {
 
           {/* Featured Offers */}
           <GlassCard className="p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <h2 className="text-xl font-heading font-bold flex items-center gap-2">
                 <Star className="w-5 h-5 text-yellow-400" /> Featured Offers
               </h2>
+              <div className="flex items-center gap-2">
+                <label htmlFor="featured-offers-sort" className="text-xs text-muted-foreground">Sort by</label>
+                <select
+                  id="featured-offers-sort"
+                  value={featuredSort}
+                  onChange={(event) => setFeaturedSort(event.target.value as typeof featuredSort)}
+                  className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-foreground outline-none focus:border-primary"
+                >
+                  <option value="popular">Most completed</option>
+                  <option value="recent">Trending now</option>
+                  <option value="reward">Highest reward</option>
+                </select>
+                <Link to="/offerwalls" className="text-xs text-primary hover:underline">View all</Link>
+              </div>
             </div>
-            {loading ? <div className="text-center py-10">Loading...</div> : (
+            {featuredOffersQuery.isLoading ? <div className="text-center py-10">Loading...</div> : sortedFeaturedOffers.length > 0 ? (
               <div className="space-y-3">
-                {featuredOffers.map((offer, i) => (
-                  <div key={offer.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-black/50 flex items-center justify-center text-xl overflow-hidden">
-                        {offer.offerwall?.logo_url ? <img src={offer.offerwall.logo_url} alt="logo" className="w-full h-full object-cover" /> : (offer.offerwall?.logo_emoji || '🎁')}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-foreground">{offer.title}</p>
-                        <p className="text-xs text-muted-foreground">{offer.offerwall?.name}</p>
+                {sortedFeaturedOffers.map((offer, i) => (
+                  <Link key={`${offer.provider}-${offer.offerName || 'offer'}`} to="/offerwalls" className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-lg bg-black/50 flex items-center justify-center text-sm font-bold text-yellow-300 shrink-0">#{i + 1}</div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate">{offer.offerName || `${offer.provider} offer`}</p>
+                        <p className="text-xs text-muted-foreground">{offer.provider} · {offer.completionCount} completions</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">${offer.reward.toFixed(2)}</p>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-muted-foreground">{offer.difficulty}</span>
+                    <div className="text-right shrink-0 ml-3">
+                      <p className="font-bold text-primary">${offer.averageReward}</p>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-muted-foreground">Avg. reward</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-white/10 py-8 text-center">
+                <p className="text-sm text-muted-foreground">Featured offers will appear as users complete offers.</p>
+                <Link to="/offerwalls" className="mt-2 inline-block text-sm text-primary hover:underline">Explore offer walls</Link>
               </div>
             )}
           </GlassCard>
