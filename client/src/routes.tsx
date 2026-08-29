@@ -4,6 +4,7 @@ import { AppLayout } from './components/layouts/AppLayout';
 import { Navigate } from 'react-router-dom';
 
 const HomePage         = lazy(() => import('./pages/HomePage'));
+const AuthPage         = lazy(() => import('./pages/AuthPage'));
 const DashboardPage    = lazy(() => import('./pages/DashboardPage'));
 // const EarnPage         = lazy(() => import('./pages/EarnPage'));
 const OfferwallsPage   = lazy(() => import('./pages/OfferWalls'));
@@ -45,6 +46,8 @@ export interface RouteConfig {
 
 export const routes: RouteConfig[] = [
   { name: 'Root',         path: '/',             element: <Navigate to="/home" replace />,            public: true },
+  { name: 'Login',        path: '/login',        element: <AuthPage />,                                public: true },
+  { name: 'Register',     path: '/register',     element: <AuthPage />,                                public: true },
   { name: 'Home',         path: '/home',         element: withLayout(HomePage),                       public: true },
   { name: 'Dashboard',    path: '/dashboard',    element: withLayout(DashboardPage),                  public: true },
 // { name: 'Earn',         path: '/earn',         element: withLayout(EarnPage),                       public: true },
