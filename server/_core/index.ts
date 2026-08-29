@@ -14,6 +14,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
 import * as db from "../db";
+import { getDatabaseConnectionOptions } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -60,7 +61,7 @@ async function runMigrations() {
     let connection: Awaited<ReturnType<typeof mysql.default.createConnection>> | undefined;
     try {
       console.log(`[Migration] Running database migrations (attempt ${attempt}/${maxAttempts})...`);
-      connection = await mysql.default.createConnection(databaseUrl);
+      connection = await mysql.default.createConnection(getDatabaseConnectionOptions(databaseUrl));
       const drizzleDb = drizzle(connection);
       console.log("[Migration] Migrations folder:", migrationsFolder);
       await migrate(drizzleDb, { migrationsFolder });
