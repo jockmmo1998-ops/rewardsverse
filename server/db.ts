@@ -23,6 +23,7 @@ import {
   postbackLogs,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { OFFER_WALL_IDS, OFFER_WALL_LABELS } from "./offerwall-config";
 
 // Lazy-initialized DB instance — never imported at module load time so the
 // server starts successfully even when DATABASE_URL is absent.
@@ -485,8 +486,16 @@ export async function getOfferHistoryByUserId(userId: number) {
 
 
 export async function getFeaturedOffers(limit = 6) {
+  const fallback = () => OFFER_WALL_IDS.slice(0, limit).map((provider) => ({
+    provider: OFFER_WALL_LABELS[provider] || provider,
+    offerName: `${OFFER_WALL_LABELS[provider] || provider} offers`,
+    completionCount: 0,
+    averageReward: "0.00",
+    lastCompletedAt: null,
+  }));
+
   const db = await getDb();
-  if (!db) return [];
+  if (!db) return fallback();
 
   const rows = await db
     .select({
@@ -501,6 +510,8 @@ export async function getFeaturedOffers(limit = 6) {
     .groupBy(offerHistory.provider, offerHistory.offerName)
     .orderBy(desc(sql`count(*)`), desc(sql`max(${offerHistory.createdAt})`))
     .limit(limit);
+
+  if (rows.length === 0) return fallback();
 
   return rows.map((row) => ({
     ...row,
