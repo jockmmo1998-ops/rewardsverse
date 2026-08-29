@@ -34,38 +34,56 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
-// Run database migrations at startup (only when DATABASE_URL is set)
+// Run database migrations at startup (only when DATABASE_URL is set).
+// Render/TiDB connections can briefly drop while the database wakes up, so
+// retry a few times before failing the production deployment.
 async function runMigrations() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     console.warn("[Migration] DATABASE_URL not set, skipping migration");
     return;
   }
-  try {
-    console.log("[Migration] Running database migrations...");
-    // Lazy-import mysql2 and drizzle so the server starts without a DB
-    const mysql = await import("mysql2/promise");
-    const { drizzle } = await import("drizzle-orm/mysql2");
-    const { migrate } = await import("drizzle-orm/mysql2/migrator");
-    const connection = await mysql.default.createConnection(databaseUrl);
-    const drizzleDb = drizzle(connection);
-    const isProd = process.env.NODE_ENV === "production";
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const migrationsFolder = isProd
-      ? path.resolve(__dirname, "drizzle")
-      : path.resolve(process.cwd(), "drizzle");
-    console.log("[Migration] Migrations folder:", migrationsFolder);
-    await migrate(drizzleDb, { migrationsFolder });
-    await connection.end();
-    console.log("[Migration] ✅ Migrations completed successfully");
-  } catch (error) {
-    console.error("[Migration] ❌ Migration failed:", error);
-    // Never serve a production app against a partially migrated schema.
-    // This makes deployment fail visibly instead of leaving auth broken.
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("Database migration failed; server startup aborted.");
+
+  const mysql = await import("mysql2/promise");
+  const { drizzle } = await import("drizzle-orm/mysql2");
+  const { migrate } = await import("drizzle-orm/mysql2/migrator");
+  const isProd = process.env.NODE_ENV === "production";
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const migrationsFolder = isProd
+    ? path.resolve(__dirname, "drizzle")
+    : path.resolve(process.cwd(), "drizzle");
+  const maxAttempts = 4;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    let connection: Awaited<ReturnType<typeof mysql.default.createConnection>> | undefined;
+    try {
+      console.log(`[Migration] Running database migrations (attempt ${attempt}/${maxAttempts})...`);
+      connection = await mysql.default.createConnection(databaseUrl);
+      const drizzleDb = drizzle(connection);
+      console.log("[Migration] Migrations folder:", migrationsFolder);
+      await migrate(drizzleDb, { migrationsFolder });
+      console.log("[Migration] ✅ Migrations completed successfully");
+      return;
+    } catch (error) {
+      lastError = error;
+      console.error(`[Migration] Attempt ${attempt} failed:`, error);
+      if (attempt < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, attempt * 3_000));
+      }
+    } finally {
+      if (connection) {
+        await connection.end().catch(closeError =>
+          console.warn("[Migration] Connection close warning:", closeError)
+        );
+      }
     }
+  }
+
+  // Never serve a production app against a partially migrated schema.
+  if (isProd) {
+    throw new Error("Database migration failed after retries; server startup aborted.", { cause: lastError });
   }
 }
 
