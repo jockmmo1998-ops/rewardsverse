@@ -28,12 +28,32 @@ import { ENV } from "./_core/env";
 // server starts successfully even when DATABASE_URL is absent.
 let _db: MySql2Database<Record<string, never>> | null = null;
 
+// Convert DATABASE_URL into explicit mysql2 options. Hosted MySQL providers
+// commonly require TLS and may close plaintext connections immediately.
+export function getDatabaseConnectionOptions(databaseUrl: string) {
+  const url = new URL(databaseUrl);
+  const useTls = process.env.DATABASE_SSL !== "false";
+  return {
+    host: url.hostname,
+    port: url.port ? Number(url.port) : 3306,
+    user: decodeURIComponent(url.username),
+    password: decodeURIComponent(url.password),
+    database: decodeURIComponent(url.pathname.replace(/^\//, "")),
+    connectTimeout: 20_000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10_000,
+    ...(useTls ? { ssl: { rejectUnauthorized: false } } : {}),
+  };
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       // Dynamic import prevents mysql2 from being required at startup
       const { drizzle } = await import("drizzle-orm/mysql2");
-      _db = drizzle(process.env.DATABASE_URL) as MySql2Database<Record<string, never>>;
+      const mysql = await import("mysql2/promise");
+      const pool = mysql.default.createPool(getDatabaseConnectionOptions(process.env.DATABASE_URL));
+      _db = drizzle(pool) as MySql2Database<Record<string, never>>;
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
