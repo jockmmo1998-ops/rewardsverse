@@ -39,10 +39,10 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
         to={item.path}
         onClick={onClose}
         className={cn(
-          'flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group',
+          'sidebar-nav-link flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group bg-transparent',
           active
-            ? 'bg-primary/10 text-primary font-semibold shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
-            : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
+            ? 'sidebar-nav-link-active bg-transparent text-primary font-semibold shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
+            : 'sidebar-nav-link-idle bg-transparent text-muted-foreground hover:bg-white/5 hover:text-foreground',
           className
         )}
       >
@@ -100,7 +100,7 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
       </div>
 
       <div className="p-4 border-t border-border/50 bg-card/20">
-        <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200">
+        <button onClick={handleLogout} className="sidebar-logout flex items-center gap-3 w-full px-4 py-3 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200">
           <LogOut className="w-5 h-5" />
           <span>Logout</span>
         </button>
