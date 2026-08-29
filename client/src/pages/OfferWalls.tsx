@@ -33,8 +33,8 @@ export default function OfferWalls() {
   const [category, setCategory] = useState('All');
   const [previousBalance, setPreviousBalance] = useState<string | null>(null);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id), retry: false, refetchOnWindowFocus: false });
-  const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: !!activeWall, retry: false });
+  const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
+  const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
 
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
   useEffect(() => { if (wallUrlQuery.data?.url) setWallUrl(wallUrlQuery.data.url); }, [wallUrlQuery.data]);
@@ -63,10 +63,11 @@ export default function OfferWalls() {
 
   const visibleWalls = useMemo(() => OFFER_WALLS.filter((wall) => (category === 'All' || wall.category === category) && `${wall.name} ${wall.desc} ${wall.tag}`.toLowerCase().includes(search.toLowerCase())), [category, search]);
   const openWall = (wallId: string) => {
-    if (!user) { toast.info('Please sign in before opening an offer wall.'); return; }
+    if (loading) return;
+    if (!user) { toast.info('Please sign in before opening an offer wall.'); navigate('/login', { state: { from: '/offerwalls' } }); return; }
     const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
     if (status && !status.configured) { toast.info('This offer wall is not configured yet. Please contact support.'); return; }
-    setActiveWall(wallId); setWallUrl('');
+    setWallUrl(''); setActiveWall(wallId);
   };
   const closeWall = useCallback(() => { refreshProfile(); setTimeout(() => refreshProfile(), 1000); setActiveWall(null); setWallUrl(''); }, [refreshProfile]);
   const activeName = OFFER_WALLS.find((wall) => wall.id === activeWall)?.name;

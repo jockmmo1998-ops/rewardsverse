@@ -5,24 +5,24 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.16 0.025 245);
+  --background: oklch(0.105 0.018 160);
   --foreground: oklch(0.96 0.015 210);
-  --card: oklch(0.20 0.025 245);
+  --card: oklch(0.145 0.018 160);
   --card-foreground: oklch(0.96 0.015 210);
-  --popover: oklch(0.20 0.025 245);
+  --popover: oklch(0.145 0.018 160);
   --popover-foreground: oklch(0.96 0.015 210);
   --primary: oklch(0.84 0.16 158);
   --primary-foreground: oklch(0.16 0.04 170);
-  --secondary: oklch(0.25 0.03 245);
+  --secondary: oklch(0.19 0.025 160);
   --secondary-foreground: oklch(0.92 0.02 210);
-  --muted: oklch(0.24 0.025 245);
+  --muted: oklch(0.18 0.022 160);
   --muted-foreground: oklch(0.68 0.025 220);
   --accent: oklch(0.76 0.13 285);
   --accent-foreground: oklch(0.98 0.01 280);
   --destructive: oklch(0.68 0.18 25);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.32 0.028 245);
-  --input: oklch(0.25 0.025 245);
+  --border: oklch(0.28 0.025 160);
+  --input: oklch(0.18 0.022 160);
   --ring: oklch(0.84 0.16 158);
   --chart-1: oklch(0.84 0.16 158);
   --chart-2: oklch(0.76 0.13 285);
@@ -30,7 +30,7 @@
   --chart-4: oklch(0.82 0.15 80);
   --chart-5: oklch(0.72 0.18 330);
   --radius: 1rem;
-  --sidebar-background: oklch(0.145 0.023 245);
+  --sidebar-background: oklch(0.08 0.016 160);
   --sidebar-foreground: oklch(0.88 0.02 220);
   --sidebar-primary: oklch(0.84 0.16 158);
   --sidebar-primary-foreground: oklch(0.16 0.04 170);
@@ -100,11 +100,11 @@
   ::selection { background: rgba(130, 240, 183, .24); color: #effff6; }
 }
 
-.app-shell { position: relative; isolation: isolate; background: #111d2c; }
-.app-shell::before { content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none; background: radial-gradient(circle at 72% -10%, rgba(130,240,183,.11), transparent 32%), radial-gradient(circle at 0% 100%, rgba(150,127,255,.10), transparent 30%); }
-.app-shell::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .22; background-image: linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to bottom, black, transparent 86%); }
+.app-shell { position: relative; isolation: isolate; background: #090f11; }
+.app-shell::before { content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none; background: radial-gradient(circle at 76% -8%, rgba(130,240,183,.13), transparent 28%), radial-gradient(circle at 4% 92%, rgba(55,125,100,.16), transparent 28%), repeating-radial-gradient(circle at 85% 18%, transparent 0 74px, rgba(130,240,183,.055) 75px 76px, transparent 77px 150px); }
+.app-shell::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .2; background-image: linear-gradient(rgba(255,255,255,.032) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.032) 1px, transparent 1px), radial-gradient(circle, rgba(173,255,214,.2) 0 1px, transparent 1.5px); background-size: 48px 48px, 48px 48px, 137px 137px; mask-image: linear-gradient(to bottom, black, transparent 90%); }
 
-.rv-surface { background: linear-gradient(145deg, rgba(30,45,64,.96), rgba(22,34,50,.96)); border: 1px solid rgba(159,180,202,.14); border-radius: 1.1rem; box-shadow: 0 18px 45px rgba(4,10,19,.20); }
+.rv-surface { background: linear-gradient(145deg, rgba(21,35,31,.96), rgba(13,23,23,.97)); border: 1px solid rgba(159,220,190,.14); border-radius: 1.1rem; box-shadow: 0 18px 45px rgba(2,9,7,.28), inset 0 1px 0 rgba(255,255,255,.025); }
 .rv-surface-soft { background: rgba(255,255,255,.035); border: 1px solid rgba(159,180,202,.12); border-radius: .9rem; }
 .rv-eyebrow { color: var(--primary); font-size: .68rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
 .brand-mark { display: flex; height: 2.05rem; width: 2.05rem; align-items: center; justify-content: center; border-radius: .7rem; color: var(--primary-foreground); background: linear-gradient(135deg, #a0f7c8, #63d9b1); box-shadow: 0 8px 24px rgba(130,240,183,.18); }
