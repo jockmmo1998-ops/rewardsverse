@@ -73,6 +73,9 @@ export function useAuth(): AuthContextType {
           password,
           refCode: refCode ?? "",
         });
+        try {
+          sessionStorage.setItem("rewardsverse-username", String((data as any)?.username || username));
+        } catch {}
         await refreshProfile();
         return { error: null, data };
       } catch (error) {
@@ -86,6 +89,9 @@ export function useAuth(): AuthContextType {
     async (username: string, password: string): Promise<AuthResult> => {
       try {
         const data = await loginMutation.mutateAsync({ username, password });
+        try {
+          sessionStorage.setItem("rewardsverse-username", String((data as any)?.username || username));
+        } catch {}
         await refreshProfile();
         return { error: null, data };
       } catch (error) {
