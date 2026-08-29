@@ -104,7 +104,9 @@ export const appRouter = router({
         const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
-          maxAge: 30 * 24 * 60 * 60,
+          // Express cookie maxAge is milliseconds; keep it aligned with the
+          // 30-day JWT lifetime so users stay signed in while opening offers.
+          maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
         // Referral bonus
@@ -170,7 +172,9 @@ export const appRouter = router({
         const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
-          maxAge: 30 * 24 * 60 * 60,
+          // Express cookie maxAge is milliseconds; keep it aligned with the
+          // 30-day JWT lifetime so users stay signed in while opening offers.
+          maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
         await db.updateUserProfile(user.id, { lastSignedIn: new Date() });
@@ -193,6 +197,25 @@ export const appRouter = router({
       }
 
       return user as any;
+    }),
+
+    // Return provider readiness for the signed-in user. The client uses this
+    // to avoid opening an unconfigured wall and to keep the provider list
+    // aligned with the server-side URL builders.
+    getOfferWallStatuses: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      const userId = user.username || user.name || `user_${user.id}`;
+      return OFFER_WALL_IDS.map((provider) => {
+        const builder = OFFER_WALL_URLS[provider];
+        let configured = false;
+        try {
+          configured = Boolean(builder?.(userId));
+        } catch {
+          configured = false;
+        }
+        return { provider, label: provider, configured };
+      });
     }),
 
     getLeaderboard: publicProcedure.query(async () => {
@@ -432,6 +455,22 @@ export const appRouter = router({
       const user = await db.getUserByOpenId(ctx.user.openId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
       return db.getWithdrawalsByUserId(user.id);
+    }),
+  }),
+
+  // ===== REFERRALS =====
+  referrals: router({
+    getMine: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      const [referrals, earningsList] = await Promise.all([
+        db.getReferralsByRefCode(user.refCode || ""),
+        db.getEarningsByUserId(user.id),
+      ]);
+      const totalCommission = earningsList
+        .filter((earning) => earning.type === "referral")
+        .reduce((sum, earning) => sum + Number(earning.amount || 0), 0);
+      return { referrals, totalCommission: totalCommission.toFixed(2) };
     }),
   }),
 

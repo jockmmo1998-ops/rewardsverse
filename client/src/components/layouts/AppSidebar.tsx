@@ -23,7 +23,15 @@ const accountItems = [
   { icon: HelpCircle, label: 'Support', path: '/support' },
 ];
 
-export function AppSidebar({ onClose }: { onClose?: () => void }) {
+type AppSidebarProps = {
+  onClose?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
+export function AppSidebar({ onClose, open, onOpenChange }: AppSidebarProps) {
+  void open;
+  void onOpenChange;
   const location = useLocation();
   const { profile, logout } = useAuth();
 

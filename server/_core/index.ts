@@ -98,6 +98,9 @@ async function runMigrations() {
 
 async function startServer() {
   const app = express();
+  // Render terminates TLS at the proxy. Trust the first proxy so Express
+  // correctly reports HTTPS when issuing the Secure session cookie.
+  app.set("trust proxy", 1);
   const server = createServer(app);
   // Cấu hình body parser với giới hạn lớn hơn cho file upload
   app.use(express.json({ limit: "50mb" }));

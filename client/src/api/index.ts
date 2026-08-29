@@ -61,14 +61,33 @@ export async function fetchLeaderboard() {
   return data;
 }
 
-export async function fetchUserTransactions(userId: string) {
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data;
+async function fetchTrpc<T>(path: string): Promise<T> {
+  const input = encodeURIComponent(JSON.stringify({ json: null }));
+  const response = await fetch(`/api/trpc/${path}?input=${input}`, { credentials: 'include' });
+  const payload = await response.json();
+  if (!response.ok || payload.error) throw new Error(payload.error?.json?.message || 'Request failed');
+  return (payload.result?.data?.json ?? payload.result?.data) as T;
+}
+
+export async function fetchUserTransactions(_userId: string | number) {
+  const history = await fetchTrpc<{ earnings: Array<{ id: number; amount: string; type: string; source?: string | null; createdAt: string | Date }>; withdrawals: Array<{ id: number; amount: string; status: string; createdAt: string | Date; cryptoType?: string | null }> }>('history.getAllHistory');
+  const earnings = (history.earnings || []).map(item => ({
+    id: `earning-${item.id}`,
+    type: item.type === 'referral' || item.type === 'daily_bonus' ? 'bonus' : 'deposit',
+    status: 'completed',
+    amount: Number(item.amount || 0),
+    description: item.source || item.type,
+    created_at: item.createdAt,
+  }));
+  const withdrawals = (history.withdrawals || []).map(item => ({
+    id: `withdrawal-${item.id}`,
+    type: 'withdrawal',
+    status: item.status,
+    amount: Number(item.amount || 0),
+    description: `Withdrawal via ${item.cryptoType || 'wallet'}`,
+    created_at: item.createdAt,
+  }));
+  return [...earnings, ...withdrawals].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
 
 export async function fetchUserNotifications(userId: string) {

@@ -179,6 +179,18 @@ export async function getUserByRefCode(refCode: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getReferralsByRefCode(refCode: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: users.id,
+    username: users.username,
+    createdAt: users.createdAt,
+    totalEarned: users.totalEarned,
+    offersCompleted: users.offersCompleted,
+  }).from(users).where(eq(users.referredBy, refCode)).orderBy(desc(users.createdAt));
+}
+
 export async function updateUserProfile(userId: number, update: Partial<InsertUser>) {
   const db = await getDb();
   if (!db) return;

@@ -1,53 +1,47 @@
-@import "tailwindcss";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
-/* ============================================================
-   NEON CYBERPUNK DARK — Design System
-   Background: #060818 (deep navy)
-   Primary: #00FF87 (electric green)
-   Accent:  #00E5FF (neon cyan)
-   ============================================================ */
 :root {
-  --background: oklch(0.08 0.025 265);       /* #060818 deep navy */
-  --foreground: oklch(0.97 0 0);             /* near-white */
-  --card: oklch(0.11 0.022 265);             /* #0c1020 */
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.11 0.022 265);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.86 0.23 150);           /* #00FF87 electric green */
-  --primary-foreground: oklch(0.08 0.025 265);
-  --secondary: oklch(0.14 0.02 265);
-  --secondary-foreground: oklch(0.80 0.01 265);
-  --muted: oklch(0.17 0.02 265);
-  --muted-foreground: oklch(0.55 0.015 265);
-  --accent: oklch(0.85 0.20 200);            /* #00E5FF neon cyan */
-  --accent-foreground: oklch(0.08 0.025 265);
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.22 0.025 265);
-  --input: oklch(0.14 0.02 265);
-  --ring: oklch(0.86 0.23 150);
-  --chart-1: oklch(0.86 0.23 150);
-  --chart-2: oklch(0.85 0.20 200);
-  --chart-3: oklch(0.75 0.20 260);
-  --chart-4: oklch(0.80 0.20 50);
-  --chart-5: oklch(0.75 0.20 330);
-  --radius: 0.75rem;
-  --sidebar-background: oklch(0.07 0.022 265);
-  --sidebar-foreground: oklch(0.90 0.01 265);
-  --sidebar-primary: oklch(0.86 0.23 150);
-  --sidebar-primary-foreground: oklch(0.08 0.025 265);
-  --sidebar-accent: oklch(0.14 0.02 265);
-  --sidebar-accent-foreground: oklch(0.90 0.01 265);
-  --sidebar-border: oklch(0.22 0.025 265);
-  --sidebar-ring: oklch(0.86 0.23 150);
+  --background: oklch(0.985 0.008 155);
+  --foreground: oklch(0.22 0.035 155);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.035 155);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.035 155);
+  --primary: oklch(0.62 0.17 151);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.035 151);
+  --secondary-foreground: oklch(0.32 0.06 151);
+  --muted: oklch(0.955 0.014 155);
+  --muted-foreground: oklch(0.48 0.035 155);
+  --accent: oklch(0.78 0.12 194);
+  --accent-foreground: oklch(0.22 0.04 194);
+  --destructive: oklch(0.62 0.19 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.89 0.025 155);
+  --input: oklch(0.96 0.012 155);
+  --ring: oklch(0.62 0.17 151);
+  --chart-1: oklch(0.62 0.17 151);
+  --chart-2: oklch(0.72 0.13 194);
+  --chart-3: oklch(0.64 0.15 225);
+  --chart-4: oklch(0.76 0.14 83);
+  --chart-5: oklch(0.66 0.17 330);
+  --radius: 0.9rem;
+  --sidebar-background: oklch(0.99 0.006 155);
+  --sidebar-foreground: oklch(0.30 0.035 155);
+  --sidebar-primary: oklch(0.62 0.17 151);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.035 151);
+  --sidebar-accent-foreground: oklch(0.28 0.055 151);
+  --sidebar-border: oklch(0.9 0.025 155);
+  --sidebar-ring: oklch(0.62 0.17 151);
 }
 
 @theme inline {
-  --font-sans: "Space Grotesk", "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "DM Sans", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -76,7 +70,6 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
   --color-sidebar-background: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -86,445 +79,79 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
-
-/* ── Google Font import ── */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   * { border-color: var(--border); }
   body {
-    background-color: var(--background);
+    background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  /* Neon scrollbar */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #00FF87, #00E5FF);
-    border-radius: 9999px;
-  }
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); letter-spacing: -0.025em; }
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: #eef8f2; }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #36b878, #57c9dc); border-radius: 9999px; }
+  ::selection { background: rgba(54, 184, 120, 0.22); color: #18382a; }
 }
 
-/* ============================================================
-   GRADIENT UTILITIES
-   ============================================================ */
-.gradient-cyber {
-  background: linear-gradient(135deg, #00FF87, #00E5FF);
-}
-.gradient-cyber-vertical {
-  background: linear-gradient(180deg, #00FF87, #00E5FF);
-}
-.gradient-green-cyan {
-  background: linear-gradient(135deg, #00FF87, #00E5FF);
-}
-.gradient-blue-purple {
-  background: linear-gradient(135deg, #3b82f6, #a855f7);
-}
-.gradient-orange-red {
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
-}
-.gradient-gold {
-  background: linear-gradient(135deg, #f5c842, #f97316);
-}
+.gradient-cyber, .gradient-green-cyan { background: linear-gradient(135deg, #39b977, #57c9dc); }
+.gradient-cyber-vertical { background: linear-gradient(180deg, #39b977, #57c9dc); }
+.gradient-blue-purple { background: linear-gradient(135deg, #4d8ee8, #8e78d6); }
+.gradient-orange-red { background: linear-gradient(135deg, #f3ad48, #e86f68); }
+.gradient-gold { background: linear-gradient(135deg, #efc34d, #e79542); }
+.text-gradient { background: linear-gradient(135deg, #259e61, #2e9fb3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.text-gradient-gold { background: linear-gradient(135deg, #c88718, #dc6d2e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.text-gradient-blue { background: linear-gradient(135deg, #3478d4, #805dc8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
-/* ── Text gradients ── */
-.text-gradient {
-  background: linear-gradient(135deg, #00FF87, #00E5FF);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.text-gradient-gold {
-  background: linear-gradient(135deg, #f5c842, #f97316);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.text-gradient-blue {
-  background: linear-gradient(135deg, #3b82f6, #a855f7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+.glow-green { box-shadow: 0 12px 28px rgba(48, 178, 111, 0.18); }
+.glow-cyan { box-shadow: 0 12px 28px rgba(74, 183, 201, 0.18); }
+.glow-text-green, .glow-text-cyan { text-shadow: 0 4px 18px rgba(44, 150, 99, 0.18); }
+.border-neon-green { border-color: rgba(50, 178, 111, 0.35); box-shadow: 0 8px 24px rgba(50, 178, 111, 0.08); }
+.border-neon-cyan { border-color: rgba(74, 183, 201, 0.35); box-shadow: 0 8px 24px rgba(74, 183, 201, 0.08); }
+.bg-grid { background-image: linear-gradient(rgba(50,178,111,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(50,178,111,.05) 1px, transparent 1px); background-size: 40px 40px; }
+.bg-scan { background-image: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(50,178,111,.025) 3px, rgba(50,178,111,.025) 5px); }
 
-/* ============================================================
-   NEON GLOW EFFECTS
-   ============================================================ */
-.glow-green {
-  box-shadow: 0 0 20px rgba(0, 255, 135, 0.3), 0 0 60px rgba(0, 255, 135, 0.1);
-}
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.3), 0 0 60px rgba(0, 229, 255, 0.1);
-}
-.glow-text-green {
-  text-shadow: 0 0 20px rgba(0, 255, 135, 0.8), 0 0 40px rgba(0, 255, 135, 0.4);
-}
-.glow-text-cyan {
-  text-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(0, 229, 255, 0.4);
-}
-
-/* ── Neon border ── */
-.border-neon-green {
-  border-color: rgba(0, 255, 135, 0.5);
-  box-shadow: 0 0 8px rgba(0, 255, 135, 0.2), inset 0 0 8px rgba(0, 255, 135, 0.05);
-}
-.border-neon-cyan {
-  border-color: rgba(0, 229, 255, 0.5);
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.2), inset 0 0 8px rgba(0, 229, 255, 0.05);
-}
-
-/* ============================================================
-   GRID / SCAN-LINE BACKGROUNDS
-   ============================================================ */
-.bg-grid {
-  background-image:
-    linear-gradient(rgba(0,255,135,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,135,0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-.bg-scan {
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,255,135,0.015) 2px,
-    rgba(0,255,135,0.015) 4px
-  );
-}
-
-/* ============================================================
-   CYBER CARD
-   ============================================================ */
 .cyber-card {
-  background: linear-gradient(135deg, rgba(12,16,32,0.9), rgba(8,12,24,0.95));
-  border: 1px solid rgba(0,255,135,0.12);
-  backdrop-filter: blur(20px);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background: rgba(255,255,255,.88);
+  border: 1px solid rgba(53, 154, 103, .14);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 12px 35px rgba(38, 113, 77, .07);
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
 }
-.cyber-card:hover {
-  border-color: rgba(0,255,135,0.3);
-  box-shadow: 0 0 30px rgba(0,255,135,0.08), 0 8px 32px rgba(0,0,0,0.4);
-}
+.cyber-card:hover { border-color: rgba(53, 154, 103, .3); box-shadow: 0 16px 38px rgba(38, 113, 77, .12); transform: translateY(-2px); }
 
-/* ── Corner decoration ── */
-.cyber-corner {
-  position: relative;
-}
-.cyber-corner::before,
-.cyber-corner::after {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border-color: rgba(0,255,135,0.5);
-  border-style: solid;
-}
-.cyber-corner::before {
-  top: -1px; left: -1px;
-  border-width: 2px 0 0 2px;
-}
-.cyber-corner::after {
-  bottom: -1px; right: -1px;
-  border-width: 0 2px 2px 0;
-}
+.btn-cyber { background: linear-gradient(135deg, #35b978, #56c5d8); color: #fff; font-weight: 700; transition: transform .18s ease, box-shadow .18s ease; box-shadow: 0 8px 20px rgba(47, 170, 108, .2); }
+.btn-cyber:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(47, 170, 108, .28); }
+.btn-cyber:active { transform: translateY(0) scale(.98); }
 
-/* ============================================================
-   CYBER BUTTON
-   ============================================================ */
-.btn-cyber {
-  position: relative;
-  background: linear-gradient(135deg, #00FF87, #00E5FF);
-  color: #060818;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.btn-cyber::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.btn-cyber:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(0,255,135,0.4), 0 8px 24px rgba(0,0,0,0.4);
-}
-.btn-cyber:hover::before { opacity: 1; }
-.btn-cyber:active { transform: translateY(0) scale(0.98); }
+.nav-item-active { color: #238b59; border-bottom: 2px solid #39b977; background: rgba(57,185,119,.08); }
+.progress-cyber [data-state="indeterminate"], .progress-cyber > div { background: linear-gradient(90deg, #39b977, #57c9dc); box-shadow: 0 0 10px rgba(57,185,119,.22); }
+.tag-cyber { display: inline-flex; align-items: center; padding: 3px 9px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: rgba(57,185,119,.1); border: 1px solid rgba(57,185,119,.24); color: #238b59; border-radius: 999px; }
+.tag-cyan { background: rgba(87,201,220,.12); border-color: rgba(87,201,220,.28); color: #25899b; }
+.divider-cyber { height: 1px; background: linear-gradient(90deg, transparent, rgba(57,185,119,.28) 20%, rgba(87,201,220,.28) 80%, transparent); }
 
-/* ============================================================
-   TICKER / MARQUEE
-   ============================================================ */
-@keyframes marquee {
-  0%   { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-.animate-marquee {
-  animation: marquee 120s linear infinite;
-}
+.app-shell { position: relative; isolation: isolate; background: linear-gradient(135deg, #f5fbf7 0%, #eef9f4 52%, #f2fbfc 100%); }
+.app-shell::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(135deg, rgba(239,252,244,.76), rgba(239,250,252,.88)), url('/assets/rewardsverse-honeycomb-green.png'); background-size: cover; background-position: center; opacity: .42; }
+.app-shell::after { content: ''; position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(circle at 50% 0%, rgba(88,201,220,.11), transparent 42%), rgba(255,255,255,.18); }
+.app-shell > * { position: relative; z-index: 2; }
+.app-shell .bg-background { background-color: rgba(248, 253, 250, .78) !important; }
+.app-shell .sidebar-panel { background: rgba(255,255,255,.75) !important; border-right-color: rgba(57,185,119,.16); box-shadow: 8px 0 28px rgba(38,113,77,.05); }
+.app-shell .sidebar-panel .text-muted-foreground { color: rgba(56, 100, 77, .72); }
+.app-shell .sidebar-panel a:hover, .app-shell .sidebar-panel button:hover { background-color: rgba(57,185,119,.1); }
+.app-shell .sidebar-panel .sidebar-nav-link, .app-shell .sidebar-panel .sidebar-logout { background: rgba(255,255,255,.68) !important; border: 1px solid rgba(57,185,119,.1); box-shadow: 0 4px 14px rgba(38,113,77,.04); }
+.app-shell .sidebar-panel .sidebar-nav-link-idle:hover, .app-shell .sidebar-panel .sidebar-logout:hover { background: rgba(57,185,119,.1) !important; border-color: rgba(57,185,119,.26); transform: translateX(2px); }
+.app-shell .sidebar-panel .sidebar-nav-link-active { background: rgba(57,185,119,.14) !important; border-color: rgba(57,185,119,.34); box-shadow: inset 3px 0 0 #39b977, 0 5px 16px rgba(57,185,119,.1); }
+.app-shell .sidebar-panel .sidebar-nav-link-active:hover { background: rgba(57,185,119,.2) !important; }
 
-/* ============================================================
-   SCANLINE FLICKER
-   ============================================================ */
-@keyframes flicker {
-  0%, 98%, 100% { opacity: 1; }
-  99% { opacity: 0.97; }
-}
-.animate-flicker { animation: flicker 4s infinite; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-up { animation: slideUp .4s var(--ease-out); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: fadeIn .5s ease forwards; }
+@keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-count { animation: countUp .5s ease forwards; }
+@keyframes holographic { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+.holographic { background: linear-gradient(270deg, #39b977, #57c9dc, #8e78d6, #39b977); background-size: 400% 400%; animation: holographic 5s ease infinite; }
 
-/* ============================================================
-   NEON PULSE
-   ============================================================ */
-@keyframes neon-pulse {
-  0%, 100% {
-    box-shadow: 0 0 6px rgba(0,255,135,0.4), 0 0 20px rgba(0,255,135,0.2);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(0,255,135,0.7), 0 0 60px rgba(0,255,135,0.3), 0 0 80px rgba(0,229,255,0.1);
-  }
-}
-.animate-neon-pulse { animation: neon-pulse 2.5s ease-in-out infinite; }
-
-@keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 135, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(0, 255, 135, 0); }
-}
-.animate-pulse-green { animation: pulse-green 2s infinite; }
-
-/* ============================================================
-   SLIDE / FADE ANIMATIONS
-   ============================================================ */
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.animate-slide-up { animation: slideUp 0.4s var(--ease-out); }
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.animate-fade-in { animation: fadeIn 0.6s ease forwards; }
-
-/* ============================================================
-   STATS NUMBER COUNT
-   ============================================================ */
-@keyframes countUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.animate-count { animation: countUp 0.5s ease forwards; }
-
-/* ============================================================
-   NAV ACTIVE INDICATOR
-   ============================================================ */
-.nav-item-active {
-  color: #00FF87;
-  border-bottom: 2px solid #00FF87;
-  background: rgba(0,255,135,0.05);
-  text-shadow: 0 0 12px rgba(0,255,135,0.5);
-}
-
-/* ============================================================
-   PROGRESS BAR GLOW
-   ============================================================ */
-.progress-cyber [data-state="indeterminate"],
-.progress-cyber > div {
-  background: linear-gradient(90deg, #00FF87, #00E5FF);
-  box-shadow: 0 0 10px rgba(0,255,135,0.5);
-}
-
-/* ============================================================
-   HOLOGRAPHIC SHIMMER
-   ============================================================ */
-@keyframes holographic {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.holographic {
-  background: linear-gradient(
-    270deg,
-    #00FF87, #00E5FF, #7c3aed, #00FF87
-  );
-  background-size: 400% 400%;
-  animation: holographic 4s ease infinite;
-}
-
-/* ============================================================
-   CYBER TAG / BADGE
-   ============================================================ */
-.tag-cyber {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: rgba(0,255,135,0.08);
-  border: 1px solid rgba(0,255,135,0.25);
-  color: #00FF87;
-  border-radius: 4px;
-}
-.tag-cyan {
-  background: rgba(0,229,255,0.08);
-  border-color: rgba(0,229,255,0.25);
-  color: #00E5FF;
-}
-
-/* ============================================================
-   DIVIDER WITH GLOW
-   ============================================================ */
-.divider-cyber {
-  height: 1px;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(0,255,135,0.3) 20%,
-    rgba(0,229,255,0.3) 80%,
-    transparent
-  );
-}
-
-/* ============================================================
-   SELECTION
-   ============================================================ */
-::selection {
-  background: rgba(0,255,135,0.25);
-  color: #ffffff;
-}
-
-/* ============================================================
-   REWARDSVERSE GREEN HONEYCOMB APP BACKDROP
-   ============================================================ */
-.app-shell {
-  position: relative;
-  isolation: isolate;
-  background-color: #07120d;
-}
-.app-shell::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(135deg, rgba(3, 15, 9, 0.36), rgba(3, 18, 12, 0.24)),
-    url('/assets/rewardsverse-honeycomb-green.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.82;
-}
-.app-shell::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 12%, rgba(0, 255, 135, 0.14), transparent 48%), rgba(3, 12, 8, 0.16);
-}
-.app-shell > * {
-  position: relative;
-  z-index: 2;
-}
-.app-shell .bg-background {
-  background-color: rgba(6, 18, 12, 0.72) !important;
-}
-.app-shell .btn-cyber {
-  background: linear-gradient(135deg, #00d878, #22c55e 58%, #86efac);
-  box-shadow: 0 0 18px rgba(0, 216, 120, 0.18);
-}
-.app-shell .btn-cyber:hover {
-  box-shadow: 0 0 30px rgba(0, 255, 135, 0.42), 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-/* ── Sidebar backdrop: keep Main Menu in the same green honeycomb world ── */
-.app-shell .sidebar-panel {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  background: rgba(4, 24, 14, 0.18) !important;
-  border-right-color: rgba(0, 255, 135, 0.20);
-}
-.app-shell .sidebar-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: url('/assets/rewardsverse-honeycomb-green.png');
-  background-size: cover;
-  background-position: 18% center;
-  background-repeat: no-repeat;
-  opacity: 0.88;
-  filter: saturate(1.15) brightness(1.16);
-}
-.app-shell .sidebar-panel::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(4, 24, 14, 0.10), rgba(3, 14, 9, 0.34)),
-    linear-gradient(90deg, rgba(0, 255, 135, 0.04), transparent 72%);
-}
-.app-shell .sidebar-panel > * {
-  position: relative;
-  z-index: 2;
-}
-.app-shell .sidebar-panel .bg-card\/20 {
-  background-color: rgba(5, 28, 16, 0.16) !important;
-}
-.app-shell .sidebar-panel .bg-card\/80 {
-  background-color: rgba(5, 28, 16, 0.22) !important;
-}
-.app-shell .sidebar-panel .text-muted-foreground {
-  color: rgba(216, 255, 231, 0.76);
-}
-.app-shell .sidebar-panel a:hover,
-.app-shell .sidebar-panel button:hover {
-  background-color: rgba(0, 255, 135, 0.12);
-}
-
-/* ── Transparent glass navigation buttons ── */
-.app-shell .sidebar-panel .sidebar-nav-link,
-.app-shell .sidebar-panel .sidebar-logout {
-  background: rgba(6, 30, 18, 0.12) !important;
-  border: 1px solid rgba(170, 255, 211, 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  transition: background-color 180ms var(--ease-out), border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out), transform 180ms var(--ease-out);
-}
-.app-shell .sidebar-panel .sidebar-nav-link-idle:hover,
-.app-shell .sidebar-panel .sidebar-logout:hover {
-  background: rgba(0, 255, 135, 0.13) !important;
-  border-color: rgba(0, 255, 135, 0.28);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 16px rgba(0, 255, 135, 0.10);
-  transform: translateX(2px);
-}
-.app-shell .sidebar-panel .sidebar-nav-link-active {
-  background: rgba(0, 255, 135, 0.16) !important;
-  border-color: rgba(0, 255, 135, 0.42);
-  box-shadow: inset 3px 0 0 #00ff87, inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 18px rgba(0, 255, 135, 0.12);
-}
-.app-shell .sidebar-panel .sidebar-nav-link-active:hover {
-  background: rgba(0, 255, 135, 0.22) !important;
-}
-.app-shell .sidebar-panel .sidebar-logout {
-  border-color: rgba(255, 255, 255, 0.07);
-}
-.app-shell .sidebar-panel .sidebar-logout:hover {
-  background: rgba(239, 68, 68, 0.14) !important;
-  border-color: rgba(248, 113, 113, 0.30);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 16px rgba(239, 68, 68, 0.12);
-}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
