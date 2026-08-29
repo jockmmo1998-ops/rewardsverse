@@ -1,118 +1,71 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Zap, Trophy, Award, History, Users, Wallet, ArrowDownToLine, User, Settings, HelpCircle, ShieldAlert, LogOut, Grid3X3, Coins } from 'lucide-react';
+import { ArrowDownToLine, Award, BarChart3, Clock3, Grid2X2, HelpCircle, History, LayoutDashboard, LogOut, Settings, ShieldCheck, Trophy, UserRound, Users, WalletCards, X, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { BrandMark } from '@/components/shared/RewardUI';
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: Grid3X3, label: 'Offerwalls', path: '/offerwalls' },
-  { icon: Trophy, label: 'Leaderboard', path: '/leaderboard' },
-  { icon: Award, label: 'Achievements', path: '/achievements' },
-  { icon: History, label: 'History', path: '/history' },
-  { icon: Users, label: 'Referrals', path: '/referrals' },
+type NavItem = { label: string; path: string; icon: typeof LayoutDashboard; badge?: string };
+const primaryItems: NavItem[] = [
+  { label: 'Overview', path: '/dashboard', icon: LayoutDashboard },
+  { label: 'Earn', path: '/offerwalls', icon: Zap, badge: 'Live' },
+  { label: 'Leaderboard', path: '/leaderboard', icon: Trophy },
+  { label: 'Achievements', path: '/achievements', icon: Award },
+];
+const accountItems: NavItem[] = [
+  { label: 'Activity', path: '/history', icon: History },
+  { label: 'Referrals', path: '/referrals', icon: Users },
+  { label: 'Wallet', path: '/wallet', icon: WalletCards },
+  { label: 'Withdraw', path: '/withdraw', icon: ArrowDownToLine },
+];
+const settingsItems: NavItem[] = [
+  { label: 'Profile', path: '/profile', icon: UserRound },
+  { label: 'Settings', path: '/settings', icon: Settings },
+  { label: 'Support', path: '/support', icon: HelpCircle },
 ];
 
-const financeItems = [
-  { icon: ArrowDownToLine, label: 'Withdraw', path: '/withdraw' },
-  { icon: Wallet, label: 'Wallet', path: '/wallet' },
-];
-
-const accountItems = [
-  { icon: User, label: 'Profile', path: '/profile' },
-  { icon: Settings, label: 'Settings', path: '/settings' },
-  { icon: HelpCircle, label: 'Support', path: '/support' },
-];
-
-type AppSidebarProps = {
-  onClose?: () => void;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-};
-
-export function AppSidebar({ onClose, open, onOpenChange }: AppSidebarProps) {
-  void open;
-  void onOpenChange;
+export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; onOpenChange?: (open: boolean) => void; onClose?: () => void }) {
   const location = useLocation();
   const { profile, logout } = useAuth();
+  const active = (path: string) => location.pathname === path;
+  const handleLogout = async () => { await logout(); window.location.href = '/home'; };
 
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = '/home';
-  };
-
-  const NavLink = ({ item, isHot = false, className = '' }: { item: any, isHot?: boolean, className?: string }) => {
-    const active = location.pathname === item.path;
-    return (
-      <Link
-        to={item.path}
-        onClick={onClose}
-        className={cn(
-          'flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group',
-          active
-            ? 'bg-primary/10 text-primary font-semibold shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
-            : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
-          className
-        )}
-      >
-        <div className="flex items-center gap-3">
-          <item.icon className={cn("w-5 h-5 transition-transform duration-200 group-hover:scale-110", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-          <span>{item.label}</span>
-        </div>
-        {isHot && (
-          <span className="px-2 py-0.5 rounded-full bg-destructive/20 text-destructive text-[10px] font-bold uppercase tracking-wider">
-            Hot
-          </span>
-        )}
-      </Link>
-    );
-  };
+  const NavSection = ({ title, items }: { title: string; items: NavItem[] }) => (
+    <div className="space-y-1.5">
+      <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/65">{title}</p>
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <Link key={item.path} to={item.path} onClick={onClose} className={cn('focus-ring group flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm transition duration-200', active(item.path) ? 'nav-link-active' : 'nav-link-idle')}>
+            <span className="flex min-w-0 items-center gap-3"><Icon className="h-[17px] w-[17px] shrink-0" /><span className="truncate">{item.label}</span></span>
+            {item.badge && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">{item.badge}</span>}
+          </Link>
+        );
+      })}
+    </div>
+  );
 
   return (
-    <div className="h-full flex flex-col bg-card/80 backdrop-blur-2xl border-r border-border overflow-y-auto hidden-scrollbar">
-      {/* Logo */}
-      <div className="p-6 sticky top-0 bg-card/80 backdrop-blur-xl z-10 border-b border-border/50">
-        <Link to="/" onClick={onClose} className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center glow-primary group-hover:scale-105 transition-transform">
-            <Coins className="w-5 h-5 text-primary-foreground" />
+    <>
+      {open && <button aria-label="Close navigation" onClick={onClose} className="fixed inset-0 z-40 bg-slate-950/65 backdrop-blur-sm lg:hidden" />}
+      <aside className={cn('fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-sidebar-border bg-sidebar-background/95 px-4 py-5 shadow-2xl backdrop-blur-xl transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none', open ? 'translate-x-0' : '-translate-x-full')}>
+        <div className="flex items-center justify-between px-2">
+          <Link to="/home" onClick={onClose} className="focus-ring"><BrandMark /></Link>
+          <button onClick={onClose} className="focus-ring rounded-lg p-2 text-muted-foreground hover:bg-white/5 hover:text-foreground lg:hidden" aria-label="Close navigation"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="mt-8 flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto pr-1">
+          <NavSection title="Workspace" items={primaryItems} />
+          <NavSection title="Your money" items={accountItems} />
+          <NavSection title="Account" items={settingsItems} />
+          {profile?.is_admin && <NavSection title="Admin" items={[{ label: 'Admin console', path: '/admin', icon: ShieldCheck }]} />}
+          <div className="mt-auto rounded-2xl border border-primary/15 bg-primary/8 p-3.5">
+            <div className="flex items-center gap-2 text-primary"><BarChart3 className="h-4 w-4" /><span className="text-xs font-semibold">Keep your streak</span></div>
+            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">Complete one offer today to keep progressing.</p>
           </div>
-          <span className="font-heading font-bold text-xl tracking-tight text-foreground">
-            Rewards<span className="text-primary">verse</span>
-          </span>
-        </Link>
-      </div>
-
-      <div className="flex-1 p-4 flex flex-col space-y-8">
-        <div className="space-y-1">
-          <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Main Menu</p>
-          {navItems.map(item => <NavLink key={item.path} item={item} isHot={item.path === '/offerwalls'} />)}
         </div>
-
-        <div className="space-y-1">
-          <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Finance</p>
-          {financeItems.map(item => <NavLink key={item.path} item={item} />)}
+        <div className="mt-5 border-t border-sidebar-border pt-4">
+          <button onClick={handleLogout} className="focus-ring flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition hover:border-destructive/20 hover:bg-destructive/10 hover:text-destructive"><LogOut className="h-[17px] w-[17px]" /> Log out</button>
         </div>
-
-        {/* Đẩy Account và Admin xuống dưới cùng */}
-        <div className="mt-auto space-y-1 pt-8">
-          <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Account</p>
-          {accountItems.map(item => <NavLink key={item.path} item={item} />)}
-          
-          {/* Chỉ hiển thị Admin khi profile.is_admin là true */}
-          {profile?.is_admin && (
-            <NavLink 
-              item={{ icon: ShieldAlert, label: 'Admin', path: '/admin' }} 
-              className="text-warning hover:bg-warning/10 hover:text-warning" 
-            />
-          )}
-        </div>
-      </div>
-
-      <div className="p-4 border-t border-border/50 bg-card/50">
-        <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200">
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
-        </button>
-      </div>
-    </div>
+      </aside>
+    </>
   );
 }

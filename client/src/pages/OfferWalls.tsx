@@ -1,235 +1,84 @@
-import { useAuth } from "@/contexts/AuthContext";
-import { trpc } from "@/lib/trpc";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { playBellSound } from "@/utils/bellSound";
-import { useSSE } from "@/hooks/useSSE";
-import {
-  X, Star,
-  Sparkles, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, CheckCircle2, ChevronRight, Clock3, Search, ShieldCheck, Sparkles, Star, X, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSSE } from '@/hooks/useSSE';
+import { playBellSound } from '@/utils/bellSound';
+import { EmptyState, LoadingRows, SectionHeading, Surface } from '@/components/shared/RewardUI';
 
 const OFFER_WALLS = [
-  { id: "gemiwall",    name: "Gemiwall",       desc: "Premium survey & offer wall",    reward: "$0.10–$5.00",  logo: "https://gemiwall.com/favicon.ico",                                              color: "from-yellow-500 to-orange-500", glow: "rgba(245,158,11,0.15)", tag: "POPULAR",  rating: 4.8 },
-  { id: "revtoo",      name: "Revtoo",         desc: "High-paying mobile offers",      reward: "$0.25–$8.00",  logo: "https://revtoo.com/assets/offerwall/images/revtoo-dark.svg",                    color: "from-blue-500 to-cyan-500",     glow: "rgba(59,130,246,0.15)",  tag: "HIGH PAY", rating: 4.9 },
-  { id: "clickwall",   name: "Clickwall",      desc: "Quick tasks & downloads",        reward: "$0.10–$3.00",  logo: "https://www.google.com/s2/favicons?domain=clickwall.com&sz=128",                color: "from-green-500 to-emerald-500", glow: "rgba(0,255,135,0.15)",   tag: "EASY",     rating: 4.5 },
-  { id: "moustache",   name: "MoustacheLeads", desc: "CPI & CPA offers worldwide",     reward: "$0.50–$10.00", logo: "https://moustacheleads.com/logo.png",                                           color: "from-purple-500 to-pink-500",   glow: "rgba(168,85,247,0.15)",  tag: "PREMIUM",  rating: 4.7 },
-  { id: "taskwall",    name: "Taskwall",       desc: "Sign-up & engagement tasks",     reward: "$0.15–$6.00",  logo: "https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg",                color: "from-indigo-500 to-blue-500",   glow: "rgba(99,102,241,0.15)",  tag: "SIGN-UPS", rating: 4.6 },
-  { id: "cointo",      name: "CoinToMedia",    desc: "Crypto-focused offers",          reward: "$0.20–$4.00",  logo: "https://cointomedia.com/asset/images/iframe-logo.webp",                         color: "from-amber-500 to-yellow-500",  glow: "rgba(245,158,11,0.12)",  tag: "CRYPTO",   rating: 4.4 },
-  { id: "klink",       name: "Klink Finance",  desc: "Finance & trading offers",       reward: "$0.30–$7.00",  logo: "https://assets.klink.finance/CDN/opengraph.jpg",                                color: "from-teal-500 to-green-500",    glow: "rgba(20,184,166,0.15)",  tag: "FINANCE",  rating: 4.8 },
-  { id: "adswedmedia", name: "AdsWedMedia",    desc: "CPA & incent offers worldwide",  reward: "$0.10–$6.00",  logo: "https://adswedmedia.com/asset/storage/photos/logo-img.png",                     color: "from-rose-500 to-pink-500",     glow: "rgba(244,63,94,0.15)",   tag: "NEW",      rating: 4.7 },
-  { id: "admaxflow",   name: "AdMaxFlow",      desc: "Surveys, apps & tasks worldwide", reward: "$0.10–$5.00", logo: "https://www.google.com/s2/favicons?domain=www.admaxflow.com&sz=128",                color: "from-cyan-500 to-blue-500",     glow: "rgba(6,182,212,0.15)",   tag: "NEW",      rating: 4.6 },
-  { id: "gaintwall",   name: "Gaintwall",      desc: "Earn with surveys & tasks worldwide", reward: "$0.10–$6.00", logo: "https://www.google.com/s2/favicons?domain=gaintwall.com&sz=128",             color: "from-pink-500 to-rose-500",     glow: "rgba(236,72,153,0.15)",  tag: "NEW",      rating: 4.7 },
-  { id: "buckswall",   name: "BucksWall",       desc: "Mobile apps, surveys & gaming offers", reward: "$0.10–$6.00", logo: "https://www.google.com/s2/favicons?domain=buckswall.com&sz=128",                                       color: "from-sky-500 to-blue-500",      glow: "rgba(14,165,233,0.15)",   tag: "SETUP",    rating: 4.6 },
+  { id: 'gemiwall', name: 'Gemiwall', desc: 'Premium survey & offer wall', reward: '$0.10–$5.00', logo: 'https://gemiwall.com/favicon.ico', tag: 'POPULAR', category: 'Surveys', rating: 4.8 },
+  { id: 'revtoo', name: 'Revtoo', desc: 'High-paying mobile offers', reward: '$0.25–$8.00', logo: 'https://revtoo.com/assets/offerwall/images/revtoo-dark.svg', tag: 'HIGH PAY', category: 'Mobile', rating: 4.9 },
+  { id: 'clickwall', name: 'Clickwall', desc: 'Quick tasks & downloads', reward: '$0.10–$3.00', logo: 'https://www.google.com/s2/favicons?domain=clickwall.com&sz=128', tag: 'EASY', category: 'Tasks', rating: 4.5 },
+  { id: 'moustache', name: 'MoustacheLeads', desc: 'CPI & CPA offers worldwide', reward: '$0.50–$10.00', logo: 'https://moustacheleads.com/logo.png', tag: 'PREMIUM', category: 'Apps', rating: 4.7 },
+  { id: 'taskwall', name: 'Taskwall', desc: 'Sign-up & engagement tasks', reward: '$0.15–$6.00', logo: 'https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg', tag: 'SIGN-UPS', category: 'Tasks', rating: 4.6 },
+  { id: 'cointo', name: 'CoinToMedia', desc: 'Crypto-focused offers', reward: '$0.20–$4.00', logo: 'https://cointomedia.com/asset/images/iframe-logo.webp', tag: 'CRYPTO', category: 'Apps', rating: 4.4 },
+  { id: 'klink', name: 'Klink Finance', desc: 'Finance & trading offers', reward: '$0.30–$7.00', logo: 'https://assets.klink.finance/CDN/opengraph.jpg', tag: 'FINANCE', category: 'Apps', rating: 4.8 },
+  { id: 'adswedmedia', name: 'AdsWedMedia', desc: 'CPA & incent offers worldwide', reward: '$0.10–$6.00', logo: 'https://adswedmedia.com/asset/storage/photos/logo-img.png', tag: 'NEW', category: 'Surveys', rating: 4.7 },
+  { id: 'admaxflow', name: 'AdMaxFlow', desc: 'Surveys, apps & tasks worldwide', reward: '$0.10–$5.00', logo: 'https://www.google.com/s2/favicons?domain=www.admaxflow.com&sz=128', tag: 'NEW', category: 'Tasks', rating: 4.6 },
+  { id: 'gaintwall', name: 'Gaintwall', desc: 'Earn with surveys & tasks worldwide', reward: '$0.10–$6.00', logo: 'https://www.google.com/s2/favicons?domain=gaintwall.com&sz=128', tag: 'NEW', category: 'Surveys', rating: 4.7 },
+  { id: 'buckswall', name: 'BucksWall', desc: 'Mobile apps, surveys & gaming offers', reward: '$0.10–$6.00', logo: 'https://www.google.com/s2/favicons?domain=buckswall.com&sz=128', tag: 'SETUP', category: 'Mobile', rating: 4.6 },
 ];
+const categories = ['All', 'Surveys', 'Tasks', 'Mobile', 'Apps'];
 
 export default function OfferWalls() {
-  const { user, loading, logout, isAdmin, refreshProfile, activities } = useAuth();
-  const [, setLocation] = useLocation();
+  const { user, loading, refreshProfile } = useAuth();
+  const navigate = useNavigate();
   const [activeWall, setActiveWall] = useState<string | null>(null);
-  const [wallUrl, setWallUrl] = useState("");
+  const [wallUrl, setWallUrl] = useState('');
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('All');
   const [previousBalance, setPreviousBalance] = useState<string | null>(null);
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id), retry: false, refetchOnWindowFocus: false });
+  const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: !!activeWall, retry: false });
 
-  const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, {
-    enabled: Boolean(user?.id),
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-  const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery(
-    { wall: activeWall || "" },
-    { enabled: !!activeWall, retry: false },
-  );
-  const recordMutation = trpc.user.recordOfferComplete.useMutation({
-    onSuccess: async (data) => { await playBellSound(); toast.success(`Reward credited! +$${data.reward}`); },
-    onSettled: () => refreshProfile(),
-  });
-
-  useEffect(() => { if (!loading && !user) setLocation("/"); }, [user, loading, setLocation]);
+  useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
+  useEffect(() => { if (wallUrlQuery.data?.url) setWallUrl(wallUrlQuery.data.url); }, [wallUrlQuery.data]);
+  useEffect(() => { if (!wallUrlQuery.error) return; setWallUrl(''); toast.error(wallUrlQuery.error.message || 'This offer wall is not available yet.'); setActiveWall(null); }, [wallUrlQuery.error]);
   useEffect(() => {
-    if (wallUrlQuery.data?.url) setWallUrl(wallUrlQuery.data.url);
-  }, [wallUrlQuery.data]);
-
-  useEffect(() => {
-    if (!wallUrlQuery.error) return;
-    setWallUrl("");
-    toast.error(wallUrlQuery.error.message || "This offer wall is not available yet.");
-    setActiveWall(null);
-  }, [wallUrlQuery.error]);
-
-  useEffect(() => {
-    if (user?.balance) {
-      const curr = parseFloat(user.balance);
-      const prev = previousBalance ? parseFloat(previousBalance) : curr;
-      if (curr > prev) { playBellSound().catch(() => {}); toast.success(`Balance updated! +$${(curr - prev).toFixed(2)}`); }
-      setPreviousBalance(user.balance);
-    }
+    if (!user?.balance) return;
+    const current = parseFloat(String(user.balance));
+    const previous = previousBalance ? parseFloat(previousBalance) : current;
+    if (current > previous) { playBellSound().catch(() => {}); toast.success(`Balance updated +$${(current - previous).toFixed(2)}`); }
+    setPreviousBalance(String(user.balance));
   }, [user?.balance]);
-
   useEffect(() => {
-    if (activeWall) {
-      pollingIntervalRef.current = setInterval(() => refreshProfile(), 15000);
-      return () => { if (pollingIntervalRef.current) { clearInterval(pollingIntervalRef.current); pollingIntervalRef.current = null; } };
-    }
+    if (!activeWall) return;
+    pollingIntervalRef.current = setInterval(() => refreshProfile(), 15000);
+    return () => { if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); pollingIntervalRef.current = null; };
   }, [activeWall, refreshProfile]);
-
   useEffect(() => {
-    const fn = () => { if (!document.hidden && activeWall) refreshProfile(); };
-    document.addEventListener("visibilitychange", fn);
-    return () => document.removeEventListener("visibilitychange", fn);
+    const onVisibility = () => { if (!document.hidden && activeWall) refreshProfile(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [activeWall, refreshProfile]);
-
-  const openWall = (wallId: string) => {
-    if (!user) {
-      toast.info("Please sign in before opening an offer wall.");
-      return;
-    }
-    const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
-    if (status && !status.configured) {
-      toast.info("This offer wall is not configured yet. Please contact support.");
-      return;
-    }
-    setActiveWall(wallId);
-    setWallUrl("");
-  };
-  const closeWall = useCallback(() => {
-    refreshProfile();
-    setTimeout(() => refreshProfile(), 1000);
-    setActiveWall(null); setWallUrl("");
-  }, [refreshProfile]);
-
   useSSE({
-    onPostback: async (event) => {
-      await playBellSound().catch(() => {});
-      toast.success(`🎉 +$${event.amount.toFixed(2)} từ ${event.provider}${event.offerName ? ` — ${event.offerName}` : ""}`, { duration: 6000 });
-      refreshProfile();
-      setTimeout(() => refreshProfile(), 1500);
-    },
+    onPostback: async (event) => { await playBellSound().catch(() => {}); toast.success(`+$${event.amount.toFixed(2)} from ${event.provider}${event.offerName ? ` — ${event.offerName}` : ''}`, { duration: 6000 }); refreshProfile(); setTimeout(() => refreshProfile(), 1500); },
     onBalanceUpdate: () => refreshProfile(),
   });
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-10 h-10 border-2 border-green-400 border-t-transparent rounded-full animate-spin glow-green" /></div>;
+  const visibleWalls = useMemo(() => OFFER_WALLS.filter((wall) => (category === 'All' || wall.category === category) && `${wall.name} ${wall.desc} ${wall.tag}`.toLowerCase().includes(search.toLowerCase())), [category, search]);
+  const openWall = (wallId: string) => {
+    if (!user) { toast.info('Please sign in before opening an offer wall.'); return; }
+    const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
+    if (status && !status.configured) { toast.info('This offer wall is not configured yet. Please contact support.'); return; }
+    setActiveWall(wallId); setWallUrl('');
+  };
+  const closeWall = useCallback(() => { refreshProfile(); setTimeout(() => refreshProfile(), 1000); setActiveWall(null); setWallUrl(''); }, [refreshProfile]);
+  const activeName = OFFER_WALLS.find((wall) => wall.id === activeWall)?.name;
 
-  const balance = parseFloat(user?.balance || "0") || 0;
-
+  if (loading) return <div className="flex min-h-[70vh] items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
   return (
-    <div className="min-h-screen bg-transparent">
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="tech-orb tech-orb-1" />
-        <div className="tech-orb tech-orb-2" />
-        <div className="tech-orb tech-orb-3" />
-      </div>
-
-      {/* Main: the shared AppLayout TopBar and vertical sidebar remain in place */}
-      <main className="relative z-10 pt-6 pb-10 px-4 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div className="mb-10">
-            <div className="inline-flex items-center gap-2 tag-cyber mb-3">
-              <Zap className="w-3 h-3" /> {OFFER_WALLS.length} Providers
-            </div>
-            <h2 className="text-3xl font-extrabold">Offer <span className="text-gradient">Walls</span></h2>
-            <p className="text-sm text-muted-foreground mt-1">Select a provider to start earning rewards by completing simple tasks.</p>
-          </div>
-
-          {/* Offer Walls Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {OFFER_WALLS.map((wall, i) => {
-              const status = wallStatusQuery.data?.find((item) => item.provider === wall.id);
-              const isConfigured = status?.configured !== false;
-              return (
-              <motion.div key={wall.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.06 }} whileHover={{ y: isConfigured ? -4 : 0 }}>
-                <div className={`cyber-card cyber-corner rounded-2xl overflow-hidden group ${isConfigured ? "cursor-pointer" : "opacity-70"}`} onClick={() => openWall(wall.id)}>
-                  {/* top colour bar */}
-                  <div className={`h-1 w-full bg-gradient-to-r ${wall.color}`} />
-                  <div className="p-5">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-lg group-hover:text-green-400 transition-colors">{wall.name}</h3>
-                          <span className="tag-cyber">{wall.tag}</span>
-                          {status && !status.configured && <span className="tag-cyber text-yellow-400 border-yellow-500/30">SETUP REQUIRED</span>}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{wall.desc}</p>
-                      </div>
-                      <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${wall.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg overflow-hidden`}>
-                        <img src={wall.logo} alt={wall.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                      </div>
-                    </div>
-                    <div className="divider-cyber mb-4" />
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1 text-yellow-400">
-                          <Star className="w-3 h-3 fill-current" />
-                          <span className="text-xs font-bold">{wall.rating}</span>
-                        </div>
-                        <span className="text-xs text-green-400 font-bold">{wall.reward}</span>
-                      </div>
-                      <div className={`flex items-center gap-1 text-xs font-bold transition-all ${isConfigured ? "text-green-400 group-hover:gap-2" : "text-yellow-400"}`}>
-                        {isConfigured ? "Earn Now" : "Setup Required"} <ChevronRight className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Info Section */}
-          <div className="mt-14 grid md:grid-cols-3 gap-6">
-            {[
-              { icon: CheckCircle2, color: "text-green-400", bg: "bg-green-500/8", title: "Instant Tracking", desc: "Most offers track instantly. Some premium offers may take up to 24h to verify." },
-              { icon: Shield,       color: "text-cyan-400",  bg: "bg-cyan-500/8",  title: "Safe & Secure",    desc: "We only partner with trusted offer providers to ensure your data is protected." },
-              { icon: Sparkles,     color: "text-purple-400",bg: "bg-purple-500/8",title: "High Rates",        desc: "RewardsVerse offers the highest payout rates in the industry for all walls." },
-            ].map((item, i) => (
-              <div key={i} className="cyber-card p-6 rounded-2xl">
-                <div className={`w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center mb-4`}>
-                  <item.icon className={`w-5 h-5 ${item.color}`} />
-                </div>
-                <h4 className="font-bold mb-2">{item.title}</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </main>
-
-      {/* Offer Wall Iframe Overlay */}
-      <AnimatePresence>
-        {activeWall && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-background flex flex-col">
-            <div className="h-14 border-b border-green-500/15 flex items-center justify-between px-4 bg-background/90 backdrop-blur-md">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={closeWall} className="text-muted-foreground hover:text-green-400">
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                </Button>
-                <span className="text-sm font-bold text-gradient">{OFFER_WALLS.find(w => w.id === activeWall)?.name}</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={closeWall} className="text-muted-foreground hover:text-red-400"><X className="w-4 h-4" /></Button>
-            </div>
-            {wallUrlQuery.isFetching ? (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
-                  <span>Loading offer wall…</span>
-                </div>
-              </div>
-            ) : wallUrl ? (
-              <iframe src={wallUrl} className="flex-1 w-full border-0" title="Offer Wall"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation" />
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                This provider is not configured yet.
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="mx-auto w-full max-w-[1500px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <section className="relative overflow-hidden rounded-[1.35rem] border border-primary/15 bg-[linear-gradient(120deg,rgba(42,69,79,.95),rgba(28,42,63,.96)_62%,rgba(49,40,76,.9))] p-6 sm:p-8"><div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between"><div><p className="rv-eyebrow">The earn center</p><h1 className="mt-2 font-display text-3xl font-semibold tracking-[-0.05em] text-white">Choose your next <span className="text-primary">opportunity.</span></h1><p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">Compare verified providers, open a live offerwall and track rewards directly in your balance.</p></div><div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3"><p className="text-xs text-slate-400">Available providers</p><p className="mt-1 font-display text-2xl font-semibold text-white">{OFFER_WALLS.length}</p></div></div></section>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div className="flex gap-2 overflow-x-auto pb-1">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`focus-ring whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition ${category === item ? 'border-primary/25 bg-primary/12 text-primary' : 'border-white/8 bg-white/3 text-muted-foreground hover:bg-white/7 hover:text-foreground'}`}>{item}</button>)}</div><label className="relative block w-full lg:max-w-xs"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search providers" className="focus-ring h-10 w-full rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-primary/40" /></label></div>
+      <Surface className="p-5 sm:p-6"><SectionHeading eyebrow="Live provider catalog" title="Find your best fit" description="All provider cards connect to the existing configured offerwall flow." /><div className="mt-6">{wallStatusQuery.isLoading ? <LoadingRows count={6} /> : visibleWalls.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{visibleWalls.map((wall, index) => { const status = wallStatusQuery.data?.find((item) => item.provider === wall.id); const configured = status?.configured !== false; return <motion.button type="button" key={wall.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .025 }} onClick={() => openWall(wall.id)} disabled={!configured} className={`group text-left ${!configured ? 'cursor-not-allowed opacity-65' : ''}`}><div className="h-full rounded-2xl border border-white/8 bg-white/[.035] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/5"><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10 p-2"><img src={wall.logo} alt="" className="h-full w-full object-contain" onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = 'none'; }} /></div><div className="min-w-0"><div className="flex items-center gap-2"><h3 className="truncate text-sm font-semibold text-foreground group-hover:text-primary">{wall.name}</h3><span className="rounded-full bg-white/7 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{wall.tag}</span></div><p className="mt-1 truncate text-xs text-muted-foreground">{wall.desc}</p></div></div><ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/50 transition group-hover:translate-x-0.5 group-hover:text-primary" /></div><div className="mt-5 flex items-center justify-between border-t border-white/8 pt-3"><div className="flex items-center gap-3"><span className="flex items-center gap-1 text-xs text-amber-300"><Star className="h-3 w-3 fill-current" /> {wall.rating}</span><span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock3 className="h-3 w-3" /> 5–20 min</span></div><span className="text-xs font-semibold text-primary">{configured ? `Earn ${wall.reward}` : 'Setup required'}</span></div></div></motion.button>; })}</div> : <EmptyState title="No matching providers" description="Try another category or search term to find an available provider." icon={Search} />}</div></Surface>
+      <div className="grid gap-4 md:grid-cols-3">{[{ icon: CheckCircle2, title: 'Clear tracking', text: 'Your balance refreshes after provider callbacks are received.' }, { icon: ShieldCheck, title: 'Built for trust', text: 'Provider status is checked before the offerwall opens.' }, { icon: Sparkles, title: 'Made for momentum', text: 'Pick a small task and keep your earning streak moving.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rv-surface-soft p-5"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon className="h-4 w-4" /></div><h3 className="mt-4 text-sm font-semibold text-foreground">{title}</h3><p className="mt-1.5 text-xs leading-5 text-muted-foreground">{text}</p></div>)}</div>
+      <AnimatePresence>{activeWall && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex flex-col bg-[#101a29]"><div className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-[#111d2c]/95 px-4 backdrop-blur-xl sm:px-6"><div className="flex min-w-0 items-center gap-3"><button onClick={closeWall} className="focus-ring inline-flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-sm text-muted-foreground transition hover:bg-white/6 hover:text-foreground"><ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back</span></button><div className="min-w-0"><p className="text-[10px] uppercase tracking-[.14em] text-muted-foreground">Live offerwall</p><p className="truncate text-sm font-semibold text-foreground">{activeName}</p></div></div><button onClick={closeWall} className="focus-ring rounded-xl p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive" aria-label="Close offerwall"><X className="h-5 w-5" /></button></div>{wallUrlQuery.isFetching ? <div className="flex flex-1 flex-col items-center justify-center gap-3 text-sm text-muted-foreground"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />Loading offer wall…</div> : wallUrl ? <iframe src={wallUrl} className="h-full w-full flex-1 border-0 bg-white" title={`${activeName} offer wall`} sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation" /> : <div className="flex flex-1 items-center justify-center"><EmptyState title="Provider unavailable" description="This provider is not configured yet. Please choose another offerwall or contact support." icon={Zap} /></div>}</motion.div>}</AnimatePresence>
     </div>
   );
 }

@@ -1,93 +1,19 @@
-import { useEffect, useState } from 'react';
-import { Clock, Download, Filter } from 'lucide-react';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { GlassCard } from '@/components/shared/GlassCard';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowDownLeft, ArrowUpRight, Download, Filter, History as HistoryIcon, Search, WalletCards } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchUserTransactions } from '@/api';
+import { EmptyState, LoadingRows, SectionHeading, StatusBadge, Surface } from '@/components/shared/RewardUI';
 
 export default function HistoryPage() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchUserTransactions(user.id).then(data => {
-        setTransactions(data);
-        setLoading(false);
-      }).catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-    }
-  }, [user]);
-
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  useEffect(() => { if (!user?.id) { setLoading(false); return; } fetchUserTransactions(user.id).then(setTransactions).catch(() => setTransactions([])).finally(() => setLoading(false)); }, [user?.id]);
+  const filtered = useMemo(() => transactions.filter((tx) => (filter === 'all' || (filter === 'earnings' && tx.type !== 'withdrawal') || (filter === 'withdrawals' && tx.type === 'withdrawal')) && `${tx.description} ${tx.type} ${tx.status}`.toLowerCase().includes(search.toLowerCase())), [transactions, filter, search]);
+  const exportCsv = () => { const rows = [['Date', 'Type', 'Description', 'Status', 'Amount'], ...filtered.map((tx) => [new Date(tx.created_at).toISOString(), tx.type, tx.description, tx.status, `${tx.type === 'withdrawal' ? '-' : '+'}${Number(tx.amount).toFixed(2)}`])]; const blob = new Blob([rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'rewardsverse-activity.csv'; anchor.click(); URL.revokeObjectURL(url); };
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <PageHeader title="Transaction History" subtitle="View all your earning and withdrawal activities.">
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all">
-            <Filter className="w-4 h-4" /> Filter
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm font-semibold hover:bg-primary/20 transition-all">
-            <Download className="w-4 h-4" /> Export CSV
-          </button>
-        </div>
-      </PageHeader>
-
-      <GlassCard className="overflow-hidden">
-        {loading ? (
-          <div className="text-center py-10 text-muted-foreground">Loading history...</div>
-        ) : transactions.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-muted-foreground bg-black/20 border-b border-border">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Time</th>
-                  <th className="px-6 py-4 font-medium">Type</th>
-                  <th className="px-6 py-4 font-medium">Description</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {transactions.map(tx => (
-                  <tr key={tx.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        {new Date(tx.created_at).toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 capitalize text-foreground">{tx.type}</td>
-                    <td className="px-6 py-4 text-foreground">{tx.description}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${
-                        tx.status === 'completed' ? 'bg-success/10 text-success border border-success/20' :
-                        tx.status === 'pending' ? 'bg-warning/10 text-warning border border-warning/20' :
-                        'bg-destructive/10 text-destructive border border-destructive/20'
-                      }`}>
-                        {tx.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`font-bold ${
-                        tx.type === 'withdrawal' ? 'text-foreground' : 'text-success'
-                      }`}>
-                        {tx.type === 'withdrawal' ? '-' : '+'}${tx.amount.toFixed(2)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-center py-20 text-muted-foreground border-t border-dashed border-border">
-            No transactions found.
-          </div>
-        )}
-      </GlassCard>
-    </div>
+    <div className="mx-auto w-full max-w-[1300px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"><SectionHeading eyebrow="Money movement" title="Activity" description="A clear record of earnings, bonuses, referrals and withdrawals." action={<button onClick={exportCsv} disabled={!filtered.length} className="focus-ring inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.035] px-3.5 py-2.5 text-sm font-semibold text-foreground transition hover:bg-white/7 disabled:opacity-40"><Download className="h-4 w-4" /> Export CSV</button>} /><Surface className="overflow-hidden p-5 sm:p-6"><div className="flex flex-col gap-3 border-b border-white/8 pb-5 lg:flex-row lg:items-center lg:justify-between"><div className="flex gap-2 overflow-x-auto">{[['all', 'All activity'], ['earnings', 'Earnings'], ['withdrawals', 'Withdrawals']].map(([value, label]) => <button key={value} onClick={() => setFilter(value)} className={`focus-ring whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-semibold transition ${filter === value ? 'border-primary/25 bg-primary/12 text-primary' : 'border-white/8 text-muted-foreground hover:bg-white/6 hover:text-foreground'}`}><Filter className="mr-1.5 inline h-3.5 w-3.5" />{label}</button>)}</div><label className="relative block w-full lg:max-w-xs"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search activity" className="focus-ring h-10 w-full rounded-xl border border-white/10 bg-white/4 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/70" /></label></div><div className="mt-5">{loading ? <LoadingRows count={5} /> : filtered.length ? <div className="space-y-2">{filtered.map((tx: any) => { const withdrawal = tx.type === 'withdrawal'; return <div key={tx.id} className="flex flex-col gap-3 rounded-xl border border-white/7 bg-white/[.025] p-3.5 transition hover:border-white/15 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-center gap-3"><div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${withdrawal ? 'bg-amber-400/10 text-amber-300' : 'bg-primary/10 text-primary'}`}>{withdrawal ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</div><div className="min-w-0"><p className="truncate text-sm font-semibold text-foreground">{tx.description}</p><p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><HistoryIcon className="h-3 w-3" />{new Date(tx.created_at).toLocaleString()} <span>·</span> {tx.type}</p></div></div><div className="flex items-center justify-between gap-4 pl-[52px] sm:justify-end sm:pl-0"><StatusBadge status={tx.status} /><span className={`font-display text-sm font-semibold ${withdrawal ? 'text-foreground' : 'text-primary'}`}>{withdrawal ? '-' : '+'}${Number(tx.amount).toFixed(2)}</span></div></div>; })}</div> : <EmptyState title="No matching activity" description="Your completed earnings and withdrawal requests will appear here." icon={WalletCards} />}</div></Surface></div>
   );
 }

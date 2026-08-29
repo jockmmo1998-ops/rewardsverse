@@ -1,213 +1,68 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Activity, ArrowRight, Flame, Gift, History, Target, TrendingUp, Trophy, WalletCards, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Wallet, TrendingUp, Trophy, Clock, ChevronRight, Activity, Flame, Target } from 'lucide-react';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { StatCard } from '@/components/shared/StatCard';
-import { GlassCard } from '@/components/shared/GlassCard';
-import { ProgressBar } from '@/components/shared/ProgressBar';
+import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchUserTransactions } from '@/api';
-import { trpc } from '@/lib/trpc';
+import { EmptyState, LoadingRows, SectionHeading, StatTile, StatusBadge, Surface } from '@/components/shared/RewardUI';
+
+const money = (value: unknown) => `$${Number(value || 0).toFixed(2)}`;
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const featuredOffersQuery = trpc.user.getFeaturedOffers.useQuery(undefined, {
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-  });
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const featured = trpc.user.getFeaturedOffers.useQuery(undefined, { staleTime: 60_000, refetchOnWindowFocus: false });
+  const displayName = profile?.username || profile?.name || user?.username || user?.name || 'Member';
+  const level = Number(profile?.level || 1);
+  const xp = Number(profile?.xp || 0);
+  const nextLevelXp = Math.max(level * 1000, 1000);
+  const xpPercent = Math.min(100, Math.round((xp / nextLevelXp) * 100));
 
   useEffect(() => {
-    if (user?.id) {
-      fetchUserTransactions(user.id).then(data => {
-        setTransactions(data);
-        setLoading(false);
-      }).catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-    }
-  }, [user]);
+    if (!user?.id) { setLoadingTransactions(false); return; }
+    setLoadingTransactions(true);
+    fetchUserTransactions(user.id).then(setTransactions).catch(() => setTransactions([])).finally(() => setLoadingTransactions(false));
+  }, [user?.id]);
 
-  // Calculate stats from DB
-  const balance = profile?.balance || 0;
-  const pending = profile?.pending_balance || 0;
-  const lifetime = profile?.lifetime_earnings || 0;
-  const completed = profile?.completed_offers || 0;
-  const level = profile?.level || 1;
-  const xp = profile?.xp || 0;
-  const nextLevelXp = level * 1000;
-  const xpPercent = Math.min(100, Math.round((xp / nextLevelXp) * 100));
-  const storedUsername = typeof window !== 'undefined' ? sessionStorage.getItem('rewardsverse-username') : null;
-  const displayName = profile?.username || profile?.name || user?.username || user?.name || storedUsername || 'User';
-
+  const recent = useMemo(() => transactions.slice(0, 5), [transactions]);
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <PageHeader 
-        title={`Welcome back, ${displayName}!`}
-        subtitle="Here's an overview of your earnings and progress."
-      />
+    <div className="mx-auto w-full max-w-[1500px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <section className="relative overflow-hidden rounded-[1.35rem] border border-primary/15 bg-[linear-gradient(120deg,rgba(42,69,79,.95),rgba(28,42,63,.96)_58%,rgba(47,39,76,.9))] p-6 sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-primary/12 blur-3xl" />
+        <div className="relative flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl"><p className="rv-eyebrow">Your rewards workspace</p><h1 className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] text-white sm:text-4xl">Good to see you, {displayName}.</h1><p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">Turn a few minutes into meaningful rewards. Your next offer is waiting.</p></div>
+          <div className="flex flex-wrap gap-3"><Link to="/offerwalls" className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-105"><Zap className="h-4 w-4" /> Start earning</Link><Link to="/withdraw" className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/6 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"><WalletCards className="h-4 w-4" /> Withdraw</Link></div>
+        </div>
+      </section>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Current Balance" value={`$${balance.toFixed(2)}`} icon={<Wallet className="w-5 h-5" />} gradient delay={0} />
-        <StatCard title="Pending" value={`$${pending.toFixed(2)}`} icon={<Clock className="w-5 h-5" />} delay={0.1} />
-        <StatCard title="Lifetime Earnings" value={`$${lifetime.toFixed(2)}`} icon={<TrendingUp className="w-5 h-5 text-success" />} delay={0.2} />
-        <StatCard title="Offers Completed" value={completed.toString()} icon={<Target className="w-5 h-5 text-cyan-400" />} delay={0.3} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatTile label="Available balance" value={money(profile?.balance)} helper="Ready to withdraw" icon={WalletCards} accent="mint" />
+        <StatTile label="Pending balance" value={money(profile?.pending_balance)} helper="Being verified" icon={History} accent="amber" />
+        <StatTile label="Lifetime earnings" value={money(profile?.lifetime_earnings)} helper="All-time rewards" icon={TrendingUp} accent="violet" />
+        <StatTile label="Offers completed" value={String(profile?.completed_offers || 0)} helper="Keep the momentum" icon={Target} accent="sky" />
       </div>
 
-      {/* Featured Offers */}
-      <GlassCard className="p-5 md:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-heading font-semibold text-lg flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-yellow-400" /> Featured Offers
-          </h3>
-          <Link to="/offerwalls" className="text-sm text-primary hover:underline flex items-center gap-1">
-            Browse all <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {featuredOffersQuery.isLoading ? (
-          <p className="text-center text-sm text-muted-foreground py-4">Loading featured offers...</p>
-        ) : featuredOffersQuery.data && featuredOffersQuery.data.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {featuredOffersQuery.data.map((offer, index) => (
-              <Link key={`${offer.provider}-${offer.offerName || 'offer'}`} to="/offerwalls" className="group rounded-xl border border-white/10 bg-black/20 p-4 transition hover:border-primary/40 hover:bg-primary/5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold group-hover:text-primary transition-colors">
-                      {offer.offerName || `${offer.provider} offer`}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">{offer.provider}</p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-yellow-400/10 px-2 py-1 text-[10px] font-bold text-yellow-300">
-                    #{index + 1}
-                  </span>
-                </div>
-                <div className="mt-4 flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{offer.completionCount} completions</span>
-                  <span className="font-semibold text-success">Avg. ${offer.averageReward}</span>
-                </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(330px,.85fr)]">
+        <Surface className="overflow-hidden p-5 sm:p-6">
+          <SectionHeading eyebrow="Opportunity feed" title="Featured offers" description="High-intent opportunities selected from your live offer catalog." action={<Link to="/offerwalls" className="focus-ring inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80">View all <ArrowRight className="h-4 w-4" /></Link>} />
+          <div className="mt-6 grid gap-3 md:grid-cols-2">
+            {featured.isLoading ? <LoadingRows count={4} /> : featured.data?.length ? featured.data.slice(0, 4).map((offer: any, index: number) => (
+              <Link to="/offerwalls" key={`${offer.provider}-${offer.offerName || index}`} className="group rv-surface-soft p-4 transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/5">
+                <div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Gift className="h-5 w-5" /></div><div className="min-w-0"><p className="truncate text-sm font-semibold text-foreground group-hover:text-primary">{offer.offerName || `${offer.provider} offer`}</p><p className="mt-1 text-xs text-muted-foreground">{offer.provider}</p></div></div><span className="text-xs font-bold text-primary">#{index + 1}</span></div>
+                <div className="mt-4 flex items-center justify-between text-xs"><span className="text-muted-foreground">{offer.completionCount || 0} completions</span><span className="font-semibold text-primary">Avg. {money(offer.averageReward)}</span></div>
               </Link>
-            ))}
+            )) : <div className="md:col-span-2"><EmptyState title="More offers are on the way" description="Featured offers will appear here as activity builds. Explore the offer center to see available providers." action={<Link to="/offerwalls" className="text-sm font-semibold text-primary">Explore offers <ArrowRight className="ml-1 inline h-4 w-4" /></Link>} /></div>}
           </div>
-        ) : (
-          <div className="rounded-xl border border-dashed border-white/10 py-6 text-center">
-            <p className="text-sm text-muted-foreground">Featured offers will appear as users complete offers.</p>
-            <Link to="/offerwalls" className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline">
-              Explore offer walls <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        )}
-      </GlassCard>
+        </Surface>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Progress & Activity */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Level Progress */}
-          <GlassCard className="p-5 md:p-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-400" />
-                <h3 className="font-heading font-semibold text-lg">Level {level}</h3>
-              </div>
-              <span className="text-sm font-medium text-muted-foreground">{xp} / {nextLevelXp} XP</span>
-            </div>
-            <ProgressBar value={xpPercent} color="primary" className="h-2 mb-4" />
-            <p className="text-xs text-muted-foreground">You need <span className="text-foreground font-medium">{nextLevelXp - xp} XP</span> more to reach the next level. Complete tasks to earn XP!</p>
-          </GlassCard>
-
-          {/* Recent Activity */}
-          <GlassCard className="p-5 md:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading font-semibold text-lg flex items-center gap-2">
-                <Activity className="w-5 h-5 text-primary" /> Recent Activity
-              </h3>
-              <Link to="/history" className="text-sm text-primary hover:underline flex items-center gap-1">
-                View all <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-            
-            <div className="space-y-3">
-              {loading ? (
-                <p className="text-center text-sm text-muted-foreground py-4">Loading...</p>
-              ) : transactions.length > 0 ? (
-                transactions.slice(0, 5).map(tx => (
-                  <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg bg-black/20 border border-white/5">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        tx.type === 'offer' ? 'bg-success/20 text-success' :
-                        tx.type === 'withdrawal' ? 'bg-destructive/20 text-destructive' :
-                        'bg-primary/20 text-primary'
-                      }`}>
-                        {tx.type === 'offer' ? <Target className="w-5 h-5" /> : 
-                         tx.type === 'withdrawal' ? <Wallet className="w-5 h-5" /> : 
-                         <TrendingUp className="w-5 h-5" />}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">{tx.description}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-bold ${
-                        tx.type === 'withdrawal' ? 'text-foreground' : 'text-success'
-                      }`}>
-                        {tx.type === 'withdrawal' ? '-' : '+'}${tx.amount.toFixed(2)}
-                      </p>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded capitalize ${
-                        tx.status === 'completed' ? 'bg-success/20 text-success' :
-                        tx.status === 'pending' ? 'bg-warning/20 text-warning' :
-                        'bg-destructive/20 text-destructive'
-                      }`}>
-                        {tx.status}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground text-sm">No recent activity.</p>
-                </div>
-              )}
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* Right Column: Quick Actions & Streak */}
         <div className="space-y-6">
-          {/* Daily Streak */}
-          <GlassCard className="p-6 text-center border-orange-500/20 bg-gradient-to-b from-orange-500/10 to-transparent">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/20 text-orange-500 mb-4">
-              <Flame className="w-8 h-8" />
-            </div>
-            <h3 className="font-heading font-bold text-2xl mb-1">{profile?.daily_streak || 0} Days</h3>
-            <p className="text-sm text-muted-foreground mb-4">Consecutive login streak</p>
-            <ProgressBar value={((profile?.daily_streak || 0) % 7) / 7 * 100} color="warning" className="h-1.5 mb-2" />
-            <p className="text-xs text-muted-foreground">Log in every day to get bonuses!</p>
-          </GlassCard>
-
-          {/* Quick Actions */}
-          <GlassCard className="p-6">
-            <h3 className="font-heading font-semibold text-lg mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              <Link to="/offerwalls" className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors">
-                <span className="font-medium flex items-center gap-2"><Target className="w-4 h-4" /> Do Tasks</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-              <Link to="/withdraw" className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                <span className="font-medium flex items-center gap-2"><Wallet className="w-4 h-4" /> Withdraw</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-              <Link to="/referrals" className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                <span className="font-medium flex items-center gap-2"><TrendingUp className="w-4 h-4" /> Refer Friends</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </GlassCard>
+          <Surface className="p-5 sm:p-6"><div className="flex items-start justify-between"><div><p className="rv-eyebrow">Progress</p><h2 className="mt-1 font-display text-lg font-semibold">Level {level}</h2></div><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/12 text-accent"><Trophy className="h-5 w-5" /></div></div><div className="mt-6 flex items-end justify-between text-xs"><span className="text-muted-foreground">{xp.toLocaleString()} XP</span><span className="font-semibold text-primary">{xpPercent}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-white/8"><div className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-300" style={{ width: `${xpPercent}%` }} /></div><p className="mt-3 text-xs leading-5 text-muted-foreground">{Math.max(0, nextLevelXp - xp).toLocaleString()} XP until your next level.</p></Surface>
+          <Surface className="p-5 sm:p-6"><div className="flex items-center gap-2"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/12 text-amber-300"><Flame className="h-4 w-4" /></div><div><p className="text-sm font-semibold text-foreground">{profile?.daily_streak || 0} day streak</p><p className="text-xs text-muted-foreground">Consistency unlocks momentum</p></div></div><div className="mt-5 grid grid-cols-7 gap-1.5">{Array.from({ length: 7 }).map((_, index) => <span key={index} className={`h-1.5 rounded-full ${index < (Number(profile?.daily_streak || 0) % 7) ? 'bg-primary' : 'bg-white/10'}`} />)}</div></Surface>
         </div>
       </div>
+
+      <Surface className="overflow-hidden p-5 sm:p-6"><SectionHeading eyebrow="Account activity" title="Recent transactions" action={<Link to="/history" className="focus-ring inline-flex items-center gap-1 text-sm font-semibold text-primary">Open history <ArrowRight className="h-4 w-4" /></Link>} /><div className="mt-5">{loadingTransactions ? <LoadingRows count={3} /> : recent.length ? <div className="divide-y divide-white/8">{recent.map((tx: any) => <div key={tx.id} className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0"><div className="flex min-w-0 items-center gap-3"><div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${tx.type === 'withdrawal' ? 'bg-amber-400/10 text-amber-300' : 'bg-primary/10 text-primary'}`}>{tx.type === 'withdrawal' ? <WalletCards className="h-4 w-4" /> : <Activity className="h-4 w-4" />}</div><div className="min-w-0"><p className="truncate text-sm font-medium text-foreground">{tx.description}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p></div></div><div className="flex shrink-0 items-center gap-3"><span className={`text-sm font-semibold ${tx.type === 'withdrawal' ? 'text-foreground' : 'text-primary'}`}>{tx.type === 'withdrawal' ? '-' : '+'}{money(tx.amount)}</span><StatusBadge status={tx.status} /></div></div>)}</div> : <EmptyState title="No activity yet" description="Complete an offer to see your first reward appear here." icon={Activity} action={<Link to="/offerwalls" className="text-sm font-semibold text-primary">Start earning</Link>} />}</div></Surface>
     </div>
   );
 }

@@ -2,37 +2,26 @@ import { useState, type ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar } from './AppSidebar';
 import { TopBar } from './TopBar';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 
-
-interface AppLayoutProps {
-  children?: ReactNode;
-}
-
-
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children }: { children?: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
-
   return (
-    <div className="app-shell flex min-h-screen w-full bg-background">
-      {/* Sidebar */}
-      <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
-
-
-      {/* Main content */}
-      <div className="flex-1 min-w-0 flex flex-col">
+    <div className="app-shell flex min-h-screen w-full overflow-x-hidden">
+      <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 min-w-0 overflow-x-hidden">
-          <AnimatePresence mode="wait">
+        <main className="min-w-0 flex-1">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="h-full"
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: .2, ease: [0.23, 1, 0.32, 1] }}
+              className="min-h-full"
             >
               {children ?? <Outlet />}
             </motion.div>
@@ -42,4 +31,3 @@ export function AppLayout({ children }: AppLayoutProps) {
     </div>
   );
 }
-

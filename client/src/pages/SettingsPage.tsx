@@ -1,59 +1,12 @@
-import { Bell, Globe, Moon, Shield, Smartphone } from 'lucide-react';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { GlassCard } from '@/components/shared/GlassCard';
+import { useState } from 'react';
+import { Bell, Check, Globe2, Moon, Smartphone } from 'lucide-react';
+import { toast } from 'sonner';
+import { SectionHeading, Surface } from '@/components/shared/RewardUI';
 
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (value: boolean) => void }) {
+  return <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={`focus-ring relative h-6 w-11 rounded-full transition ${checked ? 'bg-primary' : 'bg-white/12'}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${checked ? 'left-6' : 'left-1'}`} /></button>;
+}
 export default function SettingsPage() {
-  return (
-    <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
-      <PageHeader title="Settings" subtitle="Customize your application experience." />
-
-      <div className="space-y-6">
-        <GlassCard className="p-6">
-          <h3 className="font-heading font-bold text-lg mb-6 flex items-center gap-2">
-            <Bell className="w-5 h-5 text-primary" /> Notification Preferences
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-black/20">
-              <div>
-                <p className="font-medium text-foreground">Email Notifications</p>
-                <p className="text-xs text-muted-foreground mt-1">Receive updates about new offers and withdrawals</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
-                <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-              </label>
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-black/20">
-              <div>
-                <p className="font-medium text-foreground">Push Notifications</p>
-                <p className="text-xs text-muted-foreground mt-1">Browser notifications for live activity</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" />
-                <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-              </label>
-            </div>
-          </div>
-        </GlassCard>
-
-        <GlassCard className="p-6">
-          <h3 className="font-heading font-bold text-lg mb-6 flex items-center gap-2">
-            <Globe className="w-5 h-5 text-primary" /> Preferences
-          </h3>
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-white/5 bg-black/20">
-              <div>
-                <p className="font-medium text-foreground">Language</p>
-                <p className="text-xs text-muted-foreground mt-1">Select your preferred language</p>
-              </div>
-              <select className="bg-white/10 border border-white/20 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block p-2.5 outline-none">
-                <option value="en">English</option>
-                <option value="vi">Vietnamese</option>
-              </select>
-            </div>
-          </div>
-        </GlassCard>
-      </div>
-    </div>
-  );
+  const [email, setEmail] = useState(true); const [push, setPush] = useState(false); const [language, setLanguage] = useState('en');
+  return <div className="mx-auto w-full max-w-[900px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"><SectionHeading eyebrow="Workspace preferences" title="Settings" description="Tune how RewardsVerse fits into your routine." /><div className="space-y-6"><Surface className="p-5 sm:p-7"><div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><Bell className="h-4 w-4" /></div><div><p className="rv-eyebrow">Notifications</p><h2 className="mt-1 font-display text-lg font-semibold">Stay in the loop</h2></div></div><div className="mt-6 space-y-3"><div className="flex items-center justify-between gap-4 rounded-xl border border-white/8 bg-white/[.025] p-4"><div><p className="text-sm font-semibold text-foreground">Email notifications</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Updates about new offers and withdrawals.</p></div><Toggle checked={email} onChange={(value) => { setEmail(value); toast.success(value ? 'Email notifications enabled' : 'Email notifications disabled'); }} /></div><div className="flex items-center justify-between gap-4 rounded-xl border border-white/8 bg-white/[.025] p-4"><div><p className="text-sm font-semibold text-foreground">Push notifications</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Browser alerts for balance and live activity.</p></div><Toggle checked={push} onChange={(value) => { setPush(value); toast.success(value ? 'Push notifications enabled' : 'Push notifications disabled'); }} /></div></div></Surface><Surface className="p-5 sm:p-7"><div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/12 text-accent"><Globe2 className="h-4 w-4" /></div><div><p className="rv-eyebrow">Preferences</p><h2 className="mt-1 font-display text-lg font-semibold">Language & appearance</h2></div></div><div className="mt-6 space-y-3"><div className="flex flex-col gap-3 rounded-xl border border-white/8 bg-white/[.025] p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold text-foreground">Language</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Choose your preferred dashboard language.</p></div><select value={language} onChange={(event) => setLanguage(event.target.value)} className="focus-ring h-10 rounded-xl border border-white/10 bg-[#1c2b3d] px-3 text-sm text-foreground outline-none"><option value="en">English</option><option value="vi">Vietnamese</option></select></div><div className="flex items-center justify-between gap-4 rounded-xl border border-white/8 bg-white/[.025] p-4"><div className="flex items-center gap-3"><Moon className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-semibold text-foreground">Dark workspace</p><p className="mt-1 text-xs text-muted-foreground">The current premium dark theme is optimized for focus.</p></div></div><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary"><Check className="h-3.5 w-3.5" /> Active</span></div><div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[.025] p-4"><Smartphone className="h-4 w-4 text-muted-foreground" /><div><p className="text-sm font-semibold text-foreground">Mobile-ready layout</p><p className="mt-1 text-xs text-muted-foreground">Navigation and cards adapt down to 320px wide.</p></div></div></div></Surface></div></div>;
 }
