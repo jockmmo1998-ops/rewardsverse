@@ -39,11 +39,12 @@ export default function DashboardPage() {
   const xp = profile?.xp || 0;
   const nextLevelXp = level * 1000;
   const xpPercent = Math.min(100, Math.round((xp / nextLevelXp) * 100));
+  const displayName = profile?.username || profile?.name || user?.username || user?.name || 'User';
 
   return (
     <div className="p-4 md:p-6 space-y-6">
       <PageHeader 
-        title={`Welcome back, ${profile?.username || 'User'}!`}
+        title={`Welcome back, ${displayName}!`}
         subtitle="Here's an overview of your earnings and progress."
       />
 
