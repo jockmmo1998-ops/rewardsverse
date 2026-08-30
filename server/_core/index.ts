@@ -86,6 +86,26 @@ async function runMigrations() {
         if (!names.has("suspensionReason")) {
           await connection.query("ALTER TABLE `users` ADD COLUMN `suspensionReason` text");
         }
+        // Older production databases may have a withdrawals table created
+        // before the current approval timestamps were introduced. Drizzle's
+        // SELECT then fails before a withdrawal can even be submitted.
+        const [withdrawalColumns] = await connection.query<any[]>(
+          "SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'withdrawals'"
+        );
+        const withdrawalNames = new Set((withdrawalColumns as any[]).map(column => column.COLUMN_NAME));
+        if (!withdrawalNames.has("approvedAt")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `approvedAt` timestamp NULL");
+        }
+        if (!withdrawalNames.has("rejectedAt")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `rejectedAt` timestamp NULL");
+        }
+        if (!withdrawalNames.has("updatedAt")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        }
+        const cryptoColumn = (withdrawalColumns as any[]).find(column => column.COLUMN_NAME === "cryptoType");
+        if (cryptoColumn && !String(cryptoColumn.COLUMN_TYPE).includes("binance")) {
+          await connection.query("ALTER TABLE `withdrawals` MODIFY COLUMN `cryptoType` enum('bitcoin','ethereum','usdt_trc20','usdt_erc20','solana','litecoin','dogecoin','binance') NOT NULL");
+        }
         await connection.query(`CREATE TABLE IF NOT EXISTS \`audit_logs\` (
           \`id\` int AUTO_INCREMENT NOT NULL,
           \`adminUserId\` int NOT NULL,
