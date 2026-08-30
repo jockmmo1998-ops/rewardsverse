@@ -155,6 +155,20 @@ async function runMigrations() {
         await connection.query("CREATE INDEX IF NOT EXISTS `audit_logs_admin_idx` ON `audit_logs` (`adminUserId`)").catch(() => undefined);
         await connection.query("CREATE INDEX IF NOT EXISTS `audit_logs_action_idx` ON `audit_logs` (`action`)").catch(() => undefined);
         await connection.query("CREATE INDEX IF NOT EXISTS `audit_logs_created_idx` ON `audit_logs` (`createdAt`)").catch(() => undefined);
+        // Legacy production databases can fail the Drizzle baseline migration
+        // because the users table already exists. Create the Postback
+        // credential store here as well so getPostbackUrls can initialize all
+        // provider credentials instead of returning an empty panel.
+        await connection.query(`CREATE TABLE IF NOT EXISTS \`postback_credentials\` (
+          \`id\` int AUTO_INCREMENT NOT NULL,
+          \`provider\` varchar(64) NOT NULL,
+          \`token\` varchar(128) NOT NULL,
+          \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          \`rotatedAt\` timestamp NULL,
+          CONSTRAINT \`postback_credentials_id\` PRIMARY KEY (\`id\`),
+          CONSTRAINT \`postback_credentials_provider_unique\` UNIQUE (\`provider\`)
+        )`);
+        await connection.query("CREATE INDEX IF NOT EXISTS `postback_credentials_provider_idx` ON `postback_credentials` (`provider`)").catch(() => undefined);
         console.warn("[Migration] Additive admin schema is ready.");
         return;
       }
