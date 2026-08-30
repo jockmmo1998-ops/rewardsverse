@@ -323,8 +323,8 @@ export async function createWithdrawal(data: InsertWithdrawal) {
     );
     const username = (users as Array<{ username?: string }>)[0]?.username || `user_${data.userId}`;
     const [header] = await _pool.execute(
-      "INSERT INTO withdrawals (userId, username, method, amount, cryptoType, walletAddress, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [data.userId, username, data.cryptoType, data.amount, data.cryptoType, data.walletAddress, data.status],
+      "INSERT INTO withdrawals (userId, username, method, accountInfo, amount, cryptoType, walletAddress, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [data.userId, username, data.cryptoType, data.walletAddress, data.amount, data.cryptoType, data.walletAddress, data.status],
     );
     result = [header];
   } catch (error) {
