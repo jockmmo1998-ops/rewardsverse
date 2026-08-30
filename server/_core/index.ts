@@ -12,8 +12,6 @@ import { serveStatic, setupVite } from "./vite";
 import { sseManager } from "./sse";
 import path from "path";
 import { fileURLToPath } from "url";
-import bcrypt from "bcryptjs";
-import * as db from "../db";
 import { getDatabaseConnectionOptions } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -109,60 +107,6 @@ async function startServer() {
   registerOAuthRoutes(app);
   registerPostbackRoutes(app);
 
-  // ── TEST ENDPOINT: Simulate a postback without a real offerwall ──────────
-  // GET /api/postback/test?username=Admin&amount=0.01&provider=gemiwall
-  app.get("/api/postback/test", async (req, res) => {
-    const username = (req.query.username as string) || "Admin";
-    const amount   = parseFloat((req.query.amount  as string) || "0.01");
-    const provider = (req.query.provider as string) || "test";
-
-    const dbConn = await (await import("../db")).getDb();
-    const dbStatus = dbConn ? "connected" : "DISCONNECTED — DATABASE_URL missing or invalid";
-
-    if (!dbConn) {
-      return res.status(500).json({ success: false, step: "db_connect", dbStatus,
-        hint: "Set DATABASE_URL in .env and restart the server." });
-    }
-
-    const user = await (await import("../db")).getUserByUsername(username);
-    if (!user) {
-      return res.status(404).json({ success: false, step: "find_user", dbStatus,
-        searched: username, hint: `User "${username}" not found. Must be an existing registered username.` });
-    }
-
-    const balanceBefore = parseFloat(user.balance || "0");
-
-    try {
-      await (await import("../db")).addBalance(user.id, amount);
-    } catch (err: any) {
-      return res.status(500).json({ success: false, step: "addBalance", dbStatus,
-        error: err?.message, hint: "DB connected but addBalance failed — check schema / run migrations." });
-    }
-
-    const updated     = await (await import("../db")).getUserById(user.id);
-    const balanceAfter = parseFloat(updated?.balance || "0");
-
-    // Side effects
-    await Promise.allSettled([
-      (await import("../db")).addEarning({ userId: user.id, amount: amount.toFixed(2), type: "offer", source: `[${provider}] Test postback` }),
-      (await import("../db")).addWalletTransaction({ userId: user.id, type: "credit", amount: amount.toFixed(2), description: `Test postback from ${provider}`, source: provider }),
-      (await import("../db")).addOfferHistory({ userId: user.id, provider, offerName: "Test Offer", amount: amount.toFixed(2), externalId: `test:${Date.now()}`, status: "completed" }),
-      (await import("../db")).addNotification({ userId: user.id, title: `Test Reward $${amount.toFixed(2)}`, message: `Test postback credited $${amount.toFixed(2)} from ${provider}.`, type: "reward", isRead: 0 }),
-    ]);
-
-    sseManager.sendPostbackEvent(user.id, { type: "postback", provider, amount, offerName: "Test Offer", timestamp: new Date().toISOString() });
-
-    return res.json({
-      success: true,
-      message: `✅ Test postback OK — credited $${amount.toFixed(2)} to ${username}`,
-      user: { id: user.id, username: user.username },
-      balance: { before: balanceBefore.toFixed(2), after: balanceAfter.toFixed(2), credited: amount.toFixed(2) },
-      dbStatus,
-      sseSent: true,
-      hint: "If balance increased → DB + full postback flow is working correctly.",
-    });
-  });
-
   // SSE endpoint cho real-time notifications
   app.get("/api/sse/subscribe", (req, res) => {
     const userId = req.query.userId as string;
@@ -219,41 +163,9 @@ async function startServer() {
   });
 }
 
-// Tự động tạo tài khoản admin mặc định nếu chưa tồn tại
-async function seedAdminAccount() {
-  try {
-    const existing = await db.getUserByUsername("Admin");
-    const hashedPassword = await bcrypt.hash("Nkok123123", 10);
-    if (existing) {
-      // Đảm bảo role=admin và password đúng
-      await db.updateUserProfile(existing.id, { role: "admin", password: hashedPassword });
-      console.log("[Seed] ✅ Tài khoản Admin đã tồn tại — đã cập nhật role=admin & password.");
-    } else {
-      await db.upsertUser({
-        openId: "virtual_Admin_seeded",
-        username: "Admin",
-        password: hashedPassword,
-        name: "Admin",
-        role: "admin",
-        refCode: "ADMI0001",
-        balance: "0.00",
-        xp: 0,
-        streak: 0,
-        offersCompleted: 0,
-        totalEarned: "0.00",
-        refEarnings: "0.00",
-        loginMethod: "virtual",
-        lastSignedIn: new Date(),
-      });
-      console.log("[Seed] ✅ Đã tạo tài khoản Admin mới (username=Admin, role=admin).");
-    }
-  } catch (err) {
-    console.warn("[Seed] ⚠️ Không thể seed admin account:", err);
-  }
-}
-
-// Chạy migration → seed admin → start server
-runMigrations().then(() => seedAdminAccount()).then(() => startServer()).catch(console.error);
+// Migrations run before the server starts. Admin access is promoted through the
+// authenticated ADMIN_SECRET flow; no password or default account is seeded here.
+runMigrations().then(() => startServer()).catch(console.error);
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
