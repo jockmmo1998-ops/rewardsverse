@@ -280,11 +280,16 @@ export const getPostbackUrl = (provider: string, baseUrl: string): string | null
     url.searchParams.set("hash", "{hash}");
     return url.toString();
   }
+  if (provider === "taskwall") {
+    // Taskwall uses a fixed token for endpoint authentication and sends its
+    // own password macro separately. Keep both parameters in the callback.
+    url.searchParams.set("token", secret);
+  }
   if (spec.auth === "md5") {
     url.searchParams.set("signature", `{signature}`);
   } else {
-    const authField = spec.authFields?.[0] || "token";
-    url.searchParams.set(authField, secret);
+    const authField = provider === "taskwall" ? "token" : (spec.authFields?.[0] || "token");
+    if (provider !== "taskwall") url.searchParams.set(authField, secret);
   }
 
   for (const field of spec.macros) {
