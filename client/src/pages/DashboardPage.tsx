@@ -67,7 +67,7 @@ export default function DashboardPage() {
               <div className="mt-6"><p className="offer-category">{offer.category || 'Featured task'}</p><h3 className="mt-1.5 truncate font-display text-base font-semibold text-white group-hover:text-primary">{offer.offerName || `${offer.provider} offer`}</h3><p className="mt-1 truncate text-xs text-slate-400">{offer.provider}</p></div>
               <div className="mt-6 flex items-end justify-between gap-3 border-t border-white/8 pt-4"><div><p className="text-[10px] uppercase tracking-wider text-slate-500">Estimated reward</p><strong className="mt-1 block font-display text-xl text-primary">+{money(offer.averageReward)}</strong></div><span className="offer-cta">Earn now <ArrowRight className="h-3.5 w-3.5" /></span></div>
             </Link>
-          )) : <div className="col-span-full"><EmptyState title="More offers are on the way" description="Explore the earn center to see available providers." action={<Link to="/offerwalls" className="text-sm font-semibold text-primary">Explore offers <ArrowRight className="ml-1 inline h-4 w-4" /></Link>} /></div>}
+          )) : <div className="col-span-full"><EmptyState title="No offers available right now" description="The configured provider does not expose individual offers to the dashboard. Browse the earn center to see available providers." action={<Link to="/offerwalls" className="text-sm font-semibold text-primary">Browse all offers <ArrowRight className="ml-1 inline h-4 w-4" /></Link>} /></div>}
         </div>
       </section>
 
