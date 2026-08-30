@@ -184,6 +184,18 @@ export async function getUserByUsername(username: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+/** Resolve legacy virtual-auth rows when a provider sends the base username. */
+export async function getUserByVirtualUsername(username: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(users)
+    .where(sql`LOWER(username) LIKE LOWER(${`virtual_${username}_%`})`)
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function getUserByRefCode(refCode: string) {
   const db = await getDb();
   if (!db) return undefined;
