@@ -498,38 +498,63 @@ export async function getOfferHistoryByUserId(userId: number) {
 
 
 export async function getFeaturedOffers(limit = 6) {
-  const fallback = () => OFFER_WALL_IDS.slice(0, limit).map((provider) => ({
-    provider: OFFER_WALL_LABELS[provider] || provider,
-    offerName: `${OFFER_WALL_LABELS[provider] || provider} offers`,
-    completionCount: 0,
-    averageReward: "0.00",
-    lastCompletedAt: null,
-  }));
-
   const db = await getDb();
-  if (!db) return fallback();
+  if (!db) return [];
 
-  const rows = await db
-    .select({
-      provider: offerHistory.provider,
-      offerName: offerHistory.offerName,
-      completionCount: sql<number>`count(*)`,
-      averageReward: sql<string>`coalesce(avg(${offerHistory.amount}), 0)`,
-      lastCompletedAt: sql<Date>`max(${offerHistory.createdAt})`,
-    })
-    .from(offerHistory)
-    .where(eq(offerHistory.status, "completed"))
-    .groupBy(offerHistory.provider, offerHistory.offerName)
-    .orderBy(desc(sql`count(*)`), desc(sql`max(${offerHistory.createdAt})`))
-    .limit(limit);
+  // Primary source: completed offer history. Keep this query isolated so a
+  // stale/missing history table cannot leave the public query stuck in error.
+  try {
+    const rows = await db
+      .select({
+        provider: offerHistory.provider,
+        offerName: offerHistory.offerName,
+        completionCount: sql<number>`count(*)`,
+        averageReward: sql<string>`coalesce(avg(${offerHistory.amount}), 0)`,
+        lastCompletedAt: sql<Date>`max(${offerHistory.createdAt})`,
+      })
+      .from(offerHistory)
+      .where(eq(offerHistory.status, "completed"))
+      .groupBy(offerHistory.provider, offerHistory.offerName)
+      .orderBy(desc(sql`count(*)`), desc(sql`max(${offerHistory.createdAt})`))
+      .limit(limit);
 
-  if (rows.length === 0) return fallback();
+    if (rows.length > 0) {
+      return rows.map((row) => ({
+        ...row,
+        completionCount: Number(row.completionCount || 0),
+        averageReward: Number(row.averageReward || 0).toFixed(2),
+      }));
+    }
+  } catch (error) {
+    console.error("[Featured Offers] offer_history query failed; trying processed postbacks:", error);
+  }
 
-  return rows.map((row) => ({
-    ...row,
-    completionCount: Number(row.completionCount || 0),
-    averageReward: Number(row.averageReward || 0).toFixed(2),
-  }));
+  // Compatibility source: processed postbacks are the same real provider
+  // callbacks that credit rewards and remain available on older schemas.
+  try {
+    const rows = await db
+      .select({
+        provider: postbacks.provider,
+        offerName: postbacks.offerName,
+        completionCount: sql<number>`count(*)`,
+        averageReward: sql<string>`coalesce(avg(${postbacks.amount}), 0)`,
+        lastCompletedAt: sql<Date>`max(${postbacks.createdAt})`,
+      })
+      .from(postbacks)
+      .where(eq(postbacks.status, "processed"))
+      .groupBy(postbacks.provider, postbacks.offerName)
+      .orderBy(desc(sql`count(*)`), desc(sql`max(${postbacks.createdAt})`))
+      .limit(limit);
+
+    return rows.map((row) => ({
+      ...row,
+      completionCount: Number(row.completionCount || 0),
+      averageReward: Number(row.averageReward || 0).toFixed(2),
+    }));
+  } catch (error) {
+    console.error("[Featured Offers] processed postbacks query failed:", error);
+    return [];
+  }
 }
 // ===== NOTIFICATIONS =====
 
