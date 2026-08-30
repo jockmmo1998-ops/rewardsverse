@@ -234,6 +234,29 @@ export const appRouter = router({
       return db.getFeaturedOffers(userId, 24);
     }),
 
+    getDashboardSummary: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      const [earnings, offerHistory] = await Promise.all([
+        db.getEarningsByUserId(user.id),
+        db.getOfferHistoryByUserId(user.id),
+      ]);
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const todayEarnings = earnings.reduce((sum, earning: any) => {
+        const createdAt = earning.createdAt ? new Date(earning.createdAt) : null;
+        return createdAt && createdAt >= startOfDay ? sum + Number(earning.amount || 0) : sum;
+      }, 0);
+      const pendingRewards = offerHistory
+        .filter((offer: any) => offer.status === "pending")
+        .reduce((sum, offer: any) => sum + Number(offer.amount || 0), 0);
+      return {
+        todayEarnings: Number(todayEarnings.toFixed(2)),
+        pendingRewards: Number(pendingRewards.toFixed(2)),
+        totalEarned: Number(user.totalEarned || 0),
+      };
+    }),
+
     claimDaily: protectedProcedure.mutation(async ({ ctx }) => {
       const user = await db.getUserByOpenId(ctx.user.openId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
@@ -391,6 +414,17 @@ export const appRouter = router({
           description: `withdrew $${amount.toFixed(2)} via ${input.cryptoType}`,
           amount: amount.toFixed(2),
         });
+        try {
+          await db.addNotification({
+            userId: user.id,
+            title: "Withdrawal submitted",
+            message: `Your ${input.cryptoType} withdrawal request for $${amount.toFixed(2)} is pending review.`,
+            type: "withdrawal",
+            isRead: 0,
+          });
+        } catch (error) {
+          console.warn("Failed to create withdrawal notification:", error);
+        }
 
         try {
           await notifyOwner({
@@ -487,8 +521,10 @@ export const appRouter = router({
 
     markRead: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        await db.markNotificationAsRead(input.id);
+      .mutation(async ({ ctx, input }) => {
+        const user = await db.getUserByOpenId(ctx.user.openId);
+        if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.markNotificationAsReadForUser(input.id, user.id);
         return { success: true };
       }),
 
@@ -521,19 +557,39 @@ export const appRouter = router({
     approveWithdrawal: adminProcedure
       .input(z.object({ id: z.number(), note: z.string().optional() }))
       .mutation(async ({ input }) => {
-        const withdrawal = await db.getWithdrawalById(input.id);
-        if (!withdrawal) throw new TRPCError({ code: "NOT_FOUND", message: "Withdrawal not found" });
-        await db.updateWithdrawalStatus(input.id, "approved", input.note || undefined);
+        const withdrawal = await db.resolveWithdrawalStatus(input.id, "approved", input.note?.trim() || undefined);
+        if (!withdrawal) throw new TRPCError({ code: "CONFLICT", message: "This withdrawal is no longer pending." });
+        try {
+          await db.addNotification({
+            userId: withdrawal.userId,
+            title: "Withdrawal approved",
+            message: `Your withdrawal of $${Number(withdrawal.amount).toFixed(2)} was approved.`,
+            type: "withdrawal",
+            isRead: 0,
+          });
+        } catch (error) {
+          console.warn("Failed to create approval notification:", error);
+        }
         return { success: true };
       }),
 
     rejectWithdrawal: adminProcedure
       .input(z.object({ id: z.number(), note: z.string().optional() }))
       .mutation(async ({ input }) => {
-        const withdrawal = await db.getWithdrawalById(input.id);
-        if (!withdrawal) throw new TRPCError({ code: "NOT_FOUND", message: "Withdrawal not found" });
-        await db.addBalance(withdrawal.userId, parseFloat(withdrawal.amount));
-        await db.updateWithdrawalStatus(input.id, "rejected", input.note || undefined);
+        if (!input.note?.trim()) throw new TRPCError({ code: "BAD_REQUEST", message: "A rejection reason is required." });
+        const withdrawal = await db.resolveWithdrawalStatus(input.id, "rejected", input.note.trim());
+        if (!withdrawal) throw new TRPCError({ code: "CONFLICT", message: "This withdrawal is no longer pending." });
+        try {
+          await db.addNotification({
+            userId: withdrawal.userId,
+            title: "Withdrawal rejected",
+            message: `Your withdrawal of $${Number(withdrawal.amount).toFixed(2)} was rejected. Reason: ${input.note.trim()}`,
+            type: "withdrawal",
+            isRead: 0,
+          });
+        } catch (error) {
+          console.warn("Failed to create rejection notification:", error);
+        }
         return { success: true };
       }),
 

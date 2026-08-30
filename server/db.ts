@@ -1,4 +1,4 @@
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, gte } from "drizzle-orm";
 import type { MySql2Database } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -339,12 +339,36 @@ export async function getAllWithdrawals(status?: string) {
 
 export async function updateWithdrawalStatus(id: number, status: "approved" | "rejected", adminNote?: string) {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return false;
   const set: Record<string, unknown> = { status };
   if (adminNote) set.adminNote = adminNote;
   if (status === "approved") set.approvedAt = new Date();
   if (status === "rejected") set.rejectedAt = new Date();
-  await db.update(withdrawals).set(set).where(eq(withdrawals.id, id));
+  const result = await db.update(withdrawals).set(set).where(and(eq(withdrawals.id, id), eq(withdrawals.status, "pending")));
+  return Number((result as any)[0]?.affectedRows ?? 0) === 1;
+}
+
+/** Resolve a pending withdrawal once, refunding rejected requests in the same transaction. */
+export async function resolveWithdrawalStatus(id: number, status: "approved" | "rejected", adminNote?: string) {
+  const db = await getDb();
+  if (!db) return null;
+  return db.transaction(async (tx) => {
+    const pending = await tx.select().from(withdrawals).where(and(eq(withdrawals.id, id), eq(withdrawals.status, "pending"))).limit(1);
+    const withdrawal = pending[0];
+    if (!withdrawal) return null;
+
+    const set: Record<string, unknown> = { status };
+    if (adminNote) set.adminNote = adminNote;
+    if (status === "approved") set.approvedAt = new Date();
+    if (status === "rejected") set.rejectedAt = new Date();
+
+    if (status === "rejected") {
+      await tx.update(users).set({ balance: sql`balance + ${Number(withdrawal.amount)}` }).where(eq(users.id, withdrawal.userId));
+    }
+    const result = await tx.update(withdrawals).set(set).where(and(eq(withdrawals.id, id), eq(withdrawals.status, "pending")));
+    if (Number((result as any)[0]?.affectedRows ?? 0) !== 1) return null;
+    return withdrawal;
+  });
 }
 
 // ===== EARNINGS =====
@@ -458,31 +482,58 @@ export async function getUserByUsernamePassword(username: string) {
 export async function getAllUsers() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(users).orderBy(desc(users.createdAt));
+  return db.select({
+    id: users.id,
+    username: users.username,
+    name: users.name,
+    email: users.email,
+    role: users.role,
+    balance: users.balance,
+    xp: users.xp,
+    streak: users.streak,
+    offersCompleted: users.offersCompleted,
+    totalEarned: users.totalEarned,
+    refEarnings: users.refEarnings,
+    createdAt: users.createdAt,
+    lastSignedIn: users.lastSignedIn,
+  }).from(users).orderBy(desc(users.createdAt));
 }
 
 export async function getPlatformStats() {
   const db = await getDb();
   if (!db) return null;
+  const activeSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const [
     userCount,
+    activeUserCount,
     totalBalanceResult,
+    totalRewardsResult,
     totalWithdrawnResult,
     pendingWithdrawals,
+    approvedWithdrawals,
+    rejectedWithdrawals,
     totalOffersResult,
   ] = await Promise.all([
     db.select({ count: sql<number>`count(*)` }).from(users),
+    db.select({ count: sql<number>`count(*)` }).from(users).where(gte(users.lastSignedIn, activeSince)),
     db.select({ total: sql<string>`SUM(balance)` }).from(users),
+    db.select({ total: sql<string>`SUM(totalEarned)` }).from(users),
     db.select({ total: sql<string>`SUM(amount)` }).from(withdrawals).where(eq(withdrawals.status, "approved" as any)),
     db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "pending" as any)),
+    db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "approved" as any)),
+    db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "rejected" as any)),
     db.select({ total: sql<string>`SUM(offersCompleted)` }).from(users),
   ]);
 
   return {
-    userCount: userCount[0]?.count || 0,
+    userCount: Number(userCount[0]?.count || 0),
+    activeUserCount: Number(activeUserCount[0]?.count || 0),
     totalBalance: parseFloat(totalBalanceResult[0]?.total || "0"),
+    totalRewards: parseFloat(totalRewardsResult[0]?.total || "0"),
     totalWithdrawn: parseFloat(totalWithdrawnResult[0]?.total || "0"),
-    pendingWithdrawals: pendingWithdrawals[0]?.count || 0,
+    pendingWithdrawals: Number(pendingWithdrawals[0]?.count || 0),
+    approvedWithdrawals: Number(approvedWithdrawals[0]?.count || 0),
+    rejectedWithdrawals: Number(rejectedWithdrawals[0]?.count || 0),
     totalOffersCompleted: parseInt(totalOffersResult[0]?.total || "0"),
   };
 }
@@ -561,6 +612,12 @@ export async function markNotificationAsRead(id: number) {
   const db = await getDb();
   if (!db) return;
   await db.update(notifications).set({ isRead: 1 }).where(eq(notifications.id, id));
+}
+
+export async function markNotificationAsReadForUser(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(notifications).set({ isRead: 1 }).where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
 }
 
 export async function markAllNotificationsAsRead(userId: number) {
