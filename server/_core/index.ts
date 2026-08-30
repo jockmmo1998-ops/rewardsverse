@@ -71,8 +71,35 @@ async function runMigrations() {
         error instanceof Error ? error.message : String(error),
         error && typeof error === "object" && "cause" in error ? String((error as { cause?: unknown }).cause) : "",
       ].join(" ");
-      if (/Table [^\n]*users[^\n]*already exists/i.test(errorMessage)) {
-        console.warn("[Migration] Existing users table detected; continuing startup.");
+      if (/Table [^\n]*users[^\n]*already exists/i.test(errorMessage) && connection) {
+        // Older deployments predate the migration journal. The generic
+        // migrator stops at the first baseline table, so apply only the
+        // additive admin schema idempotently instead of skipping it.
+        console.warn("[Migration] Existing users table detected; applying additive admin schema.");
+        const [columns] = await connection.query<any[]>(
+          "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME IN ('accountStatus','suspensionReason')"
+        );
+        const names = new Set((columns as any[]).map(column => column.COLUMN_NAME));
+        if (!names.has("accountStatus")) {
+          await connection.query("ALTER TABLE `users` ADD COLUMN `accountStatus` enum('active','suspended') NOT NULL DEFAULT 'active'");
+        }
+        if (!names.has("suspensionReason")) {
+          await connection.query("ALTER TABLE `users` ADD COLUMN `suspensionReason` text");
+        }
+        await connection.query(`CREATE TABLE IF NOT EXISTS \`audit_logs\` (
+          \`id\` int AUTO_INCREMENT NOT NULL,
+          \`adminUserId\` int NOT NULL,
+          \`action\` varchar(64) NOT NULL,
+          \`targetType\` varchar(32),
+          \`targetId\` varchar(128),
+          \`details\` text,
+          \`createdAt\` timestamp NOT NULL DEFAULT (now()),
+          CONSTRAINT \`audit_logs_id\` PRIMARY KEY(\`id\`)
+        )`);
+        await connection.query("CREATE INDEX IF NOT EXISTS `audit_logs_admin_idx` ON `audit_logs` (`adminUserId`)").catch(() => undefined);
+        await connection.query("CREATE INDEX IF NOT EXISTS `audit_logs_action_idx` ON `audit_logs` (`action`)").catch(() => undefined);
+        await connection.query("CREATE INDEX IF NOT EXISTS `audit_logs_created_idx` ON `audit_logs` (`createdAt`)").catch(() => undefined);
+        console.warn("[Migration] Additive admin schema is ready.");
         return;
       }
       console.error(`[Migration] Attempt ${attempt} failed:`, error);
