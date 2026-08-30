@@ -22,6 +22,8 @@ export const users = mysqlTable(
     email: varchar("email", { length: 320 }),
     loginMethod: varchar("loginMethod", { length: 64 }),
     role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+    accountStatus: mysqlEnum("accountStatus", ["active", "suspended"]).default("active").notNull(),
+    suspensionReason: text("suspensionReason"),
     username: varchar("username", { length: 64 }).unique(),
     password: varchar("password", { length: 256 }),
     refCode: varchar("refCode", { length: 16 }),
@@ -45,6 +47,27 @@ export const users = mysqlTable(
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+
+/** Immutable server-side record of sensitive administrator actions. */
+export const auditLogs = mysqlTable(
+  "audit_logs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    adminUserId: int("adminUserId").notNull(),
+    action: varchar("action", { length: 64 }).notNull(),
+    targetType: varchar("targetType", { length: 32 }),
+    targetId: varchar("targetId", { length: 128 }),
+    details: text("details"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    adminIdx: index("audit_logs_admin_idx").on(table.adminUserId),
+    actionIdx: index("audit_logs_action_idx").on(table.action),
+    createdIdx: index("audit_logs_created_idx").on(table.createdAt),
+  }),
+);
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
 /**
  * Withdrawal requests table.

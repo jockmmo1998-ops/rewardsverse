@@ -11,6 +11,7 @@ import {
   InsertOfferHistory,
   InsertNotification,
   InsertPostbackLog,
+  InsertAuditLog,
   users,
   withdrawals,
   earnings,
@@ -21,6 +22,7 @@ import {
   offerHistory,
   notifications,
   postbackLogs,
+  auditLogs,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { getRevtooFeaturedOffers } from "./revtoo-offers";
@@ -158,6 +160,16 @@ export async function getUserById(userId: number) {
   if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAdminUserDetail(userId: number) {
+  const user = await getUserById(userId);
+  if (!user) return undefined;
+  const [userEarnings, userOffers, userWithdrawals, userTransactions, userActivities, userPostbacks] = await Promise.all([
+    getEarningsByUserId(userId), getOfferHistoryByUserId(userId), getWithdrawalsByUserId(userId),
+    getWalletTransactionsByUserId(userId), getActivitiesByUserId(userId), getPostbackLogsByUser(userId),
+  ]);
+  return { user, earnings: userEarnings, offers: userOffers, withdrawals: userWithdrawals, transactions: userTransactions, activities: userActivities, postbacks: userPostbacks };
 }
 
 export async function getUserByUsername(username: string) {
@@ -429,6 +441,12 @@ export async function addActivity(data: InsertActivity) {
   return result[0];
 }
 
+export async function getActivitiesByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(activities).where(eq(activities.userId, userId)).orderBy(desc(activities.createdAt)).limit(100);
+}
+
 export async function getRecentActivities(limit: number = 50) {
   const db = await getDb();
   if (!db) return [];
@@ -554,6 +572,18 @@ export async function getWalletTransactionsByUserId(userId: number) {
     .from(walletTransactions)
     .where(eq(walletTransactions.userId, userId))
     .orderBy(desc(walletTransactions.createdAt));
+}
+
+export async function addAuditLog(data: InsertAuditLog) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(auditLogs).values(data);
+}
+
+export async function getAuditLogs(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(limit);
 }
 
 // ===== OFFER HISTORY =====

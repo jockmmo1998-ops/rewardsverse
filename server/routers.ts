@@ -159,6 +159,10 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
         }
 
+        if (user.accountStatus === "suspended") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This account is suspended. Please contact support." });
+        }
+
         // Verify password
         const valid = await verifyPassword(input.password, user.password || "");
         if (!valid) {
@@ -542,6 +546,34 @@ export const appRouter = router({
     getUsers: adminProcedure.query(async () => {
       return db.getAllUsers();
     }),
+    getUserDetail: adminProcedure.input(z.object({ id: z.number().int().positive() })).query(({ input }) => db.getAdminUserDetail(input.id)),
+    getAuditLogs: adminProcedure.query(() => db.getAuditLogs()),
+    setUserStatus: adminProcedure.input(z.object({ userId: z.number().int().positive(), status: z.enum(["active", "suspended"]), reason: z.string().max(500).optional() })).mutation(async ({ ctx, input }) => {
+      const target = await db.getUserById(input.userId);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      if (target.id === ctx.user.id && input.status === "suspended") throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot suspend your own admin account" });
+      await db.updateUserProfile(input.userId, { accountStatus: input.status, suspensionReason: input.status === "suspended" ? input.reason?.trim() || "Suspended by administrator" : null });
+      await db.addAuditLog({ adminUserId: ctx.user.id, action: input.status === "suspended" ? "user_suspended" : "user_reactivated", targetType: "user", targetId: String(input.userId), details: JSON.stringify({ username: target.username, reason: input.reason || null }) });
+      return { success: true };
+    }),
+    addReward: adminProcedure.input(z.object({ userId: z.number().int().positive(), amount: z.number().positive().max(100000), reason: z.string().min(3).max(500), reference: z.string().max(128).optional() })).mutation(async ({ ctx, input }) => {
+      const target = await db.getUserById(input.userId);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      await db.addBalance(input.userId, input.amount);
+      await db.addEarning({ userId: input.userId, amount: input.amount.toFixed(2), type: "offer", source: `Manual reward: ${input.reason}` });
+      await db.addWalletTransaction({ userId: input.userId, type: "credit", amount: input.amount.toFixed(2), description: input.reason, source: input.reference || "admin_manual_reward" });
+      await db.addAuditLog({ adminUserId: ctx.user.id, action: "manual_reward", targetType: "user", targetId: String(input.userId), details: JSON.stringify({ amount: input.amount, reason: input.reason, reference: input.reference || null }) });
+      return { success: true };
+    }),
+    adjustBalance: adminProcedure.input(z.object({ userId: z.number().int().positive(), amount: z.number().positive().max(100000), type: z.enum(["credit", "debit"]), reason: z.string().min(3).max(500), reference: z.string().max(128).optional() })).mutation(async ({ ctx, input }) => {
+      const target = await db.getUserById(input.userId);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      if (input.type === "debit" && Number(target.balance || 0) < input.amount) throw new TRPCError({ code: "BAD_REQUEST", message: "Adjustment would create a negative balance" });
+      if (input.type === "credit") await db.addBalance(input.userId, input.amount); else await db.deductBalance(input.userId, input.amount);
+      await db.addWalletTransaction({ userId: input.userId, type: input.type, amount: input.amount.toFixed(2), description: input.reason, source: input.reference || "admin_balance_adjustment" });
+      await db.addAuditLog({ adminUserId: ctx.user.id, action: "balance_adjustment", targetType: "user", targetId: String(input.userId), details: JSON.stringify({ amount: input.amount, type: input.type, reason: input.reason, reference: input.reference || null }) });
+      return { success: true };
+    }),
 
     getWithdrawals: adminProcedure.query(async () => {
       return db.getAllWithdrawals();
@@ -557,9 +589,10 @@ export const appRouter = router({
 
     approveWithdrawal: adminProcedure
       .input(z.object({ id: z.number(), note: z.string().optional() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const withdrawal = await db.resolveWithdrawalStatus(input.id, "approved", input.note?.trim() || undefined);
         if (!withdrawal) throw new TRPCError({ code: "CONFLICT", message: "This withdrawal is no longer pending." });
+        await db.addAuditLog({ adminUserId: ctx.user.id, action: "withdrawal_approved", targetType: "withdrawal", targetId: String(input.id), details: JSON.stringify({ userId: withdrawal.userId, amount: withdrawal.amount }) });
         try {
           await db.addNotification({
             userId: withdrawal.userId,
@@ -576,10 +609,11 @@ export const appRouter = router({
 
     rejectWithdrawal: adminProcedure
       .input(z.object({ id: z.number(), note: z.string().optional() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         if (!input.note?.trim()) throw new TRPCError({ code: "BAD_REQUEST", message: "A rejection reason is required." });
         const withdrawal = await db.resolveWithdrawalStatus(input.id, "rejected", input.note.trim());
         if (!withdrawal) throw new TRPCError({ code: "CONFLICT", message: "This withdrawal is no longer pending." });
+        await db.addAuditLog({ adminUserId: ctx.user.id, action: "withdrawal_rejected", targetType: "withdrawal", targetId: String(input.id), details: JSON.stringify({ userId: withdrawal.userId, amount: withdrawal.amount, reason: input.note.trim() }) });
         try {
           await db.addNotification({
             userId: withdrawal.userId,
