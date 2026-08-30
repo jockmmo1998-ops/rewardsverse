@@ -650,13 +650,7 @@ export const appRouter = router({
           statusMacro: "status",
         };
       }));
-      return [{
-        provider: "unified",
-        label: "Unified Gateway",
-        authMethod: "provider-specific",
-        configured: true,
-        url: `${baseUrl.replace(/\/$/, "")}/api/postback/unified?provider={provider}`,
-      }, ...providerUrls];
+      return providerUrls;
     }),
 
     generatePostbackUrl: adminProcedure
