@@ -440,6 +440,12 @@ async function handlePostback(req: Request, res: Response) {
       // its MD5 formula across dashboard versions. Accept either documented
       // form, while still requiring the configured secret and transaction.
       const md5Valid = verifyProviderMd5Signature(expectedSecret, params, spec)
+        // AdsWedMedia has deployed integrations using both the documented
+        // camelCase fields and the legacy short aliases. Verify the exact
+        // values present in the request; never accept an unsigned fallback.
+        || (provider === "adswedmedia" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, user: "sub", transaction: "transid" }))
+        || (provider === "adswedmedia" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, user: "sub", transaction: "transid", reward: "payout" }))
+        || (provider === "adswedmedia" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, user: "subId", transaction: "transId", reward: "payout" }))
         || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "payout" }))
         || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "round_reward" }));
       if (!md5Valid) {

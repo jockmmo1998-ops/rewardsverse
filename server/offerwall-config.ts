@@ -235,6 +235,8 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     transaction: "transId",
     auth: "md5",
     response: "ok",
+    // Canonical AdsWedMedia macros. The handler also accepts legacy sub/
+    // transid and payout aliases when verifying the provider signature.
     macros: ["subId", "transId", "reward", "round_reward", "payout", "signature", "status", "userIp", "offer_id", "offer_name", "country", "uuid", "event_id", "event_name"],
   },
   admaxflow: {
