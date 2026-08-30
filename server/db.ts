@@ -317,9 +317,14 @@ export async function createWithdrawal(data: InsertWithdrawal) {
   let result;
   try {
     if (!_pool) throw new Error("Database connection pool not available");
+    const [users] = await _pool.execute(
+      "SELECT username FROM users WHERE id = ? LIMIT 1",
+      [data.userId],
+    );
+    const username = (users as Array<{ username?: string }>)[0]?.username || `user_${data.userId}`;
     const [header] = await _pool.execute(
-      "INSERT INTO withdrawals (userId, amount, cryptoType, walletAddress, status) VALUES (?, ?, ?, ?, ?)",
-      [data.userId, data.amount, data.cryptoType, data.walletAddress, data.status],
+      "INSERT INTO withdrawals (userId, username, amount, cryptoType, walletAddress, status) VALUES (?, ?, ?, ?, ?, ?)",
+      [data.userId, username, data.amount, data.cryptoType, data.walletAddress, data.status],
     );
     result = [header];
   } catch (error) {
