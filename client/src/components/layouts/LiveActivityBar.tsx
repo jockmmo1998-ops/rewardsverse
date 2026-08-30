@@ -21,11 +21,14 @@ function activityTone(type: unknown) {
 
 export function LiveActivityBar() {
   const activities = trpc.user.getActivities.useQuery(undefined, {
-    staleTime: 30_000,
-    refetchInterval: 60_000,
+    staleTime: 10_000,
+    refetchInterval: 15_000,
     retry: false,
   });
   const items = (activities.data ?? []).slice(0, 12);
+  // Duplicate the sequence so the marquee loops seamlessly without stopping
+  // or visibly jumping when it reaches the end of the latest activities.
+  const tickerItems = [...items, ...items];
 
   return (
     <section className="live-activity-bar" aria-label="Live verified activity" aria-live="polite">
@@ -36,8 +39,8 @@ export function LiveActivityBar() {
         ) : items.length ? (
           <div className="live-activity-track">
             <div className="live-activity-items">
-              {items.map((item: any) => (
-                <span key={item.id} className="live-activity-item">
+              {tickerItems.map((item: any, index) => (
+                <span key={`${item.id}-${index}`} className="live-activity-item">
                   <Activity className={`h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />
                   <span className="font-semibold text-foreground">{maskUsername(item.username)}</span>
                   <span className="text-muted-foreground">{String(item.description || 'completed a verified reward')}</span>

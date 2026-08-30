@@ -198,8 +198,8 @@
   .offer-marketplace { padding: 1rem; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .live-activity-items { animation: live-scroll 34s linear infinite; }
+  .live-activity-items { animation: live-scroll 72s linear infinite; will-change: transform; }
   .live-activity-track:hover .live-activity-items { animation-play-state: paused; }
 }
-@keyframes live-scroll { from { transform: translateX(0); } to { transform: translateX(-32%); } }
+@keyframes live-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
