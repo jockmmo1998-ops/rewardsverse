@@ -7,6 +7,12 @@ import { fetchUserTransactions } from '@/api';
 import { EmptyState, LoadingRows, SectionHeading, StatusBadge, Surface } from '@/components/shared/RewardUI';
 
 const money = (value: unknown) => `$${Number(value || 0).toFixed(2)}`;
+const rewardLabel = (value: unknown) => {
+  if (value === undefined || value === null || value === '') return null;
+  if (value === '*') return 'Variable';
+  const amount = Number(value);
+  return Number.isFinite(amount) ? money(amount) : String(value);
+};
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -61,13 +67,14 @@ export default function DashboardPage() {
       <section className="offer-marketplace">
         <div className="flex flex-col gap-3 border-b border-white/8 pb-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="rv-eyebrow">Live opportunity feed</p><h2 className="mt-1 font-display text-2xl font-semibold tracking-[-0.04em] text-white">Featured offers</h2><p className="mt-1.5 text-sm text-muted-foreground">Hand-picked opportunities from your active provider catalog.</p></div><Link to="/offerwalls" className="focus-ring inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80">Browse all offers <ArrowRight className="h-4 w-4" /></Link></div>
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {featured.isLoading ? <LoadingRows count={5} /> : featured.isError ? <EmptyState title="Featured offers unavailable" description="We could not load the live offer feed right now. Please try again shortly." action={<button type="button" onClick={() => featured.refetch()} className="text-sm font-semibold text-primary">Retry <ArrowRight className="ml-1 inline h-4 w-4" /></button>} /> : featured.data?.length ? featured.data.map((offer: any, index: number) => (
-            <Link to="/offerwalls" key={`${offer.provider}-${offer.offerName || index}`} className="offer-card group">
-              <div className="flex items-start justify-between gap-3"><span className="offer-icon"><Gift className="h-5 w-5" /></span><span className="offer-index">0{index + 1}</span></div>
-              <div className="mt-6"><p className="offer-category">{offer.category || 'Featured task'}</p><h3 className="mt-1.5 truncate font-display text-base font-semibold text-white group-hover:text-primary">{offer.offerName || `${offer.provider} offer`}</h3><p className="mt-1 truncate text-xs text-slate-400">{offer.provider}</p></div>
-              <div className="mt-6 flex items-end justify-between gap-3 border-t border-white/8 pt-4"><div><p className="text-[10px] uppercase tracking-wider text-slate-500">Estimated reward</p><strong className="mt-1 block font-display text-xl text-primary">+{money(offer.averageReward)}</strong></div><span className="offer-cta">Earn now <ArrowRight className="h-3.5 w-3.5" /></span></div>
-            </Link>
-          )) : <div className="col-span-full"><EmptyState title="No offers available right now" description="The configured provider does not expose individual offers to the dashboard. Browse the earn center to see available providers." action={<Link to="/offerwalls" className="text-sm font-semibold text-primary">Browse all offers <ArrowRight className="ml-1 inline h-4 w-4" /></Link>} /></div>}
+          {featured.isLoading ? <LoadingRows count={5} /> : featured.isError ? <EmptyState title="Featured offers unavailable" description="We could not load the live offer feed right now. Please try again shortly." action={<button type="button" onClick={() => featured.refetch()} className="text-sm font-semibold text-primary">Retry <ArrowRight className="ml-1 inline h-4 w-4" /></button>} /> : featured.data?.length ? featured.data.map((offer: any, index: number) => {
+            const reward = rewardLabel(offer.reward ?? offer.payout);
+            return <a href={offer.clickUrl} target="_blank" rel="noreferrer" key={`${offer.provider}-${offer.id || index}`} className="offer-card group">
+              <div className="flex items-start justify-between gap-3">{offer.imageUrl ? <img src={offer.imageUrl} alt="" className="offer-icon h-11 w-11 rounded-xl object-cover" /> : <span className="offer-icon"><Gift className="h-5 w-5" /></span>}<span className="offer-index">{String(index + 1).padStart(2, '0')}</span></div>
+              <div className="mt-5"><div className="flex flex-wrap items-center gap-2">{offer.category ? <p className="offer-category">{offer.category}</p> : null}<p className="text-[10px] uppercase tracking-wider text-slate-500">{offer.provider}</p></div><h3 className="mt-1.5 line-clamp-2 font-display text-base font-semibold text-white group-hover:text-primary">{offer.offerName}</h3>{offer.description ? <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-400">{offer.description}</p> : null}</div>
+              <div className="mt-5 flex items-end justify-between gap-3 border-t border-white/8 pt-4">{reward ? <div><p className="text-[10px] uppercase tracking-wider text-slate-500">Reward</p><strong className="mt-1 block font-display text-xl text-primary">{reward}</strong></div> : <span className="text-xs text-slate-500">See offer details</span>}<span className="offer-cta">Earn now <ArrowRight className="h-3.5 w-3.5" /></span></div>
+            </a>;
+          }) : <div className="col-span-full"><EmptyState title="No offers available right now" description="Revtoo returned no available offers for this user and request context. Browse the earn center to see the full provider wall." action={<Link to="/offerwalls" className="text-sm font-semibold text-primary">Browse all offers <ArrowRight className="ml-1 inline h-4 w-4" /></Link>} /></div>}
         </div>
       </section>
 
