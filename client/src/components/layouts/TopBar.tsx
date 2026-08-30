@@ -1,6 +1,5 @@
-import { Activity, Bell, Menu, Search, WalletCards } from 'lucide-react';
+import { Activity, Menu, Search } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const labels: Record<string, string> = {
@@ -17,10 +16,7 @@ const quickLinks = [
 ];
 
 export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
-  const { profile } = useAuth();
   const location = useLocation();
-  const displayName = profile?.username || profile?.name || 'Member';
-  const initials = displayName.slice(0, 2).toUpperCase();
   const pageLabel = labels[location.pathname] || 'Command center';
 
   return (
@@ -54,19 +50,7 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
           <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <input placeholder="Search rewards..." />
         </label>
-        <button className="focus-ring relative rounded-lg border border-primary/15 p-2.5 text-muted-foreground transition hover:border-primary/35 hover:bg-primary/5 hover:text-foreground" aria-label="Notifications">
-          <Bell className="h-[17px] w-[17px]" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
-        </button>
-        <Link to="/wallet" className="focus-ring flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/[.06] px-2.5 py-2 transition hover:border-primary/35 hover:bg-primary/[.1] sm:px-3">
-          <WalletCards className="h-4 w-4 text-primary" />
-          <span className="hidden text-xs text-muted-foreground sm:inline">Balance</span>
-          <span className="font-display text-sm font-semibold text-primary">${Number(profile?.balance || 0).toFixed(2)}</span>
-        </Link>
-        <Link to="/profile" className="focus-ring hidden items-center gap-2 border-l border-primary/15 pl-3 sm:flex">
-          <span className={cn('flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 bg-primary/[.08] text-xs font-bold text-primary')}>{initials}</span>
-          <span className={cn('max-w-[100px] truncate text-sm font-medium', !profile && 'text-muted-foreground')}>{displayName}</span>
-        </Link>
+
       </div>
     </header>
   );
