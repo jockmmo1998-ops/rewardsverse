@@ -208,7 +208,9 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     transaction: null,
     auth: "token",
     response: "json",
-    authFields: ["password", "token", "secret", "apikey", "api_key", "key"],
+    // Taskwall sends both a fixed token and a password macro. The fixed
+    // token is the endpoint credential and must be checked first.
+    authFields: ["token", "password", "secret", "apikey", "api_key", "key"],
     macros: ["app_name", "userid", "password", "user_amount", "offer_name", "offer_id", "payout", "ip_address", "currency_name", "date"],
   },
   cointo: {
