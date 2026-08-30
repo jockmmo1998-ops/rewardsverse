@@ -140,6 +140,24 @@ function pickNumeric(params: Record<string, any>, fields: string[]): string {
   return "";
 }
 
+function redactForLog(value: unknown): string {
+  const sensitive = /token|password|secret|api.?key|signature|^sig$|hash|authorization/i;
+  const redact = (input: unknown): unknown => {
+    if (Array.isArray(input)) return input.map(redact);
+    if (input && typeof input === "object") {
+      return Object.fromEntries(Object.entries(input as Record<string, unknown>).map(([key, item]) => [
+        key, sensitive.test(key) ? "[REDACTED]" : redact(item),
+      ]));
+    }
+    return input;
+  };
+  try {
+    return JSON.stringify(redact(JSON.parse(String(value)))) || "{}";
+  } catch {
+    return "[REDACTED_INVALID_LOG_PAYLOAD]";
+  }
+}
+
 /** Accept any of several common auth-token field names */
 const TOKEN_FIELDS = ["token", "secret", "apikey", "api_key", "hash", "key"];
 
@@ -321,9 +339,9 @@ async function handlePostback(req: Request, res: Response) {
   const provider = (req.params.provider || "").toLowerCase().trim();
 
   // Capture full raw request for logging
-  const rawHeaders = JSON.stringify(req.headers);
-  const rawQuery   = JSON.stringify(req.query);
-  const rawBody    = JSON.stringify(req.body);
+  const rawHeaders = redactForLog(req.headers);
+  const rawQuery   = redactForLog(req.query);
+  const rawBody    = redactForLog(req.body);
 
   // Merge query + body.
   // Body wins for payload fields (status, reward, userId) so that POST JSON /

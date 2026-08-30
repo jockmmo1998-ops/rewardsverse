@@ -140,7 +140,9 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.balance = "0.00";
     }
 
-    console.log("[Database] upsertUser values:", JSON.stringify(values));
+    const safeLogValues = { ...values } as Record<string, unknown>;
+    delete safeLogValues.password;
+    console.log("[Database] upsertUser values:", JSON.stringify(safeLogValues));
     await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
