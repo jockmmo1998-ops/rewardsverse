@@ -30,6 +30,7 @@ import { getRevtooFeaturedOffers } from "./revtoo-offers";
 // Lazy-initialized DB instance — never imported at module load time so the
 // server starts successfully even when DATABASE_URL is absent.
 let _db: MySql2Database<Record<string, never>> | null = null;
+let _pool: any = null;
 
 // Convert DATABASE_URL into explicit mysql2 options. Hosted MySQL providers
 // commonly require TLS and may close plaintext connections immediately.
@@ -58,6 +59,7 @@ export async function getDb() {
       const { drizzle } = await import("drizzle-orm/mysql2");
       const mysql = await import("mysql2/promise");
       const pool = mysql.default.createPool(getDatabaseConnectionOptions(process.env.DATABASE_URL));
+      _pool = pool;
       _db = drizzle(pool) as MySql2Database<Record<string, never>>;
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
@@ -314,10 +316,12 @@ export async function createWithdrawal(data: InsertWithdrawal) {
   // that may not exist in an older withdrawals table.
   let result;
   try {
-    result = await db.execute(sql`
-      INSERT INTO withdrawals (userId, amount, cryptoType, walletAddress, status)
-      VALUES (${data.userId}, ${data.amount}, ${data.cryptoType}, ${data.walletAddress}, ${data.status})
-    `);
+    if (!_pool) throw new Error("Database connection pool not available");
+    const [header] = await _pool.execute(
+      "INSERT INTO withdrawals (userId, amount, cryptoType, walletAddress, status) VALUES (?, ?, ?, ?, ?)",
+      [data.userId, data.amount, data.cryptoType, data.walletAddress, data.status],
+    );
+    result = [header];
   } catch (error) {
     const dbError = error as { code?: string; errno?: number; sqlState?: string; sqlMessage?: string; message?: string; cause?: unknown };
     const cause = dbError.cause as { code?: string; errno?: number; sqlState?: string; sqlMessage?: string; message?: string } | undefined;
