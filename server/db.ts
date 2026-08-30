@@ -1,5 +1,6 @@
 import { eq, desc, sql, and, gte } from "drizzle-orm";
 import type { MySql2Database } from "drizzle-orm/mysql2";
+import { randomBytes } from "crypto";
 import {
   InsertUser,
   InsertWithdrawal,
@@ -12,6 +13,7 @@ import {
   InsertNotification,
   InsertPostbackLog,
   InsertAuditLog,
+  postbackCredentials,
   users,
   withdrawals,
   earnings,
@@ -26,6 +28,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { getRevtooFeaturedOffers } from "./revtoo-offers";
+import { POSTBACK_SECRETS } from "./offerwall-config";
 
 // Lazy-initialized DB instance — never imported at module load time so the
 // server starts successfully even when DATABASE_URL is absent.
@@ -510,6 +513,44 @@ export async function getRecentActivities(limit: number = 50) {
     .from(activities)
     .orderBy(desc(activities.createdAt))
     .limit(limit);
+}
+
+// ===== POSTBACK CREDENTIALS =====
+
+export async function getPostbackCredential(provider: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(postbackCredentials).where(eq(postbackCredentials.provider, provider)).limit(1);
+  return rows[0];
+}
+
+export async function getOrCreatePostbackToken(provider: string, rotate = false): Promise<string> {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  const existing = await getPostbackCredential(provider);
+  if (existing && !rotate) return existing.token;
+  // Preserve an already-configured provider secret during migration. New
+  // providers without an env secret receive a cryptographically random token.
+  if (!existing && !rotate && POSTBACK_SECRETS[provider]) {
+    const legacyToken = POSTBACK_SECRETS[provider];
+    await database.insert(postbackCredentials).values({ provider, token: legacyToken });
+    return legacyToken;
+  }
+  const token = randomBytes(32).toString("base64url");
+  if (existing) {
+    await database.update(postbackCredentials)
+      .set({ token, rotatedAt: new Date() })
+      .where(eq(postbackCredentials.provider, provider));
+  } else {
+    await database.insert(postbackCredentials).values({ provider, token });
+  }
+  return token;
+}
+
+/** Returns the database-managed credential first, with env fallback for legacy deployments. */
+export async function getActivePostbackSecret(provider: string): Promise<string> {
+  const stored = await getPostbackCredential(provider);
+  return stored?.token || POSTBACK_SECRETS[provider] || "";
 }
 
 // ===== POSTBACKS =====

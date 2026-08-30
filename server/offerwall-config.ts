@@ -62,6 +62,7 @@ export const OFFER_WALL_IDS = [
   "admaxflow",
   "gaintwall",
   "buckswall",
+  "test",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -76,6 +77,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   admaxflow: "AdMaxFlow",
   gaintwall: "Gaintwall",
   buckswall: "BucksWall",
+  test: "Test Offerwall",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -263,11 +265,19 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["user_id", "reward", "transaction_id", "offer_name", "offer_id", "status"],
   },
+  test: {
+    user: "user_id",
+    reward: "reward",
+    transaction: "transaction_id",
+    auth: "token",
+    response: "json",
+    macros: ["user_id", "reward", "transaction_id", "offer_name", "offer_id", "status"],
+  },
 };
 
-export const getPostbackUrl = (provider: string, baseUrl: string): string | null => {
+export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride?: string): string | null => {
   const spec = POSTBACK_PARAM_SPECS[provider];
-  const secret = POSTBACK_SECRETS[provider];
+  const secret = secretOverride || POSTBACK_SECRETS[provider];
   if (!spec || !secret || !baseUrl) return null;
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/api/postback/${provider}`);
   if (provider === "gaintwall") {

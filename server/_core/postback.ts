@@ -4,7 +4,6 @@ import * as db from "../db";
 import {
   OFFER_WALL_IDS,
   POSTBACK_PARAM_SPECS,
-  POSTBACK_SECRETS,
   OFFER_WALL_LABELS,
   type PostbackParamSpec,
 } from "../offerwall-config";
@@ -276,17 +275,17 @@ function extractSignature(params: Record<string, any>): string {
 
 export function registerPostbackRoutes(app: Express) {
   // Health / info
-  app.get("/api/postback", (_req, res) => {
-    const configured = OFFER_WALL_IDS.map((provider) => {
+  app.get("/api/postback", async (_req, res) => {
+    const configured = await Promise.all(OFFER_WALL_IDS.map(async (provider) => {
       const spec = POSTBACK_PARAM_SPECS[provider];
       return {
         provider,
         label: OFFER_WALL_LABELS[provider] || provider,
         authMethod: spec.auth,
-        configured: Boolean(POSTBACK_SECRETS[provider]),
+        configured: Boolean(await db.getActivePostbackSecret(provider)),
         response: spec.response,
       };
-    });
+    }));
     return res.json({
       success: true,
       message: "RewardsVerse Universal Postback API",
@@ -419,7 +418,7 @@ async function handlePostback(req: Request, res: Response) {
 
     // ── 2. Authentication ───────────────────────────────────────────────────
     const spec = POSTBACK_PARAM_SPECS[provider];
-    const expectedSecret = POSTBACK_SECRETS[provider];
+    const expectedSecret = await db.getActivePostbackSecret(provider);
     if (!spec || !(OFFER_WALL_IDS as readonly string[]).includes(provider)) {
       return respond(404, {
         success: false,

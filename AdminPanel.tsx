@@ -44,6 +44,27 @@ export default function AdminPanel() {
     retry: false,
   });
   const postbackUrls = postbackUrlsQuery.data ?? [];
+  const generatePostbackMutation = trpc.admin.generatePostbackUrl.useMutation({
+    onSuccess: () => {
+      toast.success("Postback URL đã được tạo!");
+      postbackUrlsQuery.refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+  const regeneratePostbackMutation = trpc.admin.regeneratePostbackToken.useMutation({
+    onSuccess: () => {
+      toast.success("Token đã được tạo lại. URL cũ đã bị vô hiệu hóa!");
+      postbackUrlsQuery.refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const generateUrl = (provider: string) => generatePostbackMutation.mutate({ provider });
+  const regenerateToken = (provider: string) => {
+    if (window.confirm("Tạo token mới sẽ làm URL Postback cũ không còn hoạt động. Bạn có chắc chắn không?")) {
+      regeneratePostbackMutation.mutate({ provider, confirm: true });
+    }
+  };
 
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -407,25 +428,45 @@ export default function AdminPanel() {
                           <Key className="w-2.5 h-2.5 mr-1 inline" />TOKEN
                         </Badge>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={!pb.url}
-                        onClick={() => pb.url && copyToClipboard(pb.url, pb.provider)}
-                        className={`h-7 px-3 text-[10px] font-bold transition-all ${
-                          copiedKey === pb.provider
-                            ? "border-green-500/50 text-green-400 bg-green-500/10"
-                            : "border-border/50 text-muted-foreground hover:border-green-500/30 hover:text-green-400"
-                        }`}
-                      >
-                          {copiedKey === pb.provider ? (
-                          <><CheckCircle2 className="w-3 h-3 mr-1" />Copied!</>
-                        ) : pb.url ? (
-                          <><Copy className="w-3 h-3 mr-1" />Copy URL</>
-                        ) : (
-                          "Configure provider"
-                        )}
-                      </Button>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={pb.provider === "unified" || generatePostbackMutation.isPending}
+                          onClick={() => generateUrl(pb.provider)}
+                          className="h-7 px-2.5 text-[10px] font-bold border-border/50 text-muted-foreground hover:border-cyan-500/30 hover:text-cyan-400"
+                        >
+                          <Key className="w-3 h-3 mr-1" />Generate URL
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!pb.url || pb.provider === "unified" || regeneratePostbackMutation.isPending}
+                          onClick={() => regenerateToken(pb.provider)}
+                          className="h-7 px-2.5 text-[10px] font-bold border-border/50 text-muted-foreground hover:border-yellow-500/30 hover:text-yellow-400"
+                        >
+                          <RefreshCcw className="w-3 h-3 mr-1" />Regenerate
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!pb.url}
+                          onClick={() => pb.url && copyToClipboard(pb.url, pb.provider)}
+                          className={`h-7 px-3 text-[10px] font-bold transition-all ${
+                            copiedKey === pb.provider
+                              ? "border-green-500/50 text-green-400 bg-green-500/10"
+                              : "border-border/50 text-muted-foreground hover:border-green-500/30 hover:text-green-400"
+                          }`}
+                        >
+                            {copiedKey === pb.provider ? (
+                            <><CheckCircle2 className="w-3 h-3 mr-1" />Copied!</>
+                          ) : pb.url ? (
+                            <><Copy className="w-3 h-3 mr-1" />Copy URL</>
+                          ) : (
+                            "Configure provider"
+                          )}
+                        </Button>
+                      </div>
                     </div>
                     <code className="block text-[10px] text-muted-foreground bg-background/80 rounded px-3 py-2 border border-border/30 break-all leading-relaxed font-mono select-all">
                       {pb.url || "Set the provider placement and postback secret in Render Environment Variables."}

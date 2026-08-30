@@ -69,6 +69,22 @@ export const auditLogs = mysqlTable(
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
+/** Server-managed Postback credentials. The raw token is only returned to an
+ * authenticated admin when generating/copying a URL; it is never committed. */
+export const postbackCredentials = mysqlTable(
+  "postback_credentials",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    provider: varchar("provider", { length: 64 }).notNull().unique(),
+    token: varchar("token", { length: 128 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    rotatedAt: timestamp("rotatedAt"),
+  },
+  (table) => ({ providerIdx: index("postback_credentials_provider_idx").on(table.provider) }),
+);
+export type PostbackCredential = typeof postbackCredentials.$inferSelect;
+export type InsertPostbackCredential = typeof postbackCredentials.$inferInsert;
+
 /**
  * Withdrawal requests table.
  */

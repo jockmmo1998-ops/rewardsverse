@@ -634,20 +634,52 @@ export const appRouter = router({
 
     getPostbackUrls: adminProcedure.query(async () => {
       const baseUrl = process.env.PUBLIC_APP_URL || "https://rewardsverse.online";
+      const providerUrls = await Promise.all(OFFER_WALL_IDS.map(async (provider) => {
+        const token = await db.getOrCreatePostbackToken(provider);
+        return {
+          provider,
+          label: provider === "cointo" ? "CoinToMedia" : provider === "test" ? "Test Offerwall" : provider,
+          authMethod: POSTBACK_PARAM_SPECS[provider]?.auth ?? "token",
+          configured: Boolean(token),
+          url: getPostbackUrl(provider, baseUrl, token),
+        };
+      }));
       return [{
         provider: "unified",
         label: "Unified Gateway",
         authMethod: "provider-specific",
         configured: true,
         url: `${baseUrl.replace(/\/$/, "")}/api/postback/unified?provider={provider}`,
-      }, ...OFFER_WALL_IDS.map((provider) => ({
-        provider,
-        label: provider === "cointo" ? "CoinToMedia" : provider,
-        authMethod: POSTBACK_PARAM_SPECS[provider]?.auth ?? "token",
-        configured: Boolean(getPostbackUrl(provider, baseUrl)),
-        url: getPostbackUrl(provider, baseUrl),
-      }))];
+      }, ...providerUrls];
     }),
+
+    generatePostbackUrl: adminProcedure
+      .input(z.object({ provider: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!(OFFER_WALL_IDS as readonly string[]).includes(input.provider)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Unknown offerwall provider" });
+        }
+        const baseUrl = process.env.PUBLIC_APP_URL || "https://rewardsverse.online";
+        const token = await db.getOrCreatePostbackToken(input.provider);
+        const url = getPostbackUrl(input.provider, baseUrl, token);
+        if (!url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not generate Postback URL" });
+        await db.addAuditLog({ adminUserId: ctx.user.id, action: "postback_url_generated", targetType: "provider", targetId: input.provider, details: JSON.stringify({ provider: input.provider }) });
+        return { provider: input.provider, url };
+      }),
+
+    regeneratePostbackToken: adminProcedure
+      .input(z.object({ provider: z.string().min(1), confirm: z.literal(true) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!(OFFER_WALL_IDS as readonly string[]).includes(input.provider)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Unknown offerwall provider" });
+        }
+        const baseUrl = process.env.PUBLIC_APP_URL || "https://rewardsverse.online";
+        const token = await db.getOrCreatePostbackToken(input.provider, true);
+        const url = getPostbackUrl(input.provider, baseUrl, token);
+        if (!url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not regenerate Postback URL" });
+        await db.addAuditLog({ adminUserId: ctx.user.id, action: "postback_token_regenerated", targetType: "provider", targetId: input.provider, details: JSON.stringify({ provider: input.provider }) });
+        return { provider: input.provider, url };
+      }),
 
     // Look up a user by username for postback testing
     getUserInfo: adminProcedure
