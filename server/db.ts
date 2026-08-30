@@ -23,7 +23,6 @@ import {
   postbackLogs,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
-import { OFFER_WALL_IDS, OFFER_WALL_LABELS } from "./offerwall-config";
 
 // Lazy-initialized DB instance — never imported at module load time so the
 // server starts successfully even when DATABASE_URL is absent.
@@ -497,64 +496,13 @@ export async function getOfferHistoryByUserId(userId: number) {
 }
 
 
-export async function getFeaturedOffers(limit = 6) {
-  const db = await getDb();
-  if (!db) return [];
-
-  // Primary source: completed offer history. Keep this query isolated so a
-  // stale/missing history table cannot leave the public query stuck in error.
-  try {
-    const rows = await db
-      .select({
-        provider: offerHistory.provider,
-        offerName: offerHistory.offerName,
-        completionCount: sql<number>`count(*)`,
-        averageReward: sql<string>`coalesce(avg(${offerHistory.amount}), 0)`,
-        lastCompletedAt: sql<Date>`max(${offerHistory.createdAt})`,
-      })
-      .from(offerHistory)
-      .where(eq(offerHistory.status, "completed"))
-      .groupBy(offerHistory.provider, offerHistory.offerName)
-      .orderBy(desc(sql`count(*)`), desc(sql`max(${offerHistory.createdAt})`))
-      .limit(limit);
-
-    if (rows.length > 0) {
-      return rows.map((row) => ({
-        ...row,
-        completionCount: Number(row.completionCount || 0),
-        averageReward: Number(row.averageReward || 0).toFixed(2),
-      }));
-    }
-  } catch (error) {
-    console.error("[Featured Offers] offer_history query failed; trying processed postbacks:", error);
-  }
-
-  // Compatibility source: processed postbacks are the same real provider
-  // callbacks that credit rewards and remain available on older schemas.
-  try {
-    const rows = await db
-      .select({
-        provider: postbacks.provider,
-        offerName: postbacks.offerName,
-        completionCount: sql<number>`count(*)`,
-        averageReward: sql<string>`coalesce(avg(${postbacks.amount}), 0)`,
-        lastCompletedAt: sql<Date>`max(${postbacks.createdAt})`,
-      })
-      .from(postbacks)
-      .where(eq(postbacks.status, "processed"))
-      .groupBy(postbacks.provider, postbacks.offerName)
-      .orderBy(desc(sql`count(*)`), desc(sql`max(${postbacks.createdAt})`))
-      .limit(limit);
-
-    return rows.map((row) => ({
-      ...row,
-      completionCount: Number(row.completionCount || 0),
-      averageReward: Number(row.averageReward || 0).toFixed(2),
-    }));
-  } catch (error) {
-    console.error("[Featured Offers] processed postbacks query failed:", error);
-    return [];
-  }
+/**
+ * The configured provider integrations expose offerwalls as iframe/redirect URLs.
+ * They do not expose an available-offer catalog API in this project, so this
+ * endpoint must not turn history or postbacks into fake "available" offers.
+ */
+export async function getFeaturedOffers(_limit = 6) {
+  return [];
 }
 // ===== NOTIFICATIONS =====
 
