@@ -226,8 +226,12 @@ export const appRouter = router({
       return db.getRecentActivities(30);
     }),
 
-    getFeaturedOffers: publicProcedure.query(async () => {
-      return db.getFeaturedOffers(6);
+    getFeaturedOffers: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user) return [];
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) return [];
+      const userId = user.username || user.name || `user_${user.id}`;
+      return db.getFeaturedOffers(userId, 24);
     }),
 
     claimDaily: protectedProcedure.mutation(async ({ ctx }) => {

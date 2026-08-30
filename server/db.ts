@@ -23,6 +23,7 @@ import {
   postbackLogs,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { getRevtooFeaturedOffers } from "./revtoo-offers";
 
 // Lazy-initialized DB instance — never imported at module load time so the
 // server starts successfully even when DATABASE_URL is absent.
@@ -496,13 +497,8 @@ export async function getOfferHistoryByUserId(userId: number) {
 }
 
 
-/**
- * The configured provider integrations expose offerwalls as iframe/redirect URLs.
- * They do not expose an available-offer catalog API in this project, so this
- * endpoint must not turn history or postbacks into fake "available" offers.
- */
-export async function getFeaturedOffers(_limit = 6) {
-  return [];
+export async function getFeaturedOffers(userId: string, limit = 24) {
+  return getRevtooFeaturedOffers(userId, limit);
 }
 // ===== NOTIFICATIONS =====
 
