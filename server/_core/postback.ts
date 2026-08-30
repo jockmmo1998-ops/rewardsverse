@@ -436,7 +436,13 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     if (spec.auth === "md5") {
-      if (!verifyProviderMd5Signature(expectedSecret, params, spec)) {
+      // CoinToMedia has used both reward (virtual coins) and payout (USD) in
+      // its MD5 formula across dashboard versions. Accept either documented
+      // form, while still requiring the configured secret and transaction.
+      const md5Valid = verifyProviderMd5Signature(expectedSecret, params, spec)
+        || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "payout" }))
+        || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "round_reward" }));
+      if (!md5Valid) {
         console.error(`[Postback][${provider}] MD5 signature mismatch`);
         return respond(401, { success: false, message: "Invalid postback signature" },
           "failed", 0, "", "", "", "signature_mismatch");
@@ -504,7 +510,11 @@ async function handlePostback(req: Request, res: Response) {
     // payout. Credit the virtual amount only; never silently substitute USD.
     const rawAmount = provider === "taskwall"
       ? pickNumeric(params, ["user_amount"])
-      : pickNumeric(params, [spec.reward, ...REWARD_FIELDS]);
+      // CoinToMedia sends reward as virtual coins and payout as USD. The
+      // RewardsVerse balance is denominated in USD, so payout must win.
+      : provider === "cointo"
+        ? pickNumeric(params, ["payout", "reward", "round_reward"])
+        : pickNumeric(params, [spec.reward, ...REWARD_FIELDS]);
 
     // Log every parsed field before any validation so debugging is easy
     console.log(`[Postback][${provider}] Detected → status="${statusNorm}" user="${rawUserId}" reward="${rawAmount}" params=${JSON.stringify(Object.keys(params))}`);
