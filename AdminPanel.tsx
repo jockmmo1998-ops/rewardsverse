@@ -39,6 +39,7 @@ export default function AdminPanel() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [testedKey, setTestedKey] = useState<string | null>(null);
 
   const postbackUrlsQuery = trpc.admin.getPostbackUrls.useQuery(undefined, {
     retry: false,
@@ -58,6 +59,14 @@ export default function AdminPanel() {
     },
     onError: (err) => toast.error(err.message),
   });
+  const testPostbackMutation = trpc.admin.testPostback.useMutation({
+    onSuccess: (result, variables) => {
+      setTestedKey(variables.provider);
+      toast.success(`${result.provider} ready — chưa cộng điểm nào.`);
+      setTimeout(() => setTestedKey(null), 2500);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const generateUrl = (provider: string) => generatePostbackMutation.mutate({ provider });
   const regenerateToken = (provider: string) => {
@@ -65,6 +74,7 @@ export default function AdminPanel() {
       regeneratePostbackMutation.mutate({ provider, confirm: true });
     }
   };
+  const testPostback = (provider: string) => testPostbackMutation.mutate({ provider });
 
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -450,6 +460,19 @@ export default function AdminPanel() {
                         <Button
                           size="sm"
                           variant="outline"
+                          disabled={testPostbackMutation.isPending || pb.provider === "unified"}
+                          onClick={() => testPostback(pb.provider)}
+                          className={`h-7 px-2.5 text-[10px] font-bold transition-all ${
+                            testedKey === pb.provider
+                              ? "border-green-500/50 text-green-400 bg-green-500/10"
+                              : "border-border/50 text-muted-foreground hover:border-green-500/30 hover:text-green-400"
+                          }`}
+                        >
+                          {testedKey === pb.provider ? <><CheckCircle2 className="w-3 h-3 mr-1" />Ready</> : "Test"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           disabled={!pb.url}
                           onClick={() => pb.url && copyToClipboard(pb.url, pb.provider)}
                           className={`h-7 px-3 text-[10px] font-bold transition-all ${
@@ -469,8 +492,13 @@ export default function AdminPanel() {
                       </div>
                     </div>
                     <code className="block text-[10px] text-muted-foreground bg-background/80 rounded px-3 py-2 border border-border/30 break-all leading-relaxed font-mono select-all">
-                      {pb.url || "Set the provider placement and postback secret in Render Environment Variables."}
+                      {pb.url || "Generate a provider credential to create the Postback URL."}
                     </code>
+                    {pb.provider !== "unified" && (
+                      <p className="mt-2 text-[10px] text-muted-foreground">
+                        User: <span className="text-cyan-300">{pb.userMacro}</span> · Reward: <span className="text-green-300">{pb.rewardMacro}</span> · Transaction: <span className="text-yellow-300">{pb.transactionMacro || "none"}</span> · Status: <span className="text-purple-300">{pb.statusMacro}</span> · Auth: <span className="text-orange-300">{pb.authMethod}</span>
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

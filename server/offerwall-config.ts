@@ -62,7 +62,6 @@ export const OFFER_WALL_IDS = [
   "admaxflow",
   "gaintwall",
   "buckswall",
-  "test",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -77,7 +76,6 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   admaxflow: "AdMaxFlow",
   gaintwall: "Gaintwall",
   buckswall: "BucksWall",
-  test: "Test Offerwall",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -258,14 +256,6 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     macros: ["user_id", "offer_id", "offer_name", "payout", "reward", "transaction_id", "status", "ip", "sub1", "sub2", "hash"],
   },
   buckswall: {
-    user: "user_id",
-    reward: "reward",
-    transaction: "transaction_id",
-    auth: "token",
-    response: "json",
-    macros: ["user_id", "reward", "transaction_id", "offer_name", "offer_id", "status"],
-  },
-  test: {
     user: "user_id",
     reward: "reward",
     transaction: "transaction_id",

@@ -14,6 +14,7 @@ import {
   OFFER_WALL_IDS,
   getPostbackUrl,
   POSTBACK_PARAM_SPECS,
+  OFFER_WALL_LABELS as POSTBACK_LABELS,
 } from "./offerwall-config";
 // Admin-only middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -636,12 +637,17 @@ export const appRouter = router({
       const baseUrl = process.env.PUBLIC_APP_URL || "https://rewardsverse.online";
       const providerUrls = await Promise.all(OFFER_WALL_IDS.map(async (provider) => {
         const token = await db.getOrCreatePostbackToken(provider);
+        const spec = POSTBACK_PARAM_SPECS[provider];
         return {
           provider,
-          label: provider === "cointo" ? "CoinToMedia" : provider === "test" ? "Test Offerwall" : provider,
-          authMethod: POSTBACK_PARAM_SPECS[provider]?.auth ?? "token",
+          label: POSTBACK_LABELS[provider] || provider,
+          authMethod: spec?.auth ?? "token",
           configured: Boolean(token),
           url: getPostbackUrl(provider, baseUrl, token),
+          userMacro: spec?.user ?? "",
+          rewardMacro: spec?.reward ?? "",
+          transactionMacro: spec?.transaction ?? "",
+          statusMacro: "status",
         };
       }));
       return [{
@@ -679,6 +685,24 @@ export const appRouter = router({
         if (!url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not regenerate Postback URL" });
         await db.addAuditLog({ adminUserId: ctx.user.id, action: "postback_token_regenerated", targetType: "provider", targetId: input.provider, details: JSON.stringify({ provider: input.provider }) });
         return { provider: input.provider, url };
+      }),
+
+    testPostback: adminProcedure
+      .input(z.object({ provider: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        if (!(OFFER_WALL_IDS as readonly string[]).includes(input.provider)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Unknown offerwall provider" });
+        }
+        const token = await db.getActivePostbackSecret(input.provider);
+        if (!token) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Postback credential is not configured" });
+        const spec = POSTBACK_PARAM_SPECS[input.provider];
+        return {
+          success: true,
+          provider: input.provider,
+          authMethod: spec.auth,
+          endpoint: `/api/postback/${input.provider}`,
+          message: "Credential and provider mapping are ready. No reward was credited.",
+        };
       }),
 
     // Look up a user by username for postback testing
