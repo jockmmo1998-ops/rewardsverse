@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const labels: Record<string, string> = {
   '/home': 'Dashboard', '/dashboard': 'Dashboard', '/offerwalls': 'Earn rewards', '/leaderboard': 'Leaderboard', '/achievements': 'Achievements',
   '/history': 'Activity', '/referrals': 'Referrals', '/wallet': 'Wallet', '/withdraw': 'Withdraw', '/profile': 'Profile',
-  '/settings': 'Settings', '/support': 'Support', '/admin': 'Admin console',
+  '/settings': 'Settings', '/support': 'Support', '/privacy': 'Privacy Policy', '/terms': 'Terms of Service', '/cookies': 'Cookie Policy', '/reward-policy': 'Reward Policy', '/withdrawal-policy': 'Withdrawal Policy', '/faq': 'FAQ', '/admin': 'Admin console',
 };
 
 function getInitials(user: any) {

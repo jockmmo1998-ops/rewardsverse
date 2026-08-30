@@ -47,7 +47,7 @@ export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; on
       {open && <button aria-label="Close navigation" onClick={onClose} className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden" />}
       <aside className={cn('hud-sidebar fixed inset-y-0 left-0 z-50 flex w-[272px] flex-col px-4 py-5 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0', open ? 'translate-x-0' : '-translate-x-full')}>
         <div className="flex items-center justify-between px-2">
-          <Link to="/home" onClick={onClose} className="focus-ring flex items-center gap-3"><BrandMark /><span className="font-display text-base font-bold tracking-tight">Rewards<span className="text-primary">Verse</span></span></Link>
+          <Link to="/home" onClick={onClose} className="focus-ring flex items-center gap-3" aria-label="RewardsVerse" title="RewardsVerse"><BrandMark compact /></Link>
           <button onClick={onClose} className="focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Close navigation"><X className="h-4 w-4" /></button>
         </div>
         <div className="mt-10 flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pr-1">
