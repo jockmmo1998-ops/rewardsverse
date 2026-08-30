@@ -573,19 +573,19 @@ export default function Home() {
           </motion.div>
 
           {/* Offer Wall Cards Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-              {[
-              { id: "gemiwall",    name: "GemiWall",      reward: "$0.10–$5.00",  tag: "POPULAR",  rating: 4.8, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://gemiwall.com/favicon.ico" },
-              { id: "revtoo",      name: "Revtoo",        reward: "$0.25–$8.00",  tag: "HIGH PAY", rating: 4.9, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://revtoo.com/assets/offerwall/images/revtoo-light.svg" },
-              { id: "clickwall",   name: "ClickWall",     reward: "$0.10–$3.00",  tag: "EASY",     rating: 4.5, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://clickwall.net/favicon.ico" },
-              { id: "moustache",   name: "Moustache Leads", reward: "$0.50–$10.00", tag: "PREMIUM", rating: 4.7, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://moustacheleads.com/logo.png" },
-              { id: "taskwall",    name: "Taskwall",      reward: "$0.15–$6.00",  tag: "SIGN-UPS", rating: 4.6, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg" },
-              { id: "cointo",      name: "Cointo",        reward: "$0.20–$4.00",  tag: "CRYPTO",   rating: 4.4, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://cointomedia.com/asset/images/iframe-logo.webp" },
-              { id: "klink",       name: "Klink Labs",    reward: "$0.30–$7.00",  tag: "FINANCE",  rating: 4.8, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://framerusercontent.com/images/B5jG7uAI5h4smXAy2YTXDWDeTU.jpg?width=140&height=29" },
-              { id: "adswedmedia", name: "AdsWedMedia",   reward: "$0.10–$6.00",  tag: "NEW",      rating: 4.7, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://adswedmedia.com/favicon.ico" },
-              { id: "admaxflow",   name: "AdMaxFlow",     reward: "$0.10–$5.00",  tag: "NEW",      rating: 4.6, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://admaxflow.com/favicon.ico" },
-              { id: "gaintwall",   name: "Gaintwall",     reward: "$0.10–$6.00",  tag: "NEW",      rating: 4.7, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://gaintwall.com/assets/img/brand/gaintwall-mark.svg" },
-              { id: "buckswall",   name: "BucksWall",     reward: "$0.10–$6.00",  tag: "SETUP",    rating: 4.6, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://buckswall.com/favicon.ico" },
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">
+            {[
+              { id: "gemiwall", name: "GemiWall", desc: "Premium survey & offer wall", reward: "$0.10–$5.00", tag: "POPULAR", rating: 4.8, surface: "#0b1d18", border: "#1b5b45", accent: "#6ee7b7", track: "#17382c", gradient: "linear-gradient(90deg, #16a34a, #6ee7b7)", badgeSurface: "#123c2d", logo: "https://gemiwall.com/favicon.ico" },
+              { id: "revtoo", name: "Revtoo", desc: "High-paying mobile offers", reward: "$0.25–$8.00", tag: "HIGH PAY", rating: 4.9, surface: "#0b1724", border: "#24547a", accent: "#7dd3fc", track: "#1b344a", gradient: "linear-gradient(90deg, #2563eb, #22d3ee)", badgeSurface: "#12314a", logo: "https://revtoo.com/assets/offerwall/images/revtoo-light.svg" },
+              { id: "clickwall", name: "ClickWall", desc: "Quick tasks & downloads", reward: "$0.10–$3.00", tag: "EASY", rating: 4.5, surface: "#21190b", border: "#76531d", accent: "#fcd34d", track: "#4d3717", gradient: "linear-gradient(90deg, #f59e0b, #fde68a)", badgeSurface: "#493311", logo: "https://clickwall.net/favicon.ico" },
+              { id: "moustache", name: "Moustache Leads", desc: "CPI & CPA offers worldwide", reward: "$0.50–$10.00", tag: "PREMIUM", rating: 4.7, surface: "#1b1024", border: "#6b2c8b", accent: "#e9a8ff", track: "#43205a", gradient: "linear-gradient(90deg, #9333ea, #f0abfc)", badgeSurface: "#3a1550", logo: "https://moustacheleads.com/logo.png" },
+              { id: "taskwall", name: "Taskwall", desc: "Sign-up & engagement tasks", reward: "$0.15–$6.00", tag: "SIGN-UPS", rating: 4.6, surface: "#0b1426", border: "#284b9b", accent: "#93c5fd", track: "#20365f", gradient: "linear-gradient(90deg, #2563eb, #818cf8)", badgeSurface: "#172c60", logo: "https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg" },
+              { id: "cointo", name: "Cointo", desc: "Crypto-focused offers", reward: "$0.20–$4.00", tag: "CRYPTO", rating: 4.4, surface: "#211a0b", border: "#80621c", accent: "#fcd34d", track: "#4d3b17", gradient: "linear-gradient(90deg, #d97706, #fde68a)", badgeSurface: "#493711", logo: "https://cointomedia.com/asset/images/iframe-logo.webp" },
+              { id: "klink", name: "Klink Labs", desc: "Finance & trading offers", reward: "$0.30–$7.00", tag: "FINANCE", rating: 4.8, surface: "#0b201f", border: "#1f766d", accent: "#5eead4", track: "#164642", gradient: "linear-gradient(90deg, #0f766e, #5eead4)", badgeSurface: "#12413f", logo: "https://framerusercontent.com/images/B5jG7uAI5h4smXAy2YTXDWDeTU.jpg?width=140&height=29" },
+              { id: "adswedmedia", name: "AdsWedMedia", desc: "CPA & incent offers worldwide", reward: "$0.10–$6.00", tag: "NEW", rating: 4.7, surface: "#210f19", border: "#80324d", accent: "#fda4af", track: "#4b1d2d", gradient: "linear-gradient(90deg, #e11d48, #fda4af)", badgeSurface: "#4a192d", logo: "https://adswedmedia.com/favicon.ico" },
+              { id: "admaxflow", name: "AdMaxFlow", desc: "Surveys, apps & tasks worldwide", reward: "$0.10–$5.00", tag: "NEW", rating: 4.6, surface: "#21140b", border: "#8a4a1e", accent: "#fdba74", track: "#4f2b18", gradient: "linear-gradient(90deg, #ea580c, #fdba74)", badgeSurface: "#4d2514", logo: "https://admaxflow.com/favicon.ico" },
+              { id: "gaintwall", name: "Gaintwall", desc: "Earn with surveys & tasks worldwide", reward: "$0.10–$6.00", tag: "NEW", rating: 4.7, surface: "#15102a", border: "#5a3a9e", accent: "#c4b5fd", track: "#33245c", gradient: "linear-gradient(90deg, #7c3aed, #c4b5fd)", badgeSurface: "#302054", logo: "https://gaintwall.com/assets/img/brand/gaintwall-mark.svg" },
+              { id: "buckswall", name: "BucksWall", desc: "Mobile apps, surveys & gaming offers", reward: "$0.10–$6.00", tag: "SETUP", rating: 4.6, surface: "#211016", border: "#85364b", accent: "#fda4af", track: "#4e202e", gradient: "linear-gradient(90deg, #be123c, #fb7185)", badgeSurface: "#4b1b2a", logo: "https://buckswall.com/favicon.ico" },
             ].map((wall, i) => (
               <motion.div
                 key={wall.id}
@@ -593,46 +593,23 @@ export default function Home() {
                 viewport={{ once: true }} transition={{ duration: 0.3, delay: i * 0.07 }}
                 whileHover={{ y: -4 }}
               >
-                <div
-                  className="cyber-card cyber-corner rounded-2xl overflow-hidden cursor-pointer group h-full"
-                  onClick={() => {
-                    setActiveTab("register");
-                    document.getElementById("auth-card")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  style={{ boxShadow: `0 0 0 0 ${wall.glow}` }}
-                >
-                  <div className={`h-1 w-full bg-gradient-to-r ${wall.color}`} />
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="font-bold text-sm group-hover:text-green-400 transition-colors leading-tight">{wall.name}</h3>
-                          <span className="tag-cyber text-[9px] px-1.5 py-0">{wall.tag}</span>
+                                  <div className="relative flex min-h-[203px] w-full cursor-pointer flex-col overflow-hidden rounded-[1.2rem] border p-3.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-xl" style={{ background: wall.surface, borderColor: wall.border }} onClick={() => { setActiveTab("register"); document.getElementById("auth-card")?.scrollIntoView({ behavior: "smooth" }); }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border p-2" style={{ background: "#ffffff", borderColor: wall.border }}>
+                          <span className="text-sm font-bold text-slate-800">{wall.name.slice(0, 1)}</span>
+                          <img src={wall.logo} alt={`${wall.name} logo`} className="absolute h-11 w-11 rounded-xl object-contain p-2" onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = "none"; }} />
                         </div>
-                        <div className="flex items-center gap-1 text-yellow-400">
-                          <Star className="w-2.5 h-2.5 fill-current" />
-                          <span className="text-[11px] font-bold">{wall.rating}</span>
+                        <div className="min-w-0 pt-0.5">
+                          <div className="flex items-center gap-2"><h3 className="truncate text-sm font-semibold text-white">{wall.name}</h3><span className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider" style={{ background: wall.badgeSurface, color: wall.accent }}>{wall.tag}</span></div>
+                          <p className="mt-1 truncate text-xs text-slate-400">{wall.desc}</p>
                         </div>
                       </div>
-                      <div className={`relative w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg overflow-hidden`}>
-                        <span className="text-xs font-bold text-slate-800">{wall.name.slice(0, 1)}</span>
-                        <img src={wall.logo} alt={`${wall.name} logo`} className="absolute w-full h-full rounded-lg object-contain p-1.5"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                      </div>
+                      <ChevronRight className="mt-1 h-4 w-4 shrink-0" style={{ color: wall.accent }} />
                     </div>
-                    <div className="divider-cyber mb-2" />
-                    <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200"><div className={`h-full rounded-full bg-gradient-to-r ${wall.color}`} style={{ width: "100%" }} /></div>
-                      <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[.12em]"><span className="text-green-600">100%</span><span className="text-slate-400">Rate</span></div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-green-400 font-bold">{wall.reward}</span>
-                      <div className="flex items-center gap-0.5 text-green-400 text-[10px] font-bold group-hover:gap-1 transition-all">
-                        Earn <ChevronRight className="w-3 h-3" />
-                      </div>
-                    </div>
+                    <div className="mt-4 rounded-xl border p-3" style={{ borderColor: `${wall.border}99`, background: `${wall.track}55` }}><div className="h-1.5 overflow-hidden rounded-full" style={{ background: wall.track }}><div className="h-full rounded-full" style={{ width: "100%", background: wall.gradient }} /></div><div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[.12em]"><span style={{ color: wall.accent }}>100%</span><span className="text-slate-400">Rate</span></div></div>
+                    <div className="mt-auto flex items-center justify-between border-t pt-3" style={{ borderColor: `${wall.border}99` }}><div className="flex items-center gap-3"><span className="flex items-center gap-1 text-xs text-amber-300"><Star className="h-3 w-3 fill-current" /> {wall.rating}</span><span className="flex items-center gap-1 text-xs text-slate-400">5–20 min</span></div><span className="text-xs font-semibold" style={{ color: wall.accent }}>Earn {wall.reward}</span></div>
                   </div>
-                </div>
               </motion.div>
             ))}
           </div>
