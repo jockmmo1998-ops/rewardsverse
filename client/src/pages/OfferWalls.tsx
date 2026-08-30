@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle2, ChevronRight, Clock3, ClipboardList, Grid2X2, Search, ShieldCheck, Smartphone, Sparkles, Star, X, Zap } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ChevronRight, Clock3, Grid2X2, Search, ShieldCheck, Smartphone, Sparkles, Star, X, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
@@ -10,21 +10,20 @@ import { playBellSound } from '@/utils/bellSound';
 import { EmptyState, LoadingRows, SectionHeading, Surface } from '@/components/shared/RewardUI';
 
 const OFFER_WALLS = [
-  { id: 'gemiwall', name: 'Gemiwall', desc: 'Premium survey & offer wall', reward: '$0.10–$5.00', logo: 'https://gemiwall.com/favicon.ico', tag: 'POPULAR', category: 'Surveys', rating: 4.8 },
+  { id: 'gemiwall', name: 'Gemiwall', desc: 'Premium survey & offer wall', reward: '$0.10–$5.00', logo: 'https://gemiwall.com/favicon.ico', tag: 'POPULAR', rating: 4.8 },
   { id: 'revtoo', name: 'Revtoo', desc: 'High-paying mobile offers', reward: '$0.25–$8.00', logo: 'https://revtoo.com/assets/offerwall/images/revtoo-dark.svg', tag: 'HIGH PAY', category: 'Mobile', rating: 4.9 },
   { id: 'clickwall', name: 'Clickwall', desc: 'Quick tasks & downloads', reward: '$0.10–$3.00', logo: 'https://www.google.com/s2/favicons?domain=clickwall.com&sz=128', tag: 'EASY', category: 'Tasks', rating: 4.5 },
   { id: 'moustache', name: 'MoustacheLeads', desc: 'CPI & CPA offers worldwide', reward: '$0.50–$10.00', logo: 'https://moustacheleads.com/logo.png', tag: 'PREMIUM', category: 'Apps', rating: 4.7 },
   { id: 'taskwall', name: 'Taskwall', desc: 'Sign-up & engagement tasks', reward: '$0.15–$6.00', logo: 'https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg', tag: 'SIGN-UPS', category: 'Tasks', rating: 4.6 },
   { id: 'cointo', name: 'CoinToMedia', desc: 'Crypto-focused offers', reward: '$0.20–$4.00', logo: 'https://cointomedia.com/asset/images/iframe-logo.webp', tag: 'CRYPTO', category: 'Apps', rating: 4.4 },
   { id: 'klink', name: 'Klink Finance', desc: 'Finance & trading offers', reward: '$0.30–$7.00', logo: 'https://assets.klink.finance/CDN/opengraph.jpg', tag: 'FINANCE', category: 'Apps', rating: 4.8 },
-  { id: 'adswedmedia', name: 'AdsWedMedia', desc: 'CPA & incent offers worldwide', reward: '$0.10–$6.00', logo: 'https://adswedmedia.com/asset/storage/photos/logo-img.png', tag: 'NEW', category: 'Surveys', rating: 4.7 },
+  { id: 'adswedmedia', name: 'AdsWedMedia', desc: 'CPA & incent offers worldwide', reward: '$0.10–$6.00', logo: 'https://adswedmedia.com/asset/storage/photos/logo-img.png', tag: 'NEW', rating: 4.7 },
   { id: 'admaxflow', name: 'AdMaxFlow', desc: 'Surveys, apps & tasks worldwide', reward: '$0.10–$5.00', logo: 'https://www.google.com/s2/favicons?domain=www.admaxflow.com&sz=128', tag: 'NEW', category: 'Tasks', rating: 4.6 },
-  { id: 'gaintwall', name: 'Gaintwall', desc: 'Earn with surveys & tasks worldwide', reward: '$0.10–$6.00', logo: 'https://www.google.com/s2/favicons?domain=gaintwall.com&sz=128', tag: 'NEW', category: 'Surveys', rating: 4.7 },
+  { id: 'gaintwall', name: 'Gaintwall', desc: 'Earn with surveys & tasks worldwide', reward: '$0.10–$6.00', logo: 'https://www.google.com/s2/favicons?domain=gaintwall.com&sz=128', tag: 'NEW', rating: 4.7 },
   { id: 'buckswall', name: 'BucksWall', desc: 'Mobile apps, surveys & gaming offers', reward: '$0.10–$6.00', logo: 'https://www.google.com/s2/favicons?domain=buckswall.com&sz=128', tag: 'SETUP', category: 'Mobile', rating: 4.6 },
 ];
 const categories = [
   { label: 'All', icon: Grid2X2 },
-  { label: 'Surveys', icon: ClipboardList },
   { label: 'Tasks', icon: Zap },
   { label: 'Mobile', icon: Smartphone },
   { label: 'Apps', icon: Sparkles },
