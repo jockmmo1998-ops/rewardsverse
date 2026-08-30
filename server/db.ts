@@ -333,21 +333,29 @@ export async function getWithdrawalsByUserId(userId: number) {
 export async function getPendingWithdrawalByDetails(userId: number, amount: string, cryptoType: string, walletAddress: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db
-    // Only the id is needed for duplicate detection. Selecting the full row
-    // made legacy databases fail before the request could be created when
-    // optional approval timestamp columns were absent.
-    .select({ id: withdrawals.id })
-    .from(withdrawals)
-    .where(and(
-      eq(withdrawals.userId, userId),
-      eq(withdrawals.amount, amount),
-      eq(withdrawals.cryptoType, cryptoType as any),
-      eq(withdrawals.walletAddress, walletAddress),
-      eq(withdrawals.status, "pending"),
-    ))
-    .limit(1);
-  return result[0];
+  try {
+    const result = await db
+      // Only the id is needed for duplicate detection. Selecting the full row
+      // made legacy databases fail before the request could be created when
+      // optional approval timestamp columns were absent.
+      .select({ id: withdrawals.id })
+      .from(withdrawals)
+      .where(and(
+        eq(withdrawals.userId, userId),
+        eq(withdrawals.amount, amount),
+        eq(withdrawals.cryptoType, cryptoType as any),
+        eq(withdrawals.walletAddress, walletAddress),
+        eq(withdrawals.status, "pending"),
+      ))
+      .limit(1);
+    return result[0];
+  } catch (error) {
+    // A legacy production table may reject this compatibility lookup even
+    // after additive migrations. Do not block a legitimate withdrawal; the
+    // insert below remains authoritative and its failure path refunds funds.
+    console.warn("[Withdrawal] Duplicate lookup unavailable; continuing to create request:", error instanceof Error ? error.message : String(error));
+    return undefined;
+  }
 }
 
 export async function getAllWithdrawals(status?: string) {
