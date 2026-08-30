@@ -135,8 +135,12 @@ async function runMigrations() {
           await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         }
         const cryptoColumn = (withdrawalColumns as any[]).find(column => column.COLUMN_NAME === "cryptoType");
-        if (cryptoColumn && !String(cryptoColumn.COLUMN_TYPE).includes("binance")) {
+        if (cryptoColumn) {
           await connection.query("ALTER TABLE `withdrawals` MODIFY COLUMN `cryptoType` enum('bitcoin','ethereum','usdt_trc20','usdt_erc20','solana','litecoin','dogecoin','binance') NOT NULL");
+        }
+        const statusColumn = (withdrawalColumns as any[]).find(column => column.COLUMN_NAME === "status");
+        if (statusColumn) {
+          await connection.query("ALTER TABLE `withdrawals` MODIFY COLUMN `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending'");
         }
         await connection.query(`CREATE TABLE IF NOT EXISTS \`audit_logs\` (
           \`id\` int AUTO_INCREMENT NOT NULL,

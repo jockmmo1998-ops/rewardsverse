@@ -319,12 +319,14 @@ export async function createWithdrawal(data: InsertWithdrawal) {
       VALUES (${data.userId}, ${data.amount}, ${data.cryptoType}, ${data.walletAddress}, ${data.status})
     `);
   } catch (error) {
-    const dbError = error as { code?: string; errno?: number; sqlState?: string; sqlMessage?: string; message?: string };
+    const dbError = error as { code?: string; errno?: number; sqlState?: string; sqlMessage?: string; message?: string; cause?: unknown };
+    const cause = dbError.cause as { code?: string; errno?: number; sqlState?: string; sqlMessage?: string; message?: string } | undefined;
     console.error("[Withdrawal] Insert failed", {
-      code: dbError.code,
-      errno: dbError.errno,
-      sqlState: dbError.sqlState,
+      code: dbError.code || cause?.code,
+      errno: dbError.errno || cause?.errno,
+      sqlState: dbError.sqlState || cause?.sqlState,
       message: dbError.sqlMessage || dbError.message,
+      cause: cause?.sqlMessage || cause?.message,
     });
     throw error;
   }
