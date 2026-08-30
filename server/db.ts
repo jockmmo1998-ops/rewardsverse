@@ -309,8 +309,15 @@ export async function setLastDailyClaim(userId: number) {
 export async function createWithdrawal(data: InsertWithdrawal) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(withdrawals).values(data);
-  return result[0];
+  // Use a minimal insert for legacy production tables. Drizzle's typed
+  // insert includes every schema field, including optional approval columns
+  // that may not exist in an older withdrawals table.
+  const result = await db.execute(sql`
+    INSERT INTO withdrawals (userId, amount, cryptoType, walletAddress, status)
+    VALUES (${data.userId}, ${data.amount}, ${data.cryptoType}, ${data.walletAddress}, ${data.status})
+  `);
+  const header = (result as any)[0] as { insertId?: number };
+  return { insertId: Number(header?.insertId ?? 0) };
 }
 
 export async function getWithdrawalById(id: number) {
