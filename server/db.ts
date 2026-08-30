@@ -312,10 +312,22 @@ export async function createWithdrawal(data: InsertWithdrawal) {
   // Use a minimal insert for legacy production tables. Drizzle's typed
   // insert includes every schema field, including optional approval columns
   // that may not exist in an older withdrawals table.
-  const result = await db.execute(sql`
-    INSERT INTO withdrawals (userId, amount, cryptoType, walletAddress, status)
-    VALUES (${data.userId}, ${data.amount}, ${data.cryptoType}, ${data.walletAddress}, ${data.status})
-  `);
+  let result;
+  try {
+    result = await db.execute(sql`
+      INSERT INTO withdrawals (userId, amount, cryptoType, walletAddress, status)
+      VALUES (${data.userId}, ${data.amount}, ${data.cryptoType}, ${data.walletAddress}, ${data.status})
+    `);
+  } catch (error) {
+    const dbError = error as { code?: string; errno?: number; sqlState?: string; sqlMessage?: string; message?: string };
+    console.error("[Withdrawal] Insert failed", {
+      code: dbError.code,
+      errno: dbError.errno,
+      sqlState: dbError.sqlState,
+      message: dbError.sqlMessage || dbError.message,
+    });
+    throw error;
+  }
   const header = (result as any)[0] as { insertId?: number };
   return { insertId: Number(header?.insertId ?? 0) };
 }

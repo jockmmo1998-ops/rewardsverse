@@ -86,13 +86,45 @@ async function runMigrations() {
         if (!names.has("suspensionReason")) {
           await connection.query("ALTER TABLE `users` ADD COLUMN `suspensionReason` text");
         }
-        // Older production databases may have a withdrawals table created
-        // before the current approval timestamps were introduced. Drizzle's
-        // SELECT then fails before a withdrawal can even be submitted.
+        // Older production databases may have a partial withdrawals table.
+        // Repair every column required by the current withdrawal flow before
+        // the app accepts requests, rather than only repairing timestamps.
+        await connection.query(`CREATE TABLE IF NOT EXISTS \`withdrawals\` (
+          \`id\` int AUTO_INCREMENT NOT NULL,
+          \`userId\` int NOT NULL,
+          \`amount\` decimal(10,2) NOT NULL,
+          \`cryptoType\` enum('bitcoin','ethereum','usdt_trc20','usdt_erc20','solana','litecoin','dogecoin','binance') NOT NULL,
+          \`walletAddress\` text NOT NULL,
+          \`status\` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+          \`adminNote\` text,
+          \`approvedAt\` timestamp NULL,
+          \`rejectedAt\` timestamp NULL,
+          \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          \`updatedAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (\`id\`)
+        )`);
         const [withdrawalColumns] = await connection.query<any[]>(
           "SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'withdrawals'"
         );
         const withdrawalNames = new Set((withdrawalColumns as any[]).map(column => column.COLUMN_NAME));
+        if (!withdrawalNames.has("userId")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `userId` int NOT NULL DEFAULT 0");
+        }
+        if (!withdrawalNames.has("amount")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `amount` decimal(10,2) NOT NULL DEFAULT '0.00'");
+        }
+        if (!withdrawalNames.has("cryptoType")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `cryptoType` enum('bitcoin','ethereum','usdt_trc20','usdt_erc20','solana','litecoin','dogecoin','binance') NOT NULL DEFAULT 'bitcoin'");
+        }
+        if (!withdrawalNames.has("walletAddress")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `walletAddress` text NOT NULL");
+        }
+        if (!withdrawalNames.has("status")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending'");
+        }
+        if (!withdrawalNames.has("id")) {
+          await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `id` int AUTO_INCREMENT PRIMARY KEY FIRST");
+        }
         if (!withdrawalNames.has("approvedAt")) {
           await connection.query("ALTER TABLE `withdrawals` ADD COLUMN `approvedAt` timestamp NULL");
         }
