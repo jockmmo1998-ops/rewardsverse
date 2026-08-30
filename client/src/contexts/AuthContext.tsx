@@ -39,10 +39,17 @@ export function useAuth(): AuthContextType {
     enabled: Boolean(coreAuth.user),
     retry: false,
     refetchOnWindowFocus: false,
+    // Keep the balance responsive even when the user is on a page that is
+    // not currently holding an SSE subscription (provider callbacks are
+    // still processed immediately on the server).
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
   });
   const activitiesQuery = trpc.user.getActivities.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
+    refetchInterval: 15000,
+    refetchIntervalInBackground: false,
   });
   const registerMutation = trpc.virtual.register.useMutation();
   const loginMutation = trpc.virtual.login.useMutation();
