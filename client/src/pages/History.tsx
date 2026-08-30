@@ -38,8 +38,11 @@ export default function History() {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const historyQuery = trpc.history.getAllHistory.useQuery();
+  const offerHistoryQuery = trpc.history.getOfferHistory.useQuery();
   const earnings    = historyQuery.data?.earnings    || [];
   const withdrawals = historyQuery.data?.withdrawals || [];
+  const pendingOffers = (offerHistoryQuery.data ?? []).filter((offer: any) => offer.status === "pending");
+  const pendingOfferTotal = pendingOffers.reduce((sum: number, offer: any) => sum + Number(offer.amount || 0), 0);
 
   const mergedHistory = (() => {
     const items: any[] = [];
@@ -155,15 +158,16 @@ export default function History() {
             <p className="text-sm text-muted-foreground mt-1">All your earnings and withdrawals in real-time. Updates every 5 seconds.</p>
           </div>
 
-          {/* Summary Cards */}
+            {/* Summary Cards */}
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             <div className="cyber-card rounded-2xl p-5 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
-                <ArrowDownLeft className="w-6 h-6 text-green-400" />
+                <Clock className="w-6 h-6 text-yellow-400" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Total Earnings</p>
-                <p className="text-2xl font-black text-green-400">${parseFloat(user.totalEarned || "0").toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Pending rewards</p>
+                <p className="text-2xl font-black text-yellow-400">${pendingOfferTotal.toFixed(2)}</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">{pendingOffers.length} offer{pendingOffers.length === 1 ? "" : "s"} awaiting verification</p>
               </div>
             </div>
             <div className="cyber-card rounded-2xl p-5 flex items-center gap-4">
