@@ -27,15 +27,23 @@ services:
         value: ""
       - key: PUBLIC_APP_URL
         value: https://rewardsverse.online
+      - key: ADMIN_SECRET
+        sync: false
+      - key: GEMIWALL_OFFERWALL_URL
+        sync: false
       - key: GEMIWALL_PLACEMENT_ID
         sync: false
       - key: GEMIWALL_POSTBACK_SECRET
         sync: false
       - key: REVTOO_PLACEMENT_ID
         sync: false
+      - key: REVTOO_OFFERWALL_URL
+        sync: false
       - key: REVTOO_POSTBACK_SECRET
         sync: false
       - key: CLICKWALL_PLACEMENT_ID
+        sync: false
+      - key: CLICKWALL_OFFERWALL_URL
         sync: false
       - key: CLICKWALL_POSTBACK_SECRET
         sync: false
@@ -43,13 +51,19 @@ services:
         sync: false
       - key: MOUSTACHE_API_KEY
         sync: false
+      - key: MOUSTACHE_OFFERWALL_URL
+        sync: false
       - key: MOUSTACHE_POSTBACK_SECRET
         sync: false
       - key: TASKWALL_APP_ID
         sync: false
       - key: TASKWALL_POSTBACK_SECRET
         sync: false
+      - key: COINTO_PUBLIC_KEY
+        sync: false
       - key: COINTO_PLACEMENT_ID
+        sync: false
+      - key: COINTO_OFFERWALL_URL
         sync: false
       - key: COINTO_POSTBACK_SECRET
         sync: false
@@ -59,13 +73,21 @@ services:
         sync: false
       - key: ADSWEDMEDIA_PLACEMENT_ID
         sync: false
+      - key: ADSWEDMEDIA_PUBLIC_KEY
+        sync: false
+      - key: ADSWEDMEDIA_OFFERWALL_URL
+        sync: false
       - key: ADSWEDMEDIA_POSTBACK_SECRET
         sync: false
       - key: ADMAXFLOW_PLACEMENT_ID
         sync: false
+      - key: ADMAXFLOW_OFFERWALL_URL
+        sync: false
       - key: ADMAXFLOW_POSTBACK_SECRET
         sync: false
       - key: GAINTWALL_PLACEMENT_KEY
+        sync: false
+      - key: GAINTWALL_API_KEY
         sync: false
       - key: GAINTWALL_POSTBACK_SECRET
         sync: false
