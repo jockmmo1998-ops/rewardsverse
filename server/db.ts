@@ -334,7 +334,10 @@ export async function getPendingWithdrawalByDetails(userId: number, amount: stri
   const db = await getDb();
   if (!db) return undefined;
   const result = await db
-    .select()
+    // Only the id is needed for duplicate detection. Selecting the full row
+    // made legacy databases fail before the request could be created when
+    // optional approval timestamp columns were absent.
+    .select({ id: withdrawals.id })
     .from(withdrawals)
     .where(and(
       eq(withdrawals.userId, userId),
