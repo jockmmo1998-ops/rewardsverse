@@ -225,6 +225,17 @@ export async function deductBalance(userId: number, amount: number) {
     .where(eq(users.id, userId));
 }
 
+/** Atomically reserve funds only when the authenticated user has enough balance. */
+export async function deductBalanceIfSufficient(userId: number, amount: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("[DB] DATABASE_URL not configured or DB connection failed — cannot deduct balance");
+  const result = await db
+    .update(users)
+    .set({ balance: sql`balance - ${amount}` })
+    .where(and(eq(users.id, userId), sql`balance >= ${amount}`));
+  return Number((result as any)[0]?.affectedRows ?? 0) === 1;
+}
+
 export async function addXP(userId: number, amount: number) {
   const db = await getDb();
   if (!db) return; // XP là non-critical, không throw
@@ -291,6 +302,23 @@ export async function getWithdrawalsByUserId(userId: number) {
     .from(withdrawals)
     .where(eq(withdrawals.userId, userId))
     .orderBy(desc(withdrawals.createdAt));
+}
+
+export async function getPendingWithdrawalByDetails(userId: number, amount: string, cryptoType: string, walletAddress: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(withdrawals)
+    .where(and(
+      eq(withdrawals.userId, userId),
+      eq(withdrawals.amount, amount),
+      eq(withdrawals.cryptoType, cryptoType as any),
+      eq(withdrawals.walletAddress, walletAddress),
+      eq(withdrawals.status, "pending"),
+    ))
+    .limit(1);
+  return result[0];
 }
 
 export async function getAllWithdrawals(status?: string) {

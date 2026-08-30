@@ -280,88 +280,24 @@ export const appRouter = router({
     }),
 
     recordOfferComplete: protectedProcedure
-      .input(z.object({ wallName: z.string(), reward: z.number().min(0.01).max(100) }))
-      .mutation(async ({ ctx, input }) => {
-        const user = await db.getUserByOpenId(ctx.user.openId);
-        if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-
-        const reward = Number(input.reward);
-        await db.addBalance(user.id, reward);
-        await db.addXP(user.id, 15);
-        await db.incrementOffers(user.id);
-        await db.addEarning({
-          userId: user.id,
-          amount: reward.toFixed(2),
-          type: "offer",
-          source: `${input.wallName} offer`,
+      .input(z.object({ wallName: z.string().min(1), reward: z.number().min(0.01).max(100) }))
+      .mutation(async () => {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Rewards are credited only after a verified offerwall postback.",
         });
-        await db.addActivity({
-          userId: user.id,
-          username: user.username || "User",
-          type: "offer_complete",
-          description: `earned $${reward.toFixed(2)} on ${input.wallName}`,
-          amount: reward.toFixed(2),
-        });
-        // Ghi walletTransaction để đồng bộ với luồng postback
-        await db.addWalletTransaction({
-          userId: user.id,
-          type: "credit",
-          amount: reward.toFixed(2),
-          description: `Earned $${reward.toFixed(2)} on ${input.wallName}`,
-        });
-
-        const updatedUser = await db.getUserById(user.id);
-        if (updatedUser && updatedUser.username) {
-          await db.updateLeaderboard(user.id, updatedUser.username, parseFloat(updatedUser.totalEarned || "0"));
-        }
-        return { success: true, reward: reward.toFixed(2) };
       }),
 
-    completeAITask: protectedProcedure.mutation(async ({ ctx }) => {
-      const user = await db.getUserByOpenId(ctx.user.openId);
-      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-      const rewards = [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0];
-      const reward = rewards[Math.floor(Math.random() * rewards.length)];
-
-      await db.addBalance(user.id, Number(reward));
-      await db.addXP(user.id, 20);
-      await db.incrementOffers(user.id);
-      await db.addEarning({ userId: user.id, amount: reward.toFixed(2), type: "ai_task", source: "AI Task completed" });
-      await db.addActivity({ userId: user.id, username: user.username || "User", type: "offer_complete", description: `completed AI Task earning $${reward.toFixed(2)}`, amount: reward.toFixed(2) });
-
-      const updatedUser = await db.getUserById(user.id);
-      if (updatedUser && updatedUser.username) {
-        await db.updateLeaderboard(user.id, updatedUser.username, parseFloat(updatedUser.totalEarned || "0"));
-      }
-      return { success: true, reward: reward.toFixed(2) };
+    completeAITask: protectedProcedure.mutation(async () => {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This reward source is not enabled." });
     }),
 
-    completeSocialTask: protectedProcedure.mutation(async ({ ctx }) => {
-      const user = await db.getUserByOpenId(ctx.user.openId);
-      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-      const rewards = [0.1, 0.2, 0.3, 0.5, 0.75, 1.0];
-      const reward = rewards[Math.floor(Math.random() * rewards.length)];
-
-      await db.addBalance(user.id, Number(reward));
-      await db.addXP(user.id, 5);
-      await db.addEarning({ userId: user.id, amount: reward.toFixed(2), type: "social_task", source: "Social task completed" });
-      await db.addActivity({ userId: user.id, username: user.username || "User", type: "offer_complete", description: `completed social task earning $${reward.toFixed(2)}`, amount: reward.toFixed(2) });
-
-      return { success: true, reward: reward.toFixed(2) };
+    completeSocialTask: protectedProcedure.mutation(async () => {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This reward source is not enabled." });
     }),
 
-    spinWheel: protectedProcedure.mutation(async ({ ctx }) => {
-      const user = await db.getUserByOpenId(ctx.user.openId);
-      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-      const rewards = [0.1, 0.25, 0.5, 1.0, 2.0, 0.15, 0.75, 3.0];
-      const reward = rewards[Math.floor(Math.random() * rewards.length)];
-
-      await db.addBalance(user.id, Number(reward));
-      await db.addXP(user.id, 5);
-      await db.addEarning({ userId: user.id, amount: reward.toFixed(2), type: "spin", source: "Lucky wheel spin" });
-      await db.addActivity({ userId: user.id, username: user.username || "User", type: "offer_complete", description: `won $${reward.toFixed(2)} on Lucky Wheel`, amount: reward.toFixed(2) });
-
-      return { success: true, reward: reward.toFixed(2) };
+    spinWheel: protectedProcedure.mutation(async () => {
+      throw new TRPCError({ code: "FORBIDDEN", message: "This reward source is not enabled." });
     }),
 
     getOfferWallUrl: protectedProcedure
@@ -413,40 +349,53 @@ export const appRouter = router({
     create: protectedProcedure
       .input(
         z.object({
-          amount: z.number().min(0.5),
-          cryptoType: z.enum(["bitcoin", "ethereum", "usdt_trc20", "usdt_erc20", "solana", "litecoin", "dogecoin"]),
-          walletAddress: z.string().min(10),
+          amount: z.number().min(0.3).max(100000),
+          cryptoType: z.enum(["litecoin", "binance"]),
+          walletAddress: z.string().trim().min(10).max(256),
         })
       )
       .mutation(async ({ ctx, input }) => {
         const user = await db.getUserByOpenId(ctx.user.openId);
         if (!user) throw new TRPCError({ code: "NOT_FOUND" });
 
-        if (parseFloat(user.balance || "0") < input.amount) {
+        const amount = Number(input.amount.toFixed(2));
+        const walletAddress = input.walletAddress.trim();
+        const existing = await db.getPendingWithdrawalByDetails(user.id, amount.toFixed(2), input.cryptoType, walletAddress);
+        if (existing) {
+          throw new TRPCError({ code: "CONFLICT", message: "An identical withdrawal request is already pending." });
+        }
+
+        const reserved = await db.deductBalanceIfSufficient(user.id, amount);
+        if (!reserved) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance" });
         }
 
-        await db.deductBalance(user.id, Number(input.amount));
-        const withdrawal = await db.createWithdrawal({
-          userId: user.id,
-          amount: input.amount.toFixed(2),
-          cryptoType: input.cryptoType,
-          walletAddress: input.walletAddress,
-          status: "pending",
-        });
+        let withdrawal;
+        try {
+          withdrawal = await db.createWithdrawal({
+            userId: user.id,
+            amount: amount.toFixed(2),
+            cryptoType: input.cryptoType,
+            walletAddress,
+            status: "pending",
+          });
+        } catch (error) {
+          await db.addBalance(user.id, amount);
+          throw error;
+        }
 
         await db.addActivity({
           userId: user.id,
           username: user.username || "User",
           type: "withdrawal",
-          description: `withdrew $${input.amount.toFixed(2)} via ${input.cryptoType}`,
-          amount: input.amount.toFixed(2),
+          description: `withdrew $${amount.toFixed(2)} via ${input.cryptoType}`,
+          amount: amount.toFixed(2),
         });
 
         try {
           await notifyOwner({
             title: "New Withdrawal Request",
-            content: `User ${user.username} requests $${input.amount.toFixed(2)} via ${input.cryptoType} to ${input.walletAddress.substring(0, 20)}...`,
+            content: `User ${user.username} requests $${amount.toFixed(2)} via ${input.cryptoType} to ${walletAddress.substring(0, 20)}...`,
           });
         } catch (e) {
           console.warn("Failed to send notification:", e);

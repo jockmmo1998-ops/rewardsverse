@@ -63,6 +63,7 @@ export const withdrawals = mysqlTable(
       "solana",
       "litecoin",
       "dogecoin",
+      "binance",
     ]).notNull(),
     walletAddress: text("walletAddress").notNull(),
     status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),

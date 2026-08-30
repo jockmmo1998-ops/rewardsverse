@@ -350,3 +350,57 @@ button, a { transition-timing-function: var(--ease-out); }
   .balance-panel { padding: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) { .offer-card, .offer-icon, .offer-cta { transition: none; } .offer-card:hover { transform: none; } }
+
+/* RewardsVerse 2026 light product system */
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #111827;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2f7;
+  --secondary-foreground: #1e293b;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #16a34a;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #ffffff;
+  --ring: #94a3b8;
+  --sidebar-background: #ffffff;
+  --sidebar-foreground: #475569;
+  --sidebar-primary: #111827;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #94a3b8;
+}
+html, body { background: #f8fafc; }
+.app-shell { background: #f8fafc; }
+.app-shell::before, .app-shell::after { display: none; }
+.hud-sidebar { background: #ffffff; border-right: 1px solid #e2e8f0; box-shadow: 8px 0 24px rgba(15,23,42,.04); backdrop-filter: none; }
+.hud-sidebar::after { display: none; }
+.hud-topbar { background: rgba(255,255,255,.92); border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 18px rgba(15,23,42,.04); backdrop-filter: blur(12px); }
+.hud-topbar::after { background: #16a34a; box-shadow: none; }
+.rv-surface { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 12px 30px rgba(15,23,42,.06); backdrop-filter: none; }
+.rv-surface::before, .rv-surface::after { display: none; }
+.rv-surface-soft { background: #ffffff; border: 1px solid #e2e8f0; }
+.nav-link-active { color: #0f172a; background: #f1f5f9; border-color: #cbd5e1; box-shadow: inset 3px 0 0 #16a34a; }
+.nav-link-idle { color: #64748b; }
+.nav-link-idle:hover { color: #0f172a; background: #f8fafc; border-color: #e2e8f0; }
+.hud-label { color: #94a3b8; }
+.hud-live-badge { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
+.hud-callout { border-color: #bbf7d0; background: #f0fdf4; }
+.dashboard-hero, .hud-hero { background: linear-gradient(135deg, #111827, #1e293b 62%, #14532d); box-shadow: 0 18px 42px rgba(15,23,42,.14); }
+.dashboard-hero-grid, .hud-hero::before { opacity: .16; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; }
+::selection { background: #bbf7d0; color: #14532d; }
+@media (prefers-reduced-motion: no-preference) { button, a { transition: transform .16s var(--ease-out), background-color .16s ease, border-color .16s ease, color .16s ease; } }
+@media (max-width: 639px) { .hud-sidebar { box-shadow: 0 8px 24px rgba(15,23,42,.08); } }
