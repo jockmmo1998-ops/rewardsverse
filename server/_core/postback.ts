@@ -284,6 +284,14 @@ export function registerPostbackRoutes(app: Express) {
     });
   });
 
+  // Unified entry point. The provider is still required and is authenticated
+  // by its own adapter rules inside the shared processor; it cannot bypass
+  // credentials by choosing an arbitrary provider name.
+  app.post("/api/postback/unified", handleUnifiedPostback);
+  app.get("/api/postback/unified", handleUnifiedPostback);
+  app.post("/api/postback/unified/:provider", handleUnifiedPostback);
+  app.get("/api/postback/unified/:provider", handleUnifiedPostback);
+
   // Universal handler — both GET and POST, any provider name
   app.post("/api/postback/:provider", handlePostback);
   app.get("/api/postback/:provider", handlePostback);
@@ -292,6 +300,19 @@ export function registerPostbackRoutes(app: Express) {
 // ─────────────────────────────────────────────────────────────────────────────
 // UNIVERSAL POSTBACK HANDLER
 // ─────────────────────────────────────────────────────────────────────────────
+
+function handleUnifiedPostback(req: Request, res: Response) {
+  const requestedProvider = String(req.params.provider || req.query.provider || "").toLowerCase().trim();
+  if (!(OFFER_WALL_IDS as readonly string[]).includes(requestedProvider)) {
+    return res.status(400).json({
+      success: false,
+      message: "A valid provider is required for the unified postback gateway",
+      supportedProviders: OFFER_WALL_IDS,
+    });
+  }
+  req.params.provider = requestedProvider;
+  return handlePostback(req, res);
+}
 
 async function handlePostback(req: Request, res: Response) {
   const startTime = Date.now();

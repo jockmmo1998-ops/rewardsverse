@@ -634,13 +634,19 @@ export const appRouter = router({
 
     getPostbackUrls: adminProcedure.query(async () => {
       const baseUrl = process.env.PUBLIC_APP_URL || "https://rewardsverse.online";
-      return OFFER_WALL_IDS.map((provider) => ({
+      return [{
+        provider: "unified",
+        label: "Unified Gateway",
+        authMethod: "provider-specific",
+        configured: true,
+        url: `${baseUrl.replace(/\/$/, "")}/api/postback/unified?provider={provider}`,
+      }, ...OFFER_WALL_IDS.map((provider) => ({
         provider,
         label: provider === "cointo" ? "CoinToMedia" : provider,
         authMethod: POSTBACK_PARAM_SPECS[provider]?.auth ?? "token",
         configured: Boolean(getPostbackUrl(provider, baseUrl)),
         url: getPostbackUrl(provider, baseUrl),
-      }));
+      }))];
     }),
 
     // Look up a user by username for postback testing
