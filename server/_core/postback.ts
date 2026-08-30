@@ -461,7 +461,11 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 5. Extract reward amount ───────────────────────────────────────────
-    const rawAmount = pickNumeric(params, [spec.reward, ...REWARD_FIELDS]);
+    // Taskwall distinguishes virtual currency (user_amount) from the USD
+    // payout. Credit the virtual amount only; never silently substitute USD.
+    const rawAmount = provider === "taskwall"
+      ? pickNumeric(params, ["user_amount"])
+      : pickNumeric(params, [spec.reward, ...REWARD_FIELDS]);
 
     // Log every parsed field before any validation so debugging is easy
     console.log(`[Postback][${provider}] Detected → status="${statusNorm}" user="${rawUserId}" reward="${rawAmount}" params=${JSON.stringify(Object.keys(params))}`);
@@ -546,7 +550,11 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     if (!user) {
-      console.error(`[Postback][${provider}] User NOT FOUND for identifier: "${rawUserId}"`);
+      if (provider === "taskwall") {
+        console.error(`[Postback][taskwall] TASKWALL_USER_NOT_FOUND userid="${rawUserId}"`);
+      } else {
+        console.error(`[Postback][${provider}] User NOT FOUND for identifier: "${rawUserId}"`);
+      }
       await respond(400, {
         success: false,
         message: "User not found",
@@ -685,4 +693,3 @@ async function handlePostback(req: Request, res: Response) {
     }, "failed", 0, "", "", "", error?.message);
   }
 }
-
