@@ -8,11 +8,9 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       <div className="brand-mark" aria-hidden="true">
         <Coins className="h-4 w-4" />
       </div>
-      {!compact && (
-        <span className="font-display text-[1.08rem] font-semibold tracking-[-0.03em] text-foreground">
-          Rewards<span className="text-primary">verse</span>
-        </span>
-      )}
+      <span className={cn('font-display font-bold tracking-[0.08em] text-foreground', compact ? 'text-[0.72rem]' : 'text-[1.08rem]')}>
+        REWARDSVERSE
+      </span>
     </div>
   );
 }

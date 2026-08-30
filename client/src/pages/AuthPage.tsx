@@ -100,10 +100,10 @@ export default function AuthPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/home" className="inline-flex items-center gap-2 text-2xl font-black tracking-tight">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-black shadow-lg shadow-emerald-500/20">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/25">
               <Gift className="h-5 w-5" />
             </span>
-            <span>Rewards<span className="text-emerald-400">Verse</span></span>
+            <span className="tracking-[0.08em]">REWARDSVERSE</span>
           </Link>
           <p className="mt-3 text-sm text-muted-foreground">
             {isRegister ? "Create a free account to start earning rewards." : "Log in to continue earning rewards."}
@@ -115,14 +115,14 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => switchMode(false)}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${!isRegister ? "bg-emerald-500 text-black" : "text-muted-foreground hover:text-foreground"}`}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${!isRegister ? "bg-emerald-600 text-white shadow-sm" : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700"}`}
             >
               Log in
             </button>
             <button
               type="button"
               onClick={() => switchMode(true)}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${isRegister ? "bg-emerald-500 text-black" : "text-muted-foreground hover:text-foreground"}`}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${isRegister ? "bg-emerald-600 text-white shadow-sm" : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700"}`}
             >
               Sign up
             </button>
@@ -203,7 +203,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={submitting || loading}
-              className="h-11 w-full rounded-lg bg-emerald-500 px-4 text-sm font-bold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-11 w-full rounded-lg bg-emerald-600 px-4 text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? "Processing…" : isRegister ? "Create account" : "Log in"}
             </button>
