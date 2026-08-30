@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowDownToLine, Award, BarChart3, HelpCircle, History, LayoutDashboard, LogOut, Settings, ShieldCheck, Trophy, UserRound, Users, WalletCards, X, Zap } from 'lucide-react';
+import { ArrowDownToLine, BarChart3, HelpCircle, History, LayoutDashboard, LogOut, Settings, ShieldCheck, Trophy, UserRound, Users, WalletCards, X, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { BrandMark } from '@/components/shared/RewardUI';
@@ -9,7 +9,6 @@ const primaryItems: NavItem[] = [
   { label: 'Overview', path: '/dashboard', icon: LayoutDashboard },
   { label: 'Earn rewards', path: '/offerwalls', icon: Zap, badge: 'LIVE' },
   { label: 'Leaderboard', path: '/leaderboard', icon: Trophy },
-  { label: 'Achievements', path: '/achievements', icon: Award },
 ];
 const accountItems: NavItem[] = [
   { label: 'Activity', path: '/history', icon: History },
