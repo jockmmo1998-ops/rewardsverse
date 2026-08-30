@@ -84,12 +84,12 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
           {financeItems.map(item => <NavLink key={item.path} item={item} />)}
         </div>
 
-        {/* Đẩy Account và Admin xuống dưới cùng */}
+        {/* Keep Account and Admin at the bottom */}
         <div className="mt-auto space-y-1 pt-8">
           <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Account</p>
           {accountItems.map(item => <NavLink key={item.path} item={item} />)}
           
-          {/* Chỉ hiển thị Admin khi profile.is_admin là true */}
+          {/* Show Admin only when profile.is_admin is true */}
           {profile?.is_admin && (
             <NavLink 
               item={{ icon: ShieldAlert, label: 'Admin', path: '/admin' }} 

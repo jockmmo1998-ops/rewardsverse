@@ -178,7 +178,7 @@ export default function AuthPage() {
                       autoComplete="new-password"
                       className="h-11 w-full rounded-lg border border-border bg-background px-10 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
                     />
-                    <button type="button" onClick={() => setShowConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Show or hide password xác nhận">
+                    <button type="button" onClick={() => setShowConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Show or hide password confirmation">
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -212,7 +212,7 @@ export default function AuthPage() {
           <p className="mt-6 text-center text-xs text-muted-foreground">
             {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
             <button type="button" onClick={() => switchMode(!isRegister)} className="font-semibold text-emerald-400 hover:text-emerald-300">
-              {isRegister ? "Log in ngay" : "Sign up miễn phí"}
+              {isRegister ? "Log in" : "Sign up free"}
             </button>
           </p>
         </section>

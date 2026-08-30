@@ -84,7 +84,7 @@ export function useSSE(options: UseSSEOptions = {}) {
             console.log("[SSE] Postback event received:", data);
             onPostback?.(data as PostbackEvent);
           } else if (data.type === "balance_update") {
-            // Server gửi sau mỗi postback để client re-fetch profile ngay lập tức
+            // The server sends this after each postback so the client can refresh the profile immediately
             console.log("[SSE] Balance update event received — refreshing profile");
             onBalanceUpdate?.();
           } else if (data.type === "postback_error") {

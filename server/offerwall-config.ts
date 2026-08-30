@@ -8,7 +8,7 @@
 
 type OfferWallUrlBuilder = (userId: string) => string | null;
 
-export type PostbackAuth = "token" | "md5";
+export type PostbackAuth = "token" | "md5" | "sha256";
 export type PostbackResponse = "json" | "ok" | "dup";
 
 export type PostbackParamSpec = {
@@ -133,11 +133,11 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     return url.toString();
   },
   gaintwall: (userId) => {
-    const placement = env("GAINTWALL_PLACEMENT_KEY");
-    if (!placement) return null;
+    const apiKey = env("GAINTWALL_API_KEY", "GAINTWALL_PLACEMENT_KEY");
+    if (!apiKey) return null;
     const url = new URL("https://gaintwall.com/offerwall");
-    url.searchParams.set("placement_key", placement);
-    url.searchParams.set("user_id", userId);
+    url.searchParams.set("apiKey", apiKey);
+    url.searchParams.set("userId", userId);
     return url.toString();
   },
   buckswall: (userId) => appendUserId(env("BUCKSWALL_OFFERWALL_URL") || "https://buckswall.com/offerwall.php?placement_id=78", userId),
@@ -153,7 +153,7 @@ const secretEntries: Array<[string, string]> = [
   ["klink", env("KLINK_POSTBACK_SECRET")],
   ["adswedmedia", env("ADSWEDMEDIA_POSTBACK_SECRET")],
   ["admaxflow", env("ADMAXFLOW_POSTBACK_SECRET")],
-  ["gaintwall", env("GAINTWALL_POSTBACK_SECRET")],
+  ["gaintwall", env("GAINTWALL_POSTBACK_SECRET", "GAINTWALL_API_KEY", "GAINTWALL_PLACEMENT_KEY")],
   ["buckswall", env("BUCKSWALL_POSTBACK_SECRET")],
 ];
 
@@ -244,12 +244,12 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     macros: ["subid", "reward", "transaction_id", "offer_name", "offer_id", "status"],
   },
   gaintwall: {
-    user: "user_id",
+    user: "userId",
     reward: "reward",
-    transaction: "transaction_id",
-    auth: "token",
+    transaction: "transactionId",
+    auth: "sha256",
     response: "json",
-    macros: ["user_id", "reward", "transaction_id", "offer_name", "offer_id", "status"],
+    macros: ["user_id", "offer_id", "offer_name", "payout", "reward", "transaction_id", "status", "ip", "sub1", "sub2", "hash"],
   },
   buckswall: {
     user: "user_id",
@@ -265,8 +265,21 @@ export const getPostbackUrl = (provider: string, baseUrl: string): string | null
   const spec = POSTBACK_PARAM_SPECS[provider];
   const secret = POSTBACK_SECRETS[provider];
   if (!spec || !secret || !baseUrl) return null;
-
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/api/postback/${provider}`);
+  if (provider === "gaintwall") {
+    url.searchParams.set("userId", "{user_id}");
+    url.searchParams.set("offerId", "{offer_id}");
+    url.searchParams.set("offerName", "{offer_name}");
+    url.searchParams.set("payout", "{payout}");
+    url.searchParams.set("reward", "{reward}");
+    url.searchParams.set("transactionId", "{transaction_id}");
+    url.searchParams.set("status", "{status}");
+    url.searchParams.set("ip", "{ip}");
+    url.searchParams.set("sub1", "{aff_sub}");
+    url.searchParams.set("sub2", "{aff_sub2}");
+    url.searchParams.set("hash", "{hash}");
+    return url.toString();
+  }
   if (spec.auth === "md5") {
     url.searchParams.set("signature", `{signature}`);
   } else {

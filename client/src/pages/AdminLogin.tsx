@@ -18,12 +18,12 @@ export default function AdminLogin() {
 
   const promoteMutation = trpc.admin.promoteByPassword.useMutation({
     onSuccess: (data) => {
-      toast.success(data.message || "Đã cấp quyền Admin!");
-      // Reload để refresh session và role
+      toast.success(data.message || "Admin access granted!");
+      // Reload to refresh the session and role
       window.location.href = "/admin";
     },
     onError: (err) => {
-      toast.error(err.message || "Mật khẩu không đúng");
+      toast.error(err.message || "Incorrect password");
     },
   });
 
@@ -37,13 +37,13 @@ export default function AdminLogin() {
     }
   };
 
-  // Nếu đã là admin thì redirect thẳng
+  // Redirect admins directly
   if (!loading && isAdmin) {
     setLocation("/admin");
     return null;
   }
 
-  // Phải đăng nhập trước
+  // Authentication is required first
   if (!loading && !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -52,17 +52,17 @@ export default function AdminLogin() {
             <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-3">
               <ShieldAlert className="w-7 h-7 text-red-400" />
             </div>
-            <CardTitle className="text-xl">Chưa đăng nhập</CardTitle>
+            <CardTitle className="text-xl">Not signed in</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground text-center mb-4">
-              Bạn cần đăng nhập tài khoản trước, sau đó quay lại trang này để nhập mật khẩu admin.
+              Sign in first, then return here to enter the admin password.
             </p>
             <Button
               className="w-full gradient-green-cyan text-white font-bold"
               onClick={() => setLocation("/")}
             >
-              Đăng nhập ngay
+              Sign in now
             </Button>
           </CardContent>
         </Card>
@@ -88,9 +88,9 @@ export default function AdminLogin() {
             <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-3 border border-purple-500/20">
               <ShieldAlert className="w-7 h-7 text-purple-400" />
             </div>
-            <CardTitle className="text-xl font-bold">Xác thực Admin</CardTitle>
+            <CardTitle className="text-xl font-bold">Admin verification</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Nhập mật khẩu admin để kích hoạt quyền cho tài khoản{" "}
+              Enter the admin password to activate access for{" "}
               <span className="text-purple-400 font-semibold">{user?.username}</span>
             </p>
           </CardHeader>
@@ -98,7 +98,7 @@ export default function AdminLogin() {
           <CardContent className="space-y-4 pt-4">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground ml-1 flex items-center gap-1.5">
-                <Lock className="w-3 h-3" /> Mật khẩu Admin Secret
+                <Lock className="w-3 h-3" /> Admin secret password
               </label>
               <div className="relative">
                 <Input
@@ -127,18 +127,18 @@ export default function AdminLogin() {
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Đang xác thực...
+                  Verifying…
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  Kích hoạt quyền Admin
+                  Activate admin access
                   <ArrowRight className="w-4 h-4" />
                 </div>
               )}
             </Button>
 
             <p className="text-[11px] text-muted-foreground text-center pt-1">
-              Mật khẩu được lấy từ biến môi trường <code className="text-purple-400">ADMIN_SECRET</code> trên server.
+              The password is read from the <code className="text-purple-400">ADMIN_SECRET</code> server environment variable.
             </p>
           </CardContent>
         </Card>

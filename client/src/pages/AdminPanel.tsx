@@ -48,7 +48,7 @@ export default function AdminPanel() {
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
-    toast.success("Đã copy Postback URL!");
+    toast.success("Postback URL copied!");
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
@@ -380,15 +380,15 @@ export default function AdminPanel() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Link2 className="w-5 h-5 text-green-400" />
-                  Postback URLs — Cấu hình trong dashboard từng tường ưu đãi
+                  Postback URLs — Configure these in each offerwall dashboard
                 </CardTitle>
                 <Badge variant="outline" className="text-[9px] px-2 py-0 h-5 border-green-500/30 text-green-400 bg-green-500/10 font-bold">
                   {postbackUrls.length} PROVIDERS
                 </Badge>
               </div>
               <p className="text-[11px] text-muted-foreground mt-1">
-                Copy URL rồi dán vào mục "Postback URL" / "Callback URL" trong dashboard của từng nhà cung cấp.
-                Các placeholder user/reward/transaction sẽ được provider tự điền khi gửi callback về.
+                Copy the URL into the "Postback URL" / "Callback URL" field in each provider dashboard.
+                The provider will replace the user/reward/transaction placeholders when sending callbacks.
               </p>
             </CardHeader>
             <CardContent>

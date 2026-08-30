@@ -562,27 +562,30 @@ export default function Home() {
             className="text-center mb-14"
           >
             <div className="inline-flex items-center gap-2 tag-cyber mb-4">
-              <Gift className="w-3 h-3" /> 8 Nhà Cung Cấp Ưu Đãi
+              <Gift className="w-3 h-3" /> 11 Offerwall Providers
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
-              Tường Ưu Đãi <span className="text-gradient">Hàng Đầu</span>
+              Featured <span className="text-gradient">Offerwalls</span>
             </h2>
             <p className="text-muted-foreground text-base max-w-xl mx-auto">
-              Hoàn thành nhiệm vụ đơn giản từ các nhà cung cấp uy tín toàn cầu và nhận thưởng ngay lập tức.
+              Complete simple tasks from trusted global providers and receive rewards directly in your balance.
             </p>
           </motion.div>
 
           {/* Offer Wall Cards Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            {[
-              { id: "gemiwall",    name: "Gemiwall",       reward: "$0.10–$5.00",  tag: "POPULAR",  rating: 4.8, color: "from-yellow-500 to-orange-500", glow: "rgba(245,158,11,0.15)",  logo: "https://gemiwall.com/favicon.ico" },
-              { id: "revtoo",      name: "Revtoo",         reward: "$0.25–$8.00",  tag: "HIGH PAY", rating: 4.9, color: "from-blue-500 to-cyan-500",     glow: "rgba(59,130,246,0.15)",  logo: "https://revtoo.com/assets/offerwall/images/revtoo-dark.svg" },
-              { id: "clickwall",   name: "Clickwall",      reward: "$0.10–$3.00",  tag: "EASY",     rating: 4.5, color: "from-green-500 to-emerald-500", glow: "rgba(0,255,135,0.15)",   logo: "https://www.google.com/s2/favicons?domain=clickwall.com&sz=128" },
-              { id: "moustache",   name: "MoustacheLeads", reward: "$0.50–$10.00", tag: "PREMIUM",  rating: 4.7, color: "from-purple-500 to-pink-500",   glow: "rgba(168,85,247,0.15)",  logo: "https://moustacheleads.com/logo.png" },
-              { id: "taskwall",    name: "Taskwall",       reward: "$0.15–$6.00",  tag: "SIGN-UPS", rating: 4.6, color: "from-indigo-500 to-blue-500",   glow: "rgba(99,102,241,0.15)",  logo: "https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg" },
-              { id: "cointo",      name: "CoinToMedia",    reward: "$0.20–$4.00",  tag: "CRYPTO",   rating: 4.4, color: "from-amber-500 to-yellow-500",  glow: "rgba(245,158,11,0.12)",  logo: "https://cointomedia.com/asset/images/iframe-logo.webp" },
-              { id: "klink",       name: "Klink Finance",  reward: "$0.30–$7.00",  tag: "FINANCE",  rating: 4.8, color: "from-teal-500 to-green-500",    glow: "rgba(20,184,166,0.15)",  logo: "https://assets.klink.finance/CDN/opengraph.jpg" },
-              { id: "adswedmedia", name: "AdsWedMedia",    reward: "$0.10–$6.00",  tag: "NEW",      rating: 4.7, color: "from-rose-500 to-pink-500",     glow: "rgba(244,63,94,0.15)",   logo: "https://adswedmedia.com/asset/storage/photos/logo-img.png" },
+              {[
+              { id: "gemiwall",    name: "GemiWall",      reward: "$0.10–$5.00",  tag: "POPULAR",  rating: 4.8, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://gemiwall.com/favicon.ico" },
+              { id: "revtoo",      name: "Revtoo",        reward: "$0.25–$8.00",  tag: "HIGH PAY", rating: 4.9, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://revtoo.com/assets/offerwall/images/revtoo-light.svg" },
+              { id: "clickwall",   name: "ClickWall",     reward: "$0.10–$3.00",  tag: "EASY",     rating: 4.5, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://clickwall.net/favicon.ico" },
+              { id: "moustache",   name: "Moustache Leads", reward: "$0.50–$10.00", tag: "PREMIUM", rating: 4.7, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://moustacheleads.com/logo.png" },
+              { id: "taskwall",    name: "Taskwall",      reward: "$0.15–$6.00",  tag: "SIGN-UPS", rating: 4.6, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://taskwall.io/taskwall_theme/assets/images/logo/logo.svg" },
+              { id: "cointo",      name: "Cointo",        reward: "$0.20–$4.00",  tag: "CRYPTO",   rating: 4.4, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://cointomedia.com/asset/images/iframe-logo.webp" },
+              { id: "klink",       name: "Klink Labs",    reward: "$0.30–$7.00",  tag: "FINANCE",  rating: 4.8, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://framerusercontent.com/images/B5jG7uAI5h4smXAy2YTXDWDeTU.jpg?width=140&height=29" },
+              { id: "adswedmedia", name: "AdsWedMedia",   reward: "$0.10–$6.00",  tag: "NEW",      rating: 4.7, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://adswedmedia.com/favicon.ico" },
+              { id: "admaxflow",   name: "AdMaxFlow",     reward: "$0.10–$5.00",  tag: "NEW",      rating: 4.6, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://admaxflow.com/favicon.ico" },
+              { id: "gaintwall",   name: "Gaintwall",     reward: "$0.10–$6.00",  tag: "NEW",      rating: 4.7, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://gaintwall.com/assets/img/brand/gaintwall-mark.svg" },
+              { id: "buckswall",   name: "BucksWall",     reward: "$0.10–$6.00",  tag: "SETUP",    rating: 4.6, color: "from-emerald-600 to-green-400", glow: "rgba(22,163,74,0.10)", logo: "https://buckswall.com/favicon.ico" },
             ].map((wall, i) => (
               <motion.div
                 key={wall.id}
@@ -611,12 +614,17 @@ export default function Home() {
                           <span className="text-[11px] font-bold">{wall.rating}</span>
                         </div>
                       </div>
-                      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${wall.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg overflow-hidden`}>
-                        <img src={wall.logo} alt={wall.name} className="w-full h-full object-cover"
+                      <div className={`relative w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg overflow-hidden`}>
+                        <span className="text-xs font-bold text-slate-800">{wall.name.slice(0, 1)}</span>
+                        <img src={wall.logo} alt={`${wall.name} logo`} className="absolute w-full h-full rounded-lg object-contain p-1.5"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       </div>
                     </div>
                     <div className="divider-cyber mb-2" />
+                    <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200"><div className={`h-full rounded-full bg-gradient-to-r ${wall.color}`} style={{ width: "100%" }} /></div>
+                      <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[.12em]"><span className="text-green-600">100%</span><span className="text-slate-400">Rate</span></div>
+                    </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-green-400 font-bold">{wall.reward}</span>
                       <div className="flex items-center gap-0.5 text-green-400 text-[10px] font-bold group-hover:gap-1 transition-all">
@@ -634,13 +642,13 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}
             className="cyber-card rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-green-500/20"
-            style={{ background: "linear-gradient(135deg, rgba(0,255,135,0.05), rgba(0,229,255,0.04), rgba(124,58,237,0.04))" }}
+            style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.92))" }}
           >
             <div>
               <h3 className="text-xl font-extrabold mb-1">
-                Sẵn sàng kiếm tiền? <span className="text-gradient">Đăng ký miễn phí!</span>
+                Ready to start earning? <span className="text-gradient">Sign up free!</span>
               </h3>
-              <p className="text-sm text-muted-foreground">Truy cập 8 tường ưu đãi — nhận thưởng ngay sau khi hoàn thành nhiệm vụ.</p>
+              <p className="text-sm text-muted-foreground">Access 11 offerwalls and receive rewards after completing tasks.</p>
             </div>
             <div className="flex items-center gap-4 shrink-0">
               <div className="text-center">
@@ -665,7 +673,7 @@ export default function Home() {
                   document.getElementById("auth-card")?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                Bắt Đầu <ArrowRight className="ml-1.5 w-4 h-4" />
+                Get Started <ArrowRight className="ml-1.5 w-4 h-4" />
               </Button>
             </div>
           </motion.div>

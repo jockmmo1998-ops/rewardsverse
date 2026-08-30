@@ -7,7 +7,7 @@
 
 type OfferWallUrlBuilder = (userId: string) => string | null;
 
-const env = (name: string): string => process.env[name]?.trim() ?? "";
+const env = (...names: string[]): string => names.map((name) => process.env[name]?.trim() ?? "").find(Boolean) ?? "";
 const encodedUserId = (userId: string): string => encodeURIComponent(userId);
 
 function appendUserId(baseUrl: string, userId: string): string | null {
@@ -71,11 +71,11 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     return url.toString();
   },
   gaintwall: (userId) => {
-    const placement = env("GAINTWALL_PLACEMENT_KEY");
-    if (!placement) return null;
+    const apiKey = env("GAINTWALL_API_KEY") || env("GAINTWALL_PLACEMENT_KEY");
+    if (!apiKey) return null;
     const url = new URL("https://gaintwall.com/offerwall");
-    url.searchParams.set("placement_key", placement);
-    url.searchParams.set("user_id", userId);
+    url.searchParams.set("apiKey", apiKey);
+    url.searchParams.set("userId", userId);
     return url.toString();
   },
   buckswall: (userId) => appendUserId(env("BUCKSWALL_OFFERWALL_URL"), userId),
@@ -91,7 +91,7 @@ const secretEntries: Array<[string, string]> = [
   ["klink", env("KLINK_POSTBACK_SECRET")],
   ["adswedmedia", env("ADSWEDMEDIA_POSTBACK_SECRET")],
   ["admaxflow", env("ADMAXFLOW_POSTBACK_SECRET")],
-  ["gaintwall", env("GAINTWALL_POSTBACK_SECRET")],
+  ["gaintwall", env("GAINTWALL_POSTBACK_SECRET") || env("GAINTWALL_API_KEY") || env("GAINTWALL_PLACEMENT_KEY")],
   ["buckswall", env("BUCKSWALL_POSTBACK_SECRET")],
 ];
 
@@ -118,7 +118,7 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
   klink: { user: "userId", reward: "payout", transaction: "conversionId" },
   adswedmedia: { user: "sub", reward: "reward", transaction: "transid" },
   admaxflow: { user: "subid", reward: "reward", transaction: "transaction_id" },
-  gaintwall: { user: "user_id", reward: "reward", transaction: "transaction_id" },
+  gaintwall: { user: "userId", reward: "reward", transaction: "transactionId" },
   buckswall: { user: "user_id", reward: "reward", transaction: "transaction_id" },
 };
 
@@ -127,6 +127,20 @@ export const getPostbackUrl = (provider: string, baseUrl: string): string | null
   const secret = POSTBACK_SECRETS[provider];
   if (!spec || !secret || !baseUrl) return null;
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/api/postback/${provider}`);
+  if (provider === "gaintwall") {
+    url.searchParams.set("userId", "{user_id}");
+    url.searchParams.set("offerId", "{offer_id}");
+    url.searchParams.set("offerName", "{offer_name}");
+    url.searchParams.set("payout", "{payout}");
+    url.searchParams.set("reward", "{reward}");
+    url.searchParams.set("transactionId", "{transaction_id}");
+    url.searchParams.set("status", "{status}");
+    url.searchParams.set("ip", "{ip}");
+    url.searchParams.set("sub1", "{aff_sub}");
+    url.searchParams.set("sub2", "{aff_sub2}");
+    url.searchParams.set("hash", "{hash}");
+    return url.toString();
+  }
   url.searchParams.set("token", secret);
   url.searchParams.set(spec.user, `{${spec.user}}`);
   url.searchParams.set(spec.reward, `{${spec.reward}}`);

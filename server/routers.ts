@@ -13,6 +13,7 @@ import {
   OFFER_WALL_URLS,
   OFFER_WALL_IDS,
   getPostbackUrl,
+  POSTBACK_PARAM_SPECS,
 } from "./offerwall-config";
 // Admin-only middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -602,18 +603,18 @@ export const appRouter = router({
       return OFFER_WALL_IDS.map((provider) => ({
         provider,
         label: provider === "cointo" ? "CoinToMedia" : provider,
-        authMethod: "token" as const,
+        authMethod: POSTBACK_PARAM_SPECS[provider]?.auth ?? "token",
         configured: Boolean(getPostbackUrl(provider, baseUrl)),
         url: getPostbackUrl(provider, baseUrl),
       }));
     }),
 
-    // Tra cứu user theo username để lấy userId cho việc test postback
+    // Look up a user by username for postback testing
     getUserInfo: adminProcedure
       .input(z.object({ username: z.string().min(1) }))
       .query(async ({ input }) => {
         const user = await db.getUserByUsername(input.username);
-        if (!user) throw new TRPCError({ code: "NOT_FOUND", message: `User "${input.username}" không tồn tại` });
+        if (!user) throw new TRPCError({ code: "NOT_FOUND", message: `User "${input.username}" was not found` });
         return {
           id: user.id,
           username: user.username,
@@ -624,21 +625,21 @@ export const appRouter = router({
         };
       }),
 
-    // Promote tài khoản đang đăng nhập thành admin bằng ADMIN_SECRET
+    // Promote the signed-in account to admin with ADMIN_SECRET
     promoteByPassword: protectedProcedure
       .input(z.object({ secret: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
         const adminSecret = ENV.adminSecret;
         if (!adminSecret || adminSecret.length < 8) {
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "ADMIN_SECRET chưa được cấu hình trên server" });
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "ADMIN_SECRET is not configured on the server" });
         }
         if (input.secret !== adminSecret) {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Mật khẩu admin không đúng" });
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect admin password" });
         }
         const user = await db.getUserByOpenId(ctx.user.openId);
         if (!user) throw new TRPCError({ code: "NOT_FOUND" });
         await db.updateUserProfile(user.id, { role: "admin" });
-        return { success: true, message: "Tài khoản đã được cấp quyền Admin!" };
+        return { success: true, message: "Admin access granted!" };
       }),
   }),
 });

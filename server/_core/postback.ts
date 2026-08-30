@@ -175,6 +175,25 @@ function verifyProviderMd5Signature(
   return constantTimeEqual(expected, signature.toLowerCase());
 }
 
+/** Gaintwall documents SHA256(user_id + offer_id + transaction_id + secretKey). */
+function verifyProviderSha256Signature(
+  secret: string,
+  params: Record<string, any>,
+  spec: PostbackParamSpec,
+): boolean {
+  if (!spec.transaction) return false;
+  const user = pick(params, [spec.user, "user_id"]);
+  const offerId = pick(params, ["offerId", "offer_id"]);
+  const transaction = pick(params, [spec.transaction, "transaction_id"]);
+  const signature = extractSignature(params);
+  if (!user || !offerId || !transaction || !signature) return false;
+  const expected = crypto
+    .createHash("sha256")
+    .update(`${user}${offerId}${transaction}${secret}`)
+    .digest("hex");
+  return constantTimeEqual(expected, signature.toLowerCase());
+}
+
 /**
  * Some networks (notably TaskWall) do not provide a stable transaction ID.
  * Hashing the canonical, non-auth payload makes retries idempotent while still
@@ -212,10 +231,12 @@ function extractSignature(params: Record<string, any>): string {
  * - GET  /api/postback/:provider          → Fallback for GET callbacks
  *
  * Xác thực theo từng provider:
- * - gemiwall / taskwall / clickwall / moustache / klink / admaxflow / gaintwall / buckswall:
+ * - gemiwall / taskwall / clickwall / moustache / klink / admaxflow / buckswall:
  *     token/password query field plain-matches the provider secret
  * - revtoo / cointo / adswedmedia:
  *     signature=md5(user + transaction + reward + secret)
+ * - gaintwall:
+ *     hash=sha256(user_id + offer_id + transaction_id + secret)
  *
  * Chi tiết param từng provider:
  * - revtoo:      subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
@@ -378,6 +399,12 @@ async function handlePostback(req: Request, res: Response) {
     if (spec.auth === "md5") {
       if (!verifyProviderMd5Signature(expectedSecret, params, spec)) {
         console.error(`[Postback][${provider}] MD5 signature mismatch`);
+        return respond(401, { success: false, message: "Invalid postback signature" },
+          "failed", 0, "", "", "", "signature_mismatch");
+      }
+    } else if (spec.auth === "sha256") {
+      if (!verifyProviderSha256Signature(expectedSecret, params, spec)) {
+        console.error(`[Postback][${provider}] SHA-256 signature mismatch`);
         return respond(401, { success: false, message: "Invalid postback signature" },
           "failed", 0, "", "", "", "signature_mismatch");
       }
