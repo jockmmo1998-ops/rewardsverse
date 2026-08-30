@@ -44,6 +44,7 @@ export default function OfferWalls() {
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
   useEffect(() => { if (wallUrlQuery.data?.url) setWallUrl(wallUrlQuery.data.url); }, [wallUrlQuery.data]);
   useEffect(() => { if (!wallUrlQuery.error) return; setWallUrl(''); toast.error(wallUrlQuery.error.message || 'This offer wall is not available yet.'); setActiveWall(null); }, [wallUrlQuery.error]);
+  
   useEffect(() => {
     if (!user?.balance) return;
     const current = parseFloat(String(user.balance));
