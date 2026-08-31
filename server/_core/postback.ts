@@ -616,6 +616,10 @@ async function handlePostback(req: Request, res: Response) {
       // Gaintwall documents payout/reward as negative on reversals. The
       // credit path below applies the sign exactly once for chargebacks.
       ? pickSignedNumeric(params, [spec.reward, "reward"])
+      : provider === "gleamads"
+      // GleamAds may send both virtual reward and USD payout. The wallet is
+      // USD-denominated, so payout must win whenever it is present.
+      ? pickNumeric(params, ["payout", "reward"])
       : provider === "taskwall"
       // Taskwall test callbacks may leave user_amount as a literal macro while
       // payout contains the actual USD value. Prefer payout for our USD wallet
