@@ -307,5 +307,9 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
     if (field === spec.transaction && !spec.transaction) continue;
     url.searchParams.set(field, `{${field}}`);
   }
-  return url.toString();
+  // Revtoo's placement test tool expects literal {macro} tokens and does not
+  // substitute their percent-encoded form (%7Bmacro%7D). URLSearchParams
+  // encodes braces by default, so restore only the macro delimiters while
+  // leaving all other URL escaping intact.
+  return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
 };
