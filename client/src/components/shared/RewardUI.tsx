@@ -36,7 +36,7 @@ export function SectionHeading({
     <div className={cn('flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between', className)}>
       <div className="min-w-0">
         {eyebrow && <p className="rv-eyebrow">{eyebrow}</p>}
-        <h1 className="mt-1 font-display text-2xl font-semibold tracking-[-0.04em] text-foreground sm:text-[1.8rem]">{title}</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-[-0.04em] text-foreground sm:text-[1.8rem]">{title}</h1>
         {description && <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
@@ -61,7 +61,7 @@ export function StatTile({
     <Surface className="group relative overflow-hidden p-5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/30">
       <div className={cn('stat-icon', `stat-icon-${accent}`)}><Icon className="h-[18px] w-[18px]" /></div>
       <p className="mt-5 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
-      <p className="mt-2 font-display text-[1.65rem] font-semibold tracking-[-0.04em] text-foreground">{value}</p>
+      <p className="mt-2 font-display text-[1.65rem] font-bold tracking-[-0.04em] text-foreground">{value}</p>
       {helper && <p className="mt-1 text-xs text-muted-foreground">{helper}</p>}
       <ArrowUpRight className="absolute right-5 top-5 h-4 w-4 text-muted-foreground/40 transition group-hover:text-primary" />
     </Surface>
