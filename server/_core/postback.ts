@@ -261,7 +261,10 @@ function verifyProviderSha256Signature(
   const offerId = pick(params, ["offerId", "offer_id"]);
   const transaction = pick(params, [spec.transaction, "transaction_id"]);
   const signature = extractSignature(params);
-  if (!user || !offerId || !transaction || !signature) return false;
+  // Gaintwall's Test Postback form marks offer_id as optional and sends an
+  // empty value. The documented hash still includes that empty segment, so do
+  // not reject it before computing SHA-256.
+  if (!user || !transaction || !signature) return false;
   const expected = crypto
     .createHash("sha256")
     .update(`${user}${offerId}${transaction}${secret}`)
