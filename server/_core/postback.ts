@@ -604,7 +604,10 @@ async function handlePostback(req: Request, res: Response) {
       // credit path below applies the sign exactly once for chargebacks.
       ? pickSignedNumeric(params, [spec.reward, "reward"])
       : provider === "taskwall"
-      ? pickNumeric(params, ["user_amount"])
+      // Taskwall test callbacks may leave user_amount as a literal macro while
+      // payout contains the actual USD value. Prefer payout for our USD wallet
+      // and retain user_amount as a fallback for older callbacks.
+      ? pickNumeric(params, ["payout", "user_amount"])
       // CoinToMedia sends reward as virtual coins and payout as USD. The
       // RewardsVerse balance is denominated in USD, so payout must win.
       : provider === "cointo"
