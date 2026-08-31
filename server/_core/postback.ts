@@ -225,6 +225,31 @@ function verifyProviderMd5Signature(
   return constantTimeEqual(expected, signature.toLowerCase());
 }
 
+/**
+ * Revtoo has used both the documented short names and legacy aliases in
+ * different placement dashboards. Try only documented field combinations;
+ * every candidate is still required to match the same provider secret.
+ */
+function verifyRevtooSignature(secret: string, params: Record<string, any>): boolean {
+  const signature = extractSignature(params).toLowerCase();
+  if (!signature) return false;
+  for (const userField of ["subId", "user_id", "userId"]) {
+    for (const transactionField of ["transId", "transactionId", "transaction_id"]) {
+      for (const rewardField of ["reward", "payout", "round_reward"]) {
+        const user = pick(params, [userField]);
+        const transaction = pick(params, [transactionField]);
+        const reward = pick(params, [rewardField]);
+        if (!user || !transaction || !reward) continue;
+        const expected = crypto.createHash("md5")
+          .update(`${user}${transaction}${reward}${secret}`)
+          .digest("hex");
+        if (constantTimeEqual(expected, signature)) return true;
+      }
+    }
+  }
+  return false;
+}
+
 /** Gaintwall documents SHA256(user_id + offer_id + transaction_id + secretKey). */
 function verifyProviderSha256Signature(
   secret: string,
@@ -490,7 +515,8 @@ async function handlePostback(req: Request, res: Response) {
       // CoinToMedia has used both reward (virtual coins) and payout (USD) in
       // its MD5 formula across dashboard versions. Accept either documented
       // form, while still requiring the configured secret and transaction.
-      const md5Valid = verifyProviderMd5Signature(expectedSecret, params, spec)
+      const md5Valid = (provider === "revtoo" && verifyRevtooSignature(expectedSecret, params))
+        || verifyProviderMd5Signature(expectedSecret, params, spec)
         // AdsWedMedia has deployed integrations using both the documented
         // camelCase fields and the legacy short aliases. Verify the exact
         // values present in the request; never accept an unsigned fallback.
