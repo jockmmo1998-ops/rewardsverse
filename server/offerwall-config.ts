@@ -201,7 +201,9 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     user: "user_id",
     reward: "payout",
     transaction: "transaction_id",
-    auth: "token",
+    // MoustacheLeads' placement postback builder sends signed-free callbacks;
+    // its API key is only used to authorize the iframe integration.
+    auth: "none",
     response: "json",
     macros: ["user_id", "payout", "transaction_id", "offer_name", "status"],
   },
