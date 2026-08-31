@@ -41,11 +41,11 @@ services:
         sync: false
       - key: REVTOO_POSTBACK_SECRET
         sync: false
-      - key: CLICKWALL_PLACEMENT_ID
+      - key: GLEAMADS_API_KEY
         sync: false
-      - key: CLICKWALL_OFFERWALL_URL
-        sync: false
-      - key: CLICKWALL_POSTBACK_SECRET
+      - key: GLEAMADS_OFFERWALL_URL
+        value: https://gleamads.com/offerwall
+      - key: GLEAMADS_POSTBACK_SECRET
         sync: false
       - key: MOUSTACHE_PLACEMENT_ID
         sync: false

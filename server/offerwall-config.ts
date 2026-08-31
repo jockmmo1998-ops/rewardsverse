@@ -53,7 +53,7 @@ function appendUserId(baseUrl: string, userId: string): string | null {
 export const OFFER_WALL_IDS = [
   "gemiwall",
   "revtoo",
-  "clickwall",
+  "gleamads",
   "moustache",
   "taskwall",
   "cointo",
@@ -67,7 +67,7 @@ export const OFFER_WALL_IDS = [
 export const OFFER_WALL_LABELS: Record<string, string> = {
   gemiwall: "Gemiwall",
   revtoo: "Revtoo",
-  clickwall: "Clickwall",
+  gleamads: "GleamAds",
   moustache: "MoustacheLeads",
   taskwall: "Taskwall",
   cointo: "CoinToMedia",
@@ -91,10 +91,13 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     const base = env("REVTOO_OFFERWALL_URL") || (legacyKey ? `https://revtoo.com/offerwall/${encodeURIComponent(legacyKey)}` : "https://revtoo.com/offerwall/7y9n22mjsz0c3ujyncuomz95k6p31p");
     return `${base.replace(/\/$/, "")}/${encodedUserId(userId)}`;
   },
-  clickwall: (userId) => {
-    const legacyPlacement = env("CLICKWALL_PLACEMENT_ID");
-    const base = env("CLICKWALL_OFFERWALL_URL") || (legacyPlacement ? `https://clickwall.net/app/iframe/${encodeURIComponent(legacyPlacement)}` : "https://clickwall.net/app/iframe/10621");
-    return `${base.replace(/\/$/, "")}/${encodedUserId(userId)}`;
+  gleamads: (userId) => {
+    const apiKey = env("GLEAMADS_API_KEY");
+    if (!apiKey) return null;
+    const url = new URL(env("GLEAMADS_OFFERWALL_URL") || "https://gleamads.com/offerwall");
+    url.searchParams.set("apiKey", apiKey);
+    url.searchParams.set("userId", userId);
+    return url.toString();
   },
   moustache: (userId) => {
     const placement = env("MOUSTACHE_PLACEMENT_ID") || "ZVtFVRbd5DyrjELq";
@@ -146,7 +149,7 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
 const secretEntries: Array<[string, string]> = [
   ["gemiwall", env("GEMIWALL_POSTBACK_SECRET")],
   ["revtoo", env("REVTOO_POSTBACK_SECRET")],
-  ["clickwall", env("CLICKWALL_POSTBACK_SECRET")],
+  ["gleamads", env("GLEAMADS_POSTBACK_SECRET", "GLEAMADS_API_KEY")],
   ["moustache", env("MOUSTACHE_POSTBACK_SECRET")],
   ["taskwall", env("TASKWALL_POSTBACK_SECRET")],
   ["cointo", env("COINTO_POSTBACK_SECRET")],
@@ -186,13 +189,13 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "ok",
     macros: ["subId", "transId", "reward", "payout", "status", "offer_id", "offer_name", "userIp", "debug", "signature"],
   },
-  clickwall: {
+  gleamads: {
     user: "user_id",
-    reward: "amount",
-    transaction: "txid",
+    reward: "reward",
+    transaction: "transaction_id",
     auth: "token",
-    response: "ok",
-    macros: ["user_id", "amount", "payout", "offer_name", "user_ip", "txid", "offer_id"],
+    response: "json",
+    macros: ["user_id", "reward", "transaction_id", "offer_name", "offer_id", "status"],
   },
   moustache: {
     user: "user_id",
