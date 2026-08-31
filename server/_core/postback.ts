@@ -164,7 +164,11 @@ function redactForLog(value: unknown): string {
     return input;
   };
   try {
-    return JSON.stringify(redact(JSON.parse(String(value)))) || "{}";
+    // Express exposes req.query/req.body/req.headers as objects. Parsing
+    // String(object) turns them into "[object Object]" and destroys the
+    // diagnostic payload, so only parse strings and redact objects directly.
+    const parsed = typeof value === "string" ? JSON.parse(value) : value;
+    return JSON.stringify(redact(parsed)) || "{}";
   } catch {
     return "[REDACTED_INVALID_LOG_PAYLOAD]";
   }
