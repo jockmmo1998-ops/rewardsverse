@@ -10,7 +10,7 @@ import { playBellSound } from "@/utils/bellSound";
 import { useSSE } from "@/hooks/useSSE";
 import {
   LayoutDashboard, Gift as OfferIcon, Wallet, History as HistoryIcon,
-  LogOut, Coins, X, ExternalLink, Star,
+  LogOut, Coins, X, ExternalLink, Star, Maximize2, Minimize2,
   Sparkles, Shield, CheckCircle2, ArrowLeft, Zap, ChevronRight, Trophy,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,6 +46,7 @@ export default function OfferWalls() {
   const [, setLocation] = useLocation();
   const [activeWall, setActiveWall] = useState<string | null>(null);
   const [wallUrl, setWallUrl] = useState("");
+  const [isWallFullscreen, setIsWallFullscreen] = useState(false);
   const [previousBalance, setPreviousBalance] = useState<string | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -95,11 +96,13 @@ export default function OfferWalls() {
   const openWall = (wallId: string) => {
     setActiveWall(wallId);
     setWallUrl("");
+    setIsWallFullscreen(false);
   };
   const closeWall = useCallback(() => {
     refreshProfile();
     setTimeout(() => refreshProfile(), 1000);
     setActiveWall(null); setWallUrl("");
+    setIsWallFullscreen(false);
   }, [refreshProfile]);
 
   useSSE({
@@ -255,34 +258,43 @@ export default function OfferWalls() {
         </motion.div>
       </main>
 
-      {/* Offer Wall Iframe Overlay */}
+      {/* Offer Wall Provider Modal — offerwall page only, not offer details */}
       <AnimatePresence>
         {activeWall && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-background flex flex-col">
-            <div className="h-14 border-b border-green-500/15 flex items-center justify-between px-4 bg-background/90 backdrop-blur-md">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={closeWall} className="text-muted-foreground hover:text-green-400">
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                </Button>
-                <span className="text-sm font-bold text-gradient">{OFFER_WALLS.find(w => w.id === activeWall)?.name}</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={closeWall} className="text-muted-foreground hover:text-red-400"><X className="w-4 h-4" /></Button>
-            </div>
-            {wallUrlQuery.isFetching ? (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
-                  <span>Loading offer wall…</span>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className={`fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm sm:p-6 lg:p-10 ${isWallFullscreen ? "p-0" : ""}`}
+            onClick={(event) => { if (event.target === event.currentTarget) closeWall(); }}>
+            <motion.div initial={{ scale: 0.97, y: 8 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.97, y: 8 }}
+              transition={{ duration: 0.18 }}
+              className={`flex h-[78vh] w-[78vw] max-w-[1180px] min-h-0 flex-col overflow-hidden rounded-2xl border border-green-500/20 bg-background shadow-2xl shadow-slate-950/40 ${isWallFullscreen ? "h-screen w-screen max-w-none rounded-none border-0" : "max-sm:h-[86vh] max-sm:w-full"}`}>
+              <div className="flex min-h-16 shrink-0 items-center gap-3 border-b border-green-500/15 bg-background/95 px-4 py-3 backdrop-blur-md sm:px-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="h-9 w-9 shrink-0 overflow-hidden rounded-xl border border-green-500/20 bg-green-500/10 p-1">
+                    <img src={OFFER_WALLS.find(w => w.id === activeWall)?.logo} alt="" className="h-full w-full object-contain" />
+                  </div>
+                  <span className="truncate text-sm font-bold text-gradient sm:text-base">{OFFER_WALLS.find(w => w.id === activeWall)?.name}</span>
+                </div>
+                <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                  <Button variant="ghost" size="sm" onClick={() => setIsWallFullscreen(value => !value)} className="text-xs text-muted-foreground hover:text-green-400">
+                    {isWallFullscreen ? <Minimize2 className="mr-1.5 h-4 w-4" /> : <Maximize2 className="mr-1.5 h-4 w-4" />}
+                    <span className="hidden sm:inline">{isWallFullscreen ? "THU NHỎ" : "MỞ TOÀN MÀN HÌNH"}</span>
+                  </Button>
+                  <Button variant="ghost" size="sm" aria-label="Đóng Offerwall" onClick={closeWall} className="text-muted-foreground hover:text-red-400"><X className="h-4 w-4" /></Button>
                 </div>
               </div>
-            ) : wallUrl ? (
-              <iframe src={wallUrl} className="flex-1 w-full border-0" title="Offer Wall"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation" />
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                This provider is not configured yet.
+              <div className="min-h-0 flex-1 overflow-auto bg-white">
+                {wallUrlQuery.isFetching ? (
+                  <div className="flex h-full items-center justify-center text-muted-foreground">
+                    <div className="flex flex-col items-center gap-3"><div className="h-8 w-8 animate-spin rounded-full border-2 border-green-400 border-t-transparent" /><span>Loading offer wall…</span></div>
+                  </div>
+                ) : wallUrl ? (
+                  <iframe src={wallUrl} className="block h-full min-h-full w-full border-0" title="Offer Wall Provider"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-muted-foreground">This provider is not configured yet.</div>
+                )}
               </div>
-            )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
