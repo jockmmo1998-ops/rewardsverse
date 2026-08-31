@@ -8,7 +8,7 @@
 
 type OfferWallUrlBuilder = (userId: string) => string | null;
 
-export type PostbackAuth = "token" | "md5" | "sha256";
+export type PostbackAuth = "none" | "token" | "md5" | "sha256";
 export type PostbackResponse = "json" | "ok" | "dup";
 
 export type PostbackParamSpec = {
@@ -243,12 +243,12 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     macros: ["subId", "transId", "reward", "round_reward", "payout", "signature", "status", "userIp", "offer_id", "offer_name", "country", "uuid", "event_id", "event_name"],
   },
   admaxflow: {
-    user: "subid",
-    reward: "reward",
-    transaction: "transaction_id",
-    auth: "token",
+    user: "subid1",
+    reward: "payout",
+    transaction: null,
+    auth: "none",
     response: "json",
-    macros: ["subid", "reward", "transaction_id", "offer_name", "offer_id", "status"],
+    macros: ["subid1", "payout", "currency_amount", "currency_name", "offer_name", "ip_address", "status", "subid2"],
   },
   gaintwall: {
     user: "userId",
@@ -274,7 +274,7 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
 export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride?: string): string | null => {
   const spec = POSTBACK_PARAM_SPECS[provider];
   const secret = secretOverride || POSTBACK_SECRETS[provider];
-  if (!spec || !secret || !baseUrl) return null;
+  if (!spec || !baseUrl || (spec.auth !== "none" && !secret)) return null;
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/api/postback/${provider}`);
   if (provider === "gaintwall") {
     url.searchParams.set("userId", "{user_id}");

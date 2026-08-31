@@ -350,7 +350,7 @@ export function registerPostbackRoutes(app: Express) {
         provider,
         label: OFFER_WALL_LABELS[provider] || provider,
         authMethod: spec.auth,
-        configured: Boolean(await db.getActivePostbackSecret(provider)),
+        configured: spec.auth === "none" || Boolean(await db.getActivePostbackSecret(provider)),
         response: spec.response,
       };
     }));
@@ -513,7 +513,7 @@ async function handlePostback(req: Request, res: Response) {
         supportedProviders: OFFER_WALL_IDS,
       }, "failed", 0, "", "", "", "unknown_provider");
     }
-    if (!expectedSecret) {
+    if (spec.auth !== "none" && !expectedSecret) {
       console.error(`[Postback][${provider}] Provider secret is not configured`);
       return respond(503, {
         success: false,
@@ -521,7 +521,10 @@ async function handlePostback(req: Request, res: Response) {
       }, "failed", 0, "", "", "", "provider_not_configured");
     }
 
-    if (spec.auth === "md5") {
+    if (spec.auth === "none") {
+      // AdMaxFlow's documented postback has no signature or token field.
+      // User identity is carried in subid1 and payout is the USD amount.
+    } else if (spec.auth === "md5") {
       // CoinToMedia has used both reward (virtual coins) and payout (USD) in
       // its MD5 formula across dashboard versions. Accept either documented
       // form, while still requiring the configured secret and transaction.
