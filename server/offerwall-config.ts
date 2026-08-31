@@ -262,12 +262,12 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     macros: ["user_id", "offer_id", "offer_name", "payout", "reward", "transaction_id", "status", "ip", "sub1", "sub2", "hash"],
   },
   buckswall: {
-    user: "user_id",
-    reward: "reward",
-    transaction: "transaction_id",
-    auth: "token",
+    user: "subid1",
+    reward: "payout",
+    transaction: null,
+    auth: "none",
     response: "json",
-    macros: ["user_id", "reward", "transaction_id", "offer_name", "offer_id", "status"],
+    macros: ["subid1", "payout", "currency_amount", "currency_name", "offer_name", "ip_address", "status", "subid2", "event_id", "event_name"],
   },
 };
 
