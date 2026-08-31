@@ -622,9 +622,10 @@ async function handlePostback(req: Request, res: Response) {
       // credit path below applies the sign exactly once for chargebacks.
       ? pickSignedNumeric(params, [spec.reward, "reward"])
       : provider === "gleamads"
-      // GleamAds may send both virtual reward and USD payout. The wallet is
-      // USD-denominated, so payout must win whenever it is present.
-      ? pickNumeric(params, ["payout", "reward"])
+      // GleamAds' configured placement currency is Points. Use its reward
+      // field as the point amount; never replace it with payout USD when both
+      // fields are present.
+      ? pickNumeric(params, ["reward"])
       : provider === "taskwall"
       // Taskwall test callbacks may leave user_amount as a literal macro while
       // payout contains the actual USD value. Prefer payout for our USD wallet
