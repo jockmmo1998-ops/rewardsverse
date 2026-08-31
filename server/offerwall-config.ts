@@ -94,10 +94,10 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
   gleamads: (userId) => {
     const apiKey = env("GLEAMADS_API_KEY");
     if (!apiKey) return null;
-    const url = new URL(env("GLEAMADS_OFFERWALL_URL") || "https://gleamads.com/offerwall");
-    url.searchParams.set("apiKey", apiKey);
-    url.searchParams.set("userId", userId);
-    return url.toString();
+    // GleamAds requires API key and user ID as path segments. The old query
+    // form (/offerwall?apiKey=...&userId=...) returns its 404 page.
+    const base = env("GLEAMADS_OFFERWALL_URL") || "https://gleamads.com/offerwall";
+    return `${base.replace(/\/$/, "")}/${encodeURIComponent(apiKey)}/${encodedUserId(userId)}`;
   },
   moustache: (userId) => {
     const placement = env("MOUSTACHE_PLACEMENT_ID") || "ZVtFVRbd5DyrjELq";
