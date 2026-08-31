@@ -125,9 +125,10 @@
   .live-activity-bar { border-bottom: 1px solid #e5e7eb; background: #ffffff; }
 .live-activity-inner { display: flex; min-height: 38px; align-items: center; gap: 1rem; padding: 0 1.5rem; }
 .live-activity-status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .42rem; color: var(--primary); font-size: .62rem; font-weight: 800; letter-spacing: .13em; }
-.live-activity-track { min-width: 0; flex: 1; overflow: hidden; }
-.live-activity-items { display: inline-flex; min-width: max-content; align-items: center; gap: 2.2rem; }
-.live-activity-item { display: inline-flex; align-items: center; gap: .42rem; white-space: nowrap; font-size: .68rem; }
+.live-activity-track { width: 100%; min-width: 0; flex: 1; overflow: hidden; }
+.live-activity-items { display: flex; width: max-content; min-width: max-content; align-items: center; white-space: nowrap; will-change: transform; animation: liveMarquee 55s linear infinite; }
+.live-activity-group { display: flex; flex: 0 0 auto; align-items: center; gap: 2.2rem; padding-right: 2.2rem; }
+.live-activity-item { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .42rem; white-space: nowrap; font-size: .68rem; }
 
 .dashboard-page { color: var(--foreground); }
 .dashboard-hero { display: grid; gap: 1.5rem; overflow: hidden; position: relative; }
@@ -197,8 +198,5 @@
   .quick-stat p:nth-of-type(2) { font-size: 1.35rem; }
   .offer-marketplace { padding: 1rem; }
 }
-@media (prefers-reduced-motion: no-preference) {
-  .live-activity-items { animation: live-scroll 56s linear infinite; will-change: transform; }
-}
-@keyframes live-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+@keyframes liveMarquee { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } .live-activity-items { animation: liveMarquee 55s linear infinite !important; } }
