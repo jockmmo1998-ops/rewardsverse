@@ -43,7 +43,7 @@ const USER_FIELDS = [
 ];
 
 /** All parameter names that carry a reward amount.
- * Thứ tự ưu tiên: payout (số tiền USD provider gửi trong callback)
+ * Thứ tự ưu tiên: payout (số tiền net provider gửi cho user)
  * đặt TRƯỚC reward/amount (gross) để tránh credit gấp đôi khi provider
  * gửi cả hai trường trong cùng một postback.
  */
@@ -56,9 +56,6 @@ const REWARD_FIELDS = [
   // GemiAds specific
   "sale_amount", "commission",
 ];
-
-// Providers send gross USD. Users receive 50% everywhere except Revtoo.
-const USER_PAYOUT_SHARE = 0.5;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -657,15 +654,12 @@ async function handlePostback(req: Request, res: Response) {
     // Provider reversal payloads may carry a negative payout/reward. Keep the
     // amount positive here and let balanceDelta decide whether to credit or
     // debit, preventing a negative reversal from becoming a credit.
-    const providerReward = Math.abs(parseFloat(rawAmount));
-    const reward = provider === "revtoo"
-      ? providerReward
-      : providerReward * USER_PAYOUT_SHARE;
+    const reward = Math.abs(parseFloat(rawAmount));
 
     diagnostics.rewardValidation = "PASS";
 
     // payout=0 is valid for test postbacks — log it clearly but continue
-    if (providerReward === 0) {
+    if (reward === 0) {
       diagnostics.balanceCredit = "PASS (TEST_NO_CREDIT)";
       diagnostics.ledger = "PASS (TEST_NO_CREDIT)";
       console.warn(`[Postback][${provider}] ⚠ Test reward = 0 (payout=0 received). Logging but NOT crediting balance.`);
