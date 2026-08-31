@@ -625,6 +625,11 @@ async function handlePostback(req: Request, res: Response) {
       // RewardsVerse balance is denominated in USD, so payout must win.
       : provider === "cointo"
         ? pickNumeric(params, ["payout", "reward", "round_reward"])
+        // AdsWedMedia test/live callbacks may include reward=0 together with
+        // the actual USD payout. The wallet is USD-denominated, so payout
+        // must be selected before the virtual reward field.
+        : provider === "adswedmedia"
+          ? pickNumeric(params, ["payout", "reward", "round_reward"])
         : pickNumeric(params, [spec.reward, ...REWARD_FIELDS]);
 
     // Log every parsed field before any validation so debugging is easy
