@@ -43,12 +43,12 @@ const USER_FIELDS = [
 ];
 
 /** All parameter names that carry a reward amount.
- * Thứ tự ưu tiên: payout (số tiền net provider gửi cho user)
- * đặt TRƯỚC reward/amount (gross) để tránh credit gấp đôi khi provider
- * gửi cả hai trường trong cùng một postback.
+ * Thứ tự ưu tiên: payout (số tiền provider gửi trong callback)
+ * đặt TRƯỚC reward/amount để tránh credit gấp đôi khi provider gửi cả hai
+ * trường trong cùng một postback.
  */
 const REWARD_FIELDS = [
-  "payout",           // net amount (50% of gross) — ưu tiên cao nhất
+  "payout",           // provider amount — ưu tiên cao nhất
   "reward", "amount", "value",
   "reward_amount", "reward_value", "round_reward",
   "coins", "points", "credit", "earnings",
@@ -56,6 +56,9 @@ const REWARD_FIELDS = [
   // GemiAds specific
   "sale_amount", "commission",
 ];
+
+// The provider amount is the gross/original reward. Credit exactly 50% to the user.
+const USER_PAYOUT_SHARE = 0.5;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -608,10 +611,10 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 5. Extract reward amount ───────────────────────────────────────────
-    // RewardsVerse balances are denominated in USD. Revtoo sends both the
-    // virtual currency amount (reward) and the USD payout; credit payout so a
-    // $1 conversion does not become $50 when the placement exchange rate is
-    // 50 points per dollar. Signature validation still uses reward below.
+    // RewardsVerse balances are denominated in USD. Prefer the provider payout
+    // field when both virtual points and a USD payout are present. The selected
+    // value is the gross/original reward; the user credit is halved below.
+    // Signature validation still uses the provider amount.
     const rawAmount = provider === "revtoo"
       ? pickSignedNumeric(params, ["payout", "reward"])
       : provider === "gaintwall"
@@ -652,14 +655,15 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // Provider reversal payloads may carry a negative payout/reward. Keep the
-    // amount positive here and let balanceDelta decide whether to credit or
-    // debit, preventing a negative reversal from becoming a credit.
-    const reward = Math.abs(parseFloat(rawAmount));
+    // amount positive, apply the 50% user share once, and let balanceDelta
+    // decide whether to credit or debit.
+    const providerReward = Math.abs(parseFloat(rawAmount));
+    const reward = providerReward * USER_PAYOUT_SHARE;
 
     diagnostics.rewardValidation = "PASS";
 
     // payout=0 is valid for test postbacks — log it clearly but continue
-    if (reward === 0) {
+    if (providerReward === 0) {
       diagnostics.balanceCredit = "PASS (TEST_NO_CREDIT)";
       diagnostics.ledger = "PASS (TEST_NO_CREDIT)";
       console.warn(`[Postback][${provider}] ⚠ Test reward = 0 (payout=0 received). Logging but NOT crediting balance.`);
@@ -694,7 +698,7 @@ async function handlePostback(req: Request, res: Response) {
     diagnostics.offerId = offerId;
     diagnostics.offerName = offerName;
 
-    console.log(`[Postback][${provider}] Parsed → user="${rawUserId}" amount=${reward} txid="${txid}" offer="${offerName}"`);
+    console.log(`[Postback][${provider}] Parsed → user="${rawUserId}" gross=${providerReward} userShare=${USER_PAYOUT_SHARE} reward=${reward} txid="${txid}" offer="${offerName}"`);
 
     // ── 9. Duplicate check ────────────────────────────────────────────────
     const existing = await db.checkPostbackDuplicate(provider, eventKey);
