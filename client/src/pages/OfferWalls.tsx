@@ -57,7 +57,6 @@ export default function OfferWalls() {
   const [category, setCategory] = useState('All');
   const [previousBalance, setPreviousBalance] = useState<string | null>(null);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const gaintwallWindowRef = useRef<Window | null>(null);
   const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
   const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
 
@@ -66,18 +65,9 @@ export default function OfferWalls() {
     const url = wallUrlQuery.data?.url;
     if (!url) return;
     if (activeWall === 'gaintwall') {
-      const popup = gaintwallWindowRef.current;
-      if (popup && !popup.closed) {
-        popup.location.href = url;
-        popup.focus();
-        gaintwallWindowRef.current = null;
-        setActiveWall(null);
-        setWallUrl('');
-      } else {
-        // Gaintwall offer URLs can reject iframe embedding (ERR_BLOCKED_BY_RESPONSE).
-        // Fall back to a top-level navigation when the browser blocks the popup.
-        window.location.assign(url);
-      }
+      // Gaintwall and some downstream offer domains reject iframe embedding.
+      // Use a top-level navigation so the provider controls its own offer flow.
+      window.location.assign(url);
       return;
     }
     setWallUrl(url);
@@ -113,7 +103,6 @@ export default function OfferWalls() {
     const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
     if (status && !status.configured) { toast.info('This offer wall is not configured yet. Please contact support.'); return; }
     setWallUrl('');
-    if (wallId === 'gaintwall') gaintwallWindowRef.current = window.open('about:blank', '_blank');
     setActiveWall(wallId);
   };
   const closeWall = useCallback(() => { refreshProfile(); setTimeout(() => refreshProfile(), 1000); setActiveWall(null); setWallUrl(''); }, [refreshProfile]);
