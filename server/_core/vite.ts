@@ -47,6 +47,38 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
+const VALID_SPA_ROUTES = new Set([
+  "/",
+  "/login",
+  "/register",
+  "/home",
+  "/dashboard",
+  "/offerwalls",
+  "/leaderboard",
+  "/achievements",
+  "/history",
+  "/referrals",
+  "/withdraw",
+  "/wallet",
+  "/profile",
+  "/settings",
+  "/support",
+  "/admin",
+  "/admin/login",
+  "/privacy",
+  "/terms",
+  "/cookies",
+  "/reward-policy",
+  "/withdrawal-policy",
+  "/faq",
+]);
+
+function normalizeRoutePath(url: string): string {
+  const pathname = new URL(url, "http://localhost").pathname;
+  if (pathname.length > 1 && pathname.endsWith("/")) return pathname.slice(0, -1);
+  return pathname;
+}
+
 export function serveStatic(app: Express) {
   // Khi bundle bằng esbuild, __dirname trỏ vào dist/
   // Frontend build ra dist/public nên path luôn là dist/public
@@ -59,8 +91,19 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // Keep the SPA fallback for declared React routes only. Unknown paths must
+  // return a real 404 instead of the index shell (soft-404).
+  app.use("*", (req, res) => {
+    const routePath = normalizeRoutePath(req.originalUrl);
+    if (VALID_SPA_ROUTES.has(routePath)) {
+      res.sendFile(path.resolve(distPath, "index.html"));
+      return;
+    }
+
+    res.status(404).type("html").send(`<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>404 — Page not found</title></head>
+  <body><main><h1>Page not found</h1><p>The requested page does not exist.</p><a href="/">Return to RewardsVerse</a></main></body>
+</html>`);
   });
 }
