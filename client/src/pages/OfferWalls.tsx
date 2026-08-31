@@ -103,11 +103,12 @@ export default function OfferWalls() {
     const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
     if (status && !status.configured) { toast.info('This offer wall is not configured yet. Please contact support.'); return; }
     if (NEW_TAB_WALL_IDS.has(wallId)) {
-      const offerWallWindow = window.open('', '_blank', 'noopener,noreferrer');
+      const offerWallWindow = window.open('', '_blank');
       if (!offerWallWindow) {
         toast.error('Please allow pop-ups to open this offer wall in a new tab.');
         return;
       }
+      offerWallWindow.opener = null;
       offerWallWindowRef.current = offerWallWindow;
     }
     setWallUrl('');
