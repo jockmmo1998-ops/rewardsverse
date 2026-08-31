@@ -593,9 +593,13 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 5. Extract reward amount ───────────────────────────────────────────
-    // Taskwall distinguishes virtual currency (user_amount) from the USD
-    // payout. Credit the virtual amount only; never silently substitute USD.
-    const rawAmount = provider === "gaintwall"
+    // RewardsVerse balances are denominated in USD. Revtoo sends both the
+    // virtual currency amount (reward) and the USD payout; credit payout so a
+    // $1 conversion does not become $50 when the placement exchange rate is
+    // 50 points per dollar. Signature validation still uses reward below.
+    const rawAmount = provider === "revtoo"
+      ? pickSignedNumeric(params, ["payout", "reward"])
+      : provider === "gaintwall"
       // Gaintwall documents payout/reward as negative on reversals. The
       // credit path below applies the sign exactly once for chargebacks.
       ? pickSignedNumeric(params, [spec.reward, "reward"])
