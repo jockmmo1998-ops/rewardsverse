@@ -39,6 +39,8 @@ const OFFER_WALLS: OfferWall[] = [
   { id: 'buckswall', name: 'BucksWall', desc: 'Mobile apps, surveys & gaming offers', reward: '$0.10–$6.00', logo: '/assets/provider-logos/buckswall.svg', tag: 'SETUP', category: 'Mobile', rating: 4.6, surface: '#103b24', border: '#16a34a', logoSurface: '#ffffff', accent: '#86efac', track: '#17633e', gradient: 'linear-gradient(90deg, #16a34a, #86efac)', badgeSurface: '#17633e' },
 ];
 
+const NEW_TAB_WALL_IDS = new Set(['admaxflow', 'gaintwall']);
+
 const categories = [
   { label: 'All', icon: Grid2X2 },
   { label: 'Tasks', icon: Zap },
@@ -55,6 +57,7 @@ export default function OfferWalls() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const offerWallWindowRef = useRef<Window | null>(null);
   const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
   const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
 
@@ -62,16 +65,26 @@ export default function OfferWalls() {
   useEffect(() => {
     const url = wallUrlQuery.data?.url;
     if (!url) return;
-    if (activeWall === 'gaintwall' || activeWall === 'admaxflow') {
-      // These providers and some downstream offer domains reject iframe embedding
-      // or block redirects from an embedded context. Use top-level navigation so
-      // the provider controls its own offer flow without changing the URL.
-      window.location.assign(url);
+    if (NEW_TAB_WALL_IDS.has(activeWall ?? '')) {
+      const offerWallWindow = offerWallWindowRef.current;
+      if (offerWallWindow && !offerWallWindow.closed) {
+        offerWallWindow.location.replace(url);
+        offerWallWindowRef.current = null;
+      }
       return;
     }
     setWallUrl(url);
   }, [activeWall, wallUrlQuery.data]);
-  useEffect(() => { if (!wallUrlQuery.error) return; setWallUrl(''); toast.error(wallUrlQuery.error.message || 'This offer wall is not available yet.'); setActiveWall(null); }, [wallUrlQuery.error]);
+  useEffect(() => {
+    if (!wallUrlQuery.error) return;
+    if (NEW_TAB_WALL_IDS.has(activeWall ?? '') && offerWallWindowRef.current && !offerWallWindowRef.current.closed) {
+      offerWallWindowRef.current.close();
+      offerWallWindowRef.current = null;
+    }
+    setWallUrl('');
+    toast.error(wallUrlQuery.error.message || 'This offer wall is not available yet.');
+    setActiveWall(null);
+  }, [activeWall, wallUrlQuery.error]);
 
   useEffect(() => {
     if (!activeWall) return;
@@ -89,11 +102,27 @@ export default function OfferWalls() {
     if (!user) { toast.info('Please sign in before opening an offer wall.'); navigate('/login', { state: { from: '/offerwalls' } }); return; }
     const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
     if (status && !status.configured) { toast.info('This offer wall is not configured yet. Please contact support.'); return; }
+    if (NEW_TAB_WALL_IDS.has(wallId)) {
+      const offerWallWindow = window.open('', '_blank', 'noopener,noreferrer');
+      if (!offerWallWindow) {
+        toast.error('Please allow pop-ups to open this offer wall in a new tab.');
+        return;
+      }
+      offerWallWindowRef.current = offerWallWindow;
+    }
     setWallUrl('');
     setIsWallFullscreen(false);
     setActiveWall(wallId);
   };
-  const closeWall = useCallback(() => { refreshProfile(); setTimeout(() => refreshProfile(), 1000); setActiveWall(null); setWallUrl(''); setIsWallFullscreen(false); }, [refreshProfile]);
+  const closeWall = useCallback(() => {
+    if (offerWallWindowRef.current && !offerWallWindowRef.current.closed) offerWallWindowRef.current.close();
+    offerWallWindowRef.current = null;
+    refreshProfile();
+    setTimeout(() => refreshProfile(), 1000);
+    setActiveWall(null);
+    setWallUrl('');
+    setIsWallFullscreen(false);
+  }, [refreshProfile]);
   const activeName = OFFER_WALLS.find((wall) => wall.id === activeWall)?.name;
 
   if (loading) return <div className="flex min-h-[70vh] items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
