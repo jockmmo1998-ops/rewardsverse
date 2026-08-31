@@ -203,6 +203,21 @@ export async function getUserByVirtualUsername(username: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getOrCreatePostbackTestUser() {
+  const username = "postback_test_user";
+  const existing = await getUserByUsername(username);
+  if (existing) return existing;
+  await upsertUser({
+    openId: username,
+    username,
+    name: "Postback Test User",
+    role: "user",
+    balance: "0.00",
+    totalEarned: "0.00",
+  });
+  return getUserByUsername(username);
+}
+
 export async function getUserByRefCode(refCode: string) {
   const db = await getDb();
   if (!db) return undefined;
@@ -780,6 +795,17 @@ export async function getPostbackLogs(limit = 100) {
     .from(postbackLogs)
     .orderBy(desc(postbackLogs.createdAt))
     .limit(limit);
+}
+
+export async function getPostbackLogById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db
+    .select()
+    .from(postbackLogs)
+    .where(eq(postbackLogs.id, id))
+    .limit(1);
+  return rows[0];
 }
 
 export async function getPostbackLogsByProvider(provider: string, limit = 100) {

@@ -588,6 +588,18 @@ export const appRouter = router({
       return db.getAllPostbacks();
     }),
 
+    getPostbackLogs: adminProcedure.query(async () => {
+      return db.getPostbackLogs(200);
+    }),
+
+    getPostbackLogDetail: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const log = await db.getPostbackLogById(input.id);
+        if (!log) throw new TRPCError({ code: "NOT_FOUND", message: "Postback log not found" });
+        return log;
+      }),
+
     approveWithdrawal: adminProcedure
       .input(z.object({ id: z.number(), note: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
@@ -680,6 +692,12 @@ export const appRouter = router({
         await db.addAuditLog({ adminUserId: ctx.user.id, action: "postback_token_regenerated", targetType: "provider", targetId: input.provider, details: JSON.stringify({ provider: input.provider }) });
         return { provider: input.provider, url };
       }),
+
+    ensurePostbackTestUser: adminProcedure.mutation(async () => {
+      const testUser = await db.getOrCreatePostbackTestUser();
+      if (!testUser) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not create Postback test user" });
+      return { id: testUser.id, username: testUser.username, balance: testUser.balance, sandbox: true };
+    }),
 
     testPostback: adminProcedure
       .input(z.object({ provider: z.string().min(1) }))

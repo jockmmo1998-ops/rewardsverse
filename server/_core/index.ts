@@ -156,9 +156,32 @@ async function runMigrations() {
         await connection.query("CREATE INDEX IF NOT EXISTS `audit_logs_action_idx` ON `audit_logs` (`action`)").catch(() => undefined);
         await connection.query("CREATE INDEX IF NOT EXISTS `audit_logs_created_idx` ON `audit_logs` (`createdAt`)").catch(() => undefined);
         // Legacy production databases can fail the Drizzle baseline migration
-        // because the users table already exists. Create the Postback
-        // credential store here as well so getPostbackUrls can initialize all
-        // provider credentials instead of returning an empty panel.
+        // because the users table already exists. Create all additive Postback
+        // tables here so credentials and detailed diagnostics are available.
+        await connection.query(`CREATE TABLE IF NOT EXISTS \`postback_logs\` (
+          \`id\` int AUTO_INCREMENT NOT NULL,
+          \`provider\` varchar(64) NOT NULL,
+          \`ip\` varchar(64),
+          \`method\` varchar(8) NOT NULL DEFAULT 'GET',
+          \`headers\` text,
+          \`queryParams\` text,
+          \`bodyParams\` text,
+          \`userId\` int NOT NULL DEFAULT 0,
+          \`amount\` decimal(10,2) NOT NULL DEFAULT '0.00',
+          \`transactionId\` varchar(256),
+          \`offerName\` text,
+          \`status\` enum('processed','duplicate','failed') NOT NULL DEFAULT 'processed',
+          \`result\` text,
+          \`errorMessage\` text,
+          \`processingMs\` int,
+          \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT \`postback_logs_id\` PRIMARY KEY(\`id\`)
+        )`);
+        await connection.query("CREATE INDEX IF NOT EXISTS `postback_logs_provider_idx` ON `postback_logs` (`provider`)").catch(() => undefined);
+        await connection.query("CREATE INDEX IF NOT EXISTS `postback_logs_userId_idx` ON `postback_logs` (`userId`)").catch(() => undefined);
+        await connection.query("CREATE INDEX IF NOT EXISTS `postback_logs_status_idx` ON `postback_logs` (`status`)").catch(() => undefined);
+        await connection.query("CREATE INDEX IF NOT EXISTS `postback_logs_created_idx` ON `postback_logs` (`createdAt`)").catch(() => undefined);
+        await connection.query("CREATE INDEX IF NOT EXISTS `postback_logs_txid_idx` ON `postback_logs` (`transactionId`)").catch(() => undefined);
         await connection.query(`CREATE TABLE IF NOT EXISTS \`postback_credentials\` (
           \`id\` int AUTO_INCREMENT NOT NULL,
           \`provider\` varchar(64) NOT NULL,

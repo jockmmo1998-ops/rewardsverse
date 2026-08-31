@@ -336,6 +336,18 @@ async function handlePostback(req: Request, res: Response) {
   const timestamp = new Date().toISOString();
   const remoteIp = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown").split(",")[0].trim();
   const provider = (req.params.provider || "").toLowerCase().trim();
+  const requestUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+  const diagnostics: Record<string, unknown> = {
+    authentication: "FAIL",
+    userResolution: "FAIL",
+    rewardValidation: "FAIL",
+    transaction: "FAIL",
+    duplicateCheck: "FAIL",
+    balanceCredit: "FAIL",
+    ledger: "FAIL",
+    finalResult: "FAILED",
+    requestUrl: requestUrl.replace(/([?&](?:token|password|secret|signature|sig|hash|api_key|apikey)=)[^&]*/gi, "$1[REDACTED]"),
+  };
 
   // Capture full raw request for logging
   const rawHeaders = redactForLog(req.headers);
@@ -368,6 +380,9 @@ async function handlePostback(req: Request, res: Response) {
     dedupeKey?: string,
   ): Promise<Response> {
     const ms = Date.now() - startTime;
+    diagnostics.finalResult = logStatus === "processed" ? "PROCESSED" : logStatus === "duplicate" ? "DUPLICATE" : "FAILED";
+    if (errorMsg) diagnostics.error = errorMsg;
+    const diagnosticResult = JSON.stringify({ diagnostics, provider, offerId: pick(params, ["offerId", "offer_id", "company_id", "campaign_id", "app_id"]), rawParameterKeys: Object.keys(params), upstreamResult: payload });
     // Log to detailed postback_logs table (non-critical — never crash on failure)
     db.logPostbackDetail({
       provider,
@@ -381,8 +396,8 @@ async function handlePostback(req: Request, res: Response) {
       transactionId: resolvedTxid,
       offerName: resolvedOfferName,
       status: logStatus,
-      result: JSON.stringify(payload),
-      errorMessage: errorMsg,
+      result: diagnosticResult,
+      errorMessage: errorMsg || String(diagnostics.error || ""),
       processingMs: ms,
     }).catch((e) => console.warn("[Postback] logPostbackDetail failed:", e?.message));
 
@@ -471,6 +486,7 @@ async function handlePostback(req: Request, res: Response) {
           "failed", 0, "", "", "", "invalid_token");
       }
     }
+    diagnostics.authentication = "PASS";
     console.log(`[Postback][${provider}] Auth OK (${spec.auth})`);
 
     // ── 3. Extract status ──────────────────────────────────────────────────
@@ -500,6 +516,9 @@ async function handlePostback(req: Request, res: Response) {
 
     // ── 4. Extract user identifier ─────────────────────────────────────────
     const rawUserId = pick(params, [spec.user, ...USER_FIELDS]);
+    const sandboxRequested = rawUserId === "postback_test_user" || ["1", "true", "sandbox"].includes(pick(params, ["test_mode", "testMode"]).toLowerCase());
+    diagnostics.userIdentifier = rawUserId;
+    diagnostics.testMode = sandboxRequested;
     if (!rawUserId) {
       console.error(`[Postback][${provider}] No user identifier found. Query: ${rawQuery}  Body: ${rawBody}`);
       return respond(400, {
@@ -536,8 +555,12 @@ async function handlePostback(req: Request, res: Response) {
 
     const reward = parseFloat(rawAmount);
 
+    diagnostics.rewardValidation = "PASS";
+
     // payout=0 is valid for test postbacks — log it clearly but continue
     if (reward === 0) {
+      diagnostics.balanceCredit = "PASS (TEST_NO_CREDIT)";
+      diagnostics.ledger = "PASS (TEST_NO_CREDIT)";
       console.warn(`[Postback][${provider}] ⚠ Test reward = 0 (payout=0 received). Logging but NOT crediting balance.`);
       return respond(200, {
         success: true,
@@ -558,6 +581,8 @@ async function handlePostback(req: Request, res: Response) {
       rawTxid = buildDeterministicEventId(provider, params);
     }
     const txid = rawTxid;
+    diagnostics.transaction = txid ? "PASS" : "FAIL";
+    diagnostics.transactionId = txid;
     const eventKey = isChargeback ? `${txid}:chargeback` : txid;
 
     // ── 7. Extract offer name ──────────────────────────────────────────────
@@ -565,11 +590,14 @@ async function handlePostback(req: Request, res: Response) {
 
     // ── 8. Offer / campaign ID ─────────────────────────────────────────────
     const offerId = pick(params, ["offerId", "offer_id", "company_id", "campaign_id", "app_id"]);
+    diagnostics.offerId = offerId;
+    diagnostics.offerName = offerName;
 
     console.log(`[Postback][${provider}] Parsed → user="${rawUserId}" amount=${reward} txid="${txid}" offer="${offerName}"`);
 
     // ── 9. Duplicate check ────────────────────────────────────────────────
     const existing = await db.checkPostbackDuplicate(provider, eventKey);
+    diagnostics.duplicateCheck = existing ? "FAIL" : "PASS";
     if (existing) {
       console.log(`[Postback][${provider}] DUPLICATE txid=${txid} — processed at ${existing.createdAt}`);
       return respond(200, {
@@ -612,6 +640,7 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     if (!user) {
+      diagnostics.userIdentifier = rawUserId;
       if (provider === "taskwall") {
         console.error(`[Postback][taskwall] TASKWALL_USER_NOT_FOUND userid="${rawUserId}"`);
       } else {
@@ -626,12 +655,34 @@ async function handlePostback(req: Request, res: Response) {
       return res; // already responded
     }
 
+    diagnostics.userResolution = "PASS";
+    diagnostics.userIdentifier = rawUserId;
+    diagnostics.resolvedUserId = user.id;
+    diagnostics.rewardValidation = Number.isFinite(reward) && reward >= 0 ? "PASS" : "FAIL";
+    diagnostics.receivedReward = rawAmount;
+
+    if (sandboxRequested) {
+      diagnostics.balanceCredit = "PASS (SANDBOX_NO_CREDIT)";
+      diagnostics.ledger = "PASS (SANDBOX_NO_CREDIT)";
+      return respond(200, {
+        success: true,
+        message: "Sandbox test postback received — production balance and ledger were not changed",
+        sandbox: true,
+        detectedUser: rawUserId,
+        detectedReward: rawAmount,
+        transactionId: txid,
+        offerId,
+        offerName,
+      }, "processed", user.id, rawAmount, txid, offerName, undefined, eventKey);
+    }
+
     // ── 11. Credit user (wrapped — critical path) ─────────────────────────
     const balanceDelta = isChargeback ? -reward : reward;
     console.log(`[Postback][${provider}] ${isChargeback ? "Reversing" : "Crediting"} $${reward.toFixed(2)} ${isChargeback ? "from" : "to"} ${user.username} (id=${user.id})`);
 
     try {
       await db.addBalance(user.id, balanceDelta);
+      diagnostics.balanceCredit = "PASS";
       console.log(`[Postback][${provider}] Balance updated OK`);
     } catch (err: any) {
       console.error(`[Postback][${provider}] CRITICAL: addBalance FAILED:`, err?.message);
@@ -649,7 +700,7 @@ async function handlePostback(req: Request, res: Response) {
     const creditLabel = offerName ? `[${provider}] ${offerName}` : `[${provider}] Offer`;
 
     if (isChargeback) {
-      await Promise.allSettled([
+      const ledgerResults = await Promise.allSettled([
         db.addWalletTransaction({
           userId: user.id,
           type: "debit",
@@ -673,8 +724,9 @@ async function handlePostback(req: Request, res: Response) {
           isRead: 0,
         }),
       ]);
+      diagnostics.ledger = ledgerResults.every(result => result.status === "fulfilled") ? "PASS" : "FAIL";
     } else {
-      await Promise.allSettled([
+      const ledgerResults = await Promise.allSettled([
         db.addXP(user.id, 15),
         db.incrementOffers(user.id),
         db.addEarning({ userId: user.id, amount: reward.toFixed(2), type: "offer", source: creditLabel }),
@@ -712,6 +764,7 @@ async function handlePostback(req: Request, res: Response) {
           if (u?.username) db.updateLeaderboard(u.id, u.username, parseFloat(u.totalEarned || "0")).catch(() => {});
         }),
       ]);
+      diagnostics.ledger = ledgerResults.every(result => result.status === "fulfilled") ? "PASS" : "FAIL";
     }
 
     // ── 13. SSE real-time push ────────────────────────────────────────────
