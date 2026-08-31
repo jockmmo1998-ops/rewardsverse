@@ -1,10 +1,13 @@
 import { Bell, Check, ChevronDown, ExternalLink, LogOut, Menu, Search, Settings, UserRound, WalletCards } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSSE } from '@/hooks/useSSE';
+import { playBellSound, unlockBellSound } from '@/utils/bellSound';
 
 const labels: Record<string, string> = {
   '/home': 'Dashboard', '/dashboard': 'Dashboard', '/offerwalls': 'Earn rewards', '/leaderboard': 'Leaderboard', '/achievements': 'Achievements',
@@ -29,16 +32,71 @@ function money(value: unknown) {
 
 export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   const location = useLocation();
-  const { user, profile, logout } = useAuth();
+  const { user, profile, logout, refreshProfile } = useAuth();
   const [openMenu, setOpenMenu] = useState<'notifications' | 'profile' | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const pageLabel = labels[location.pathname] || 'RewardsVerse';
-  const notifications = trpc.notifications.getAll.useQuery(undefined, { enabled: Boolean(user), retry: false, refetchOnWindowFocus: false });
-  const unread = trpc.notifications.getUnread.useQuery(undefined, { enabled: Boolean(user), retry: false, refetchOnWindowFocus: false });
-  const markRead = trpc.notifications.markRead.useMutation({ onSuccess: () => { void notifications.refetch(); void unread.refetch(); } });
-  const markAllRead = trpc.notifications.markAllRead.useMutation({ onSuccess: () => { void notifications.refetch(); void unread.refetch(); } });
+  const notifications = trpc.notifications.getAll.useQuery(undefined, {
+    enabled: Boolean(user),
+    retry: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15000,
+    refetchIntervalInBackground: true,
+  });
+  const unread = trpc.notifications.getUnread.useQuery(undefined, {
+    enabled: Boolean(user),
+    retry: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15000,
+    refetchIntervalInBackground: true,
+  });
+  const refreshNotifications = useCallback(() => {
+    void notifications.refetch();
+    void unread.refetch();
+  }, [notifications.refetch, unread.refetch]);
+  const handlePostback = useCallback(async (event: { amount: number; offerName: string; provider: string }) => {
+    if (event.amount <= 0) return;
+    refreshNotifications();
+    await refreshProfile();
+    if (localStorage.getItem('rewardsverse-reward-sound') !== 'off') {
+      await playBellSound();
+    }
+    toast.success(`Reward received! +$${event.amount.toFixed(2)}`, {
+      description: `${event.offerName} via ${event.provider}`,
+      duration: 6000,
+    });
+  }, [refreshNotifications, refreshProfile]);
+  const handleBalanceUpdate = useCallback(() => {
+    refreshNotifications();
+    void refreshProfile();
+  }, [refreshNotifications, refreshProfile]);
+  useSSE({
+    onPostback: handlePostback,
+    onBalanceUpdate: handleBalanceUpdate,
+    onError: (error) => console.warn('[TopBar] Realtime notification error:', error.message),
+    enabled: Boolean(user?.id),
+  });
+  const markRead = trpc.notifications.markRead.useMutation({ onSuccess: refreshNotifications });
+  const markAllRead = trpc.notifications.markAllRead.useMutation({ onSuccess: refreshNotifications });
   const avatarUrl = (user as any)?.avatarUrl || (user as any)?.avatar || (user as any)?.imageUrl;
   const initials = useMemo(() => getInitials(user), [user]);
+
+  useEffect(() => {
+    let unlocked = false;
+    const unlockAudio = () => {
+      if (unlocked) return;
+      unlocked = true;
+      void unlockBellSound();
+      window.removeEventListener('pointerdown', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    };
+    window.addEventListener('pointerdown', unlockAudio, { passive: true });
+    window.addEventListener('keydown', unlockAudio);
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    };
+  }, []);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => { if (menuRef.current && !menuRef.current.contains(event.target as Node)) setOpenMenu(null); };

@@ -5,8 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSSE } from '@/hooks/useSSE';
-import { playBellSound } from '@/utils/bellSound';
 import { EmptyState, LoadingRows, SectionHeading, Surface } from '@/components/shared/RewardUI';
 
 type OfferWall = {
@@ -83,19 +81,6 @@ export default function OfferWalls() {
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [activeWall, refreshProfile]);
-  useSSE({
-    onPostback: async (event) => {
-      // The server emits this event only after a successful credit/ledger write.
-      // Ignore reversals so they cannot trigger a completion notification.
-      if (event.amount <= 0) return;
-      await playBellSound().catch(() => {});
-      toast.success(`Offer completed! +$${event.amount.toFixed(2)}`, { duration: 6000 });
-      refreshProfile();
-      setTimeout(() => refreshProfile(), 1500);
-    },
-    onBalanceUpdate: () => refreshProfile(),
-  });
-
   const visibleWalls = useMemo(() => OFFER_WALLS.filter((wall) => (category === 'All' || wall.category === category) && `${wall.name} ${wall.desc} ${wall.tag}`.toLowerCase().includes(search.toLowerCase())), [category, search]);
   const openWall = (wallId: string) => {
     if (loading) return;
