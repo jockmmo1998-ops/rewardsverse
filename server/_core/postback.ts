@@ -191,7 +191,9 @@ function redactForLog(value: unknown): string {
 }
 
 /** Accept any of several common auth-token field names */
-const TOKEN_FIELDS = ["token", "secret", "apikey", "api_key", "hash", "key"];
+const TOKEN_FIELDS = [
+  "token", "secret", "apikey", "apiKey", "api_key", "auth_token", "access_token", "hash", "key",
+];
 
 function extractToken(params: Record<string, any>, spec?: PostbackParamSpec): string {
   return pick(params, [...(spec?.authFields || []), ...TOKEN_FIELDS]);
