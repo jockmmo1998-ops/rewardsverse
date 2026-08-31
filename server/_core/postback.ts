@@ -451,7 +451,11 @@ async function handlePostback(req: Request, res: Response) {
     // JSON. Keep JSON for internal/test providers and error responses.
     const providerSpec = POSTBACK_PARAM_SPECS[provider];
     if (providerSpec?.response === "ok" && httpStatus < 300) {
-      const body = logStatus === "duplicate" && provider === "adswedmedia" ? "DUP" : "OK";
+      // Revtoo explicitly requires the lowercase body "ok". Keep the
+      // legacy duplicate marker used by AdsWedMedia unchanged.
+      const body = logStatus === "duplicate" && provider === "adswedmedia"
+        ? "DUP"
+        : provider === "revtoo" ? "ok" : "OK";
       return res.status(httpStatus).type("text/plain").send(body);
     }
     return res.status(httpStatus).json(payload);
