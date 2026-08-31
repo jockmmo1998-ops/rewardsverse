@@ -100,7 +100,7 @@ const COMPLETED_STATUSES = new Set([
 /** Status values used by offerwall networks for a reversal/chargeback. */
 const CHARGEBACK_STATUSES = new Set([
   "2", "reversed", "reverse", "chargeback", "refund", "refunded",
-  "cancelled", "canceled", "debit",
+  "cancelled", "canceled", "rejected", "debit",
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -135,6 +135,19 @@ function pickNumeric(params: Record<string, any>, fields: string[]): string {
     if (/^[\[{]/.test(s)) continue;
     const n = Number(s);
     if (!isNaN(n) && isFinite(n) && n >= 0) return s;
+  }
+  return "";
+}
+
+/** Pick a finite numeric amount while allowing negative reversal values. */
+function pickSignedNumeric(params: Record<string, any>, fields: string[]): string {
+  for (const f of fields) {
+    const v = params[f];
+    if (v === undefined || v === null) continue;
+    const s = String(v).trim();
+    if (s === "" || /^[\[{]/.test(s)) continue;
+    const n = Number(s);
+    if (!isNaN(n) && isFinite(n)) return s;
   }
   return "";
 }
@@ -532,7 +545,11 @@ async function handlePostback(req: Request, res: Response) {
     // ── 5. Extract reward amount ───────────────────────────────────────────
     // Taskwall distinguishes virtual currency (user_amount) from the USD
     // payout. Credit the virtual amount only; never silently substitute USD.
-    const rawAmount = provider === "taskwall"
+    const rawAmount = provider === "gaintwall"
+      // Gaintwall documents payout/reward as negative on reversals. The
+      // credit path below applies the sign exactly once for chargebacks.
+      ? pickSignedNumeric(params, [spec.reward, "reward"])
+      : provider === "taskwall"
       ? pickNumeric(params, ["user_amount"])
       // CoinToMedia sends reward as virtual coins and payout as USD. The
       // RewardsVerse balance is denominated in USD, so payout must win.
@@ -553,7 +570,10 @@ async function handlePostback(req: Request, res: Response) {
       }, "failed", 0, "", "", "", "missing_amount");
     }
 
-    const reward = parseFloat(rawAmount);
+    // Provider reversal payloads may carry a negative payout/reward. Keep the
+    // amount positive here and let balanceDelta decide whether to credit or
+    // debit, preventing a negative reversal from becoming a credit.
+    const reward = Math.abs(parseFloat(rawAmount));
 
     diagnostics.rewardValidation = "PASS";
 

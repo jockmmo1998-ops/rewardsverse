@@ -562,8 +562,16 @@ export async function getOrCreatePostbackToken(provider: string, rotate = false)
   return token;
 }
 
-/** Returns the database-managed credential first, with env fallback for legacy deployments. */
+/**
+ * Returns the active callback credential. Gaintwall is different from the
+ * token-based providers: its callback sends a hash generated with the
+ * Placement Postback Secret, so a random database-generated admin token must
+ * never override the deployment secret used by Gaintwall itself.
+ */
 export async function getActivePostbackSecret(provider: string): Promise<string> {
+  if (provider === "gaintwall" && POSTBACK_SECRETS[provider]) {
+    return POSTBACK_SECRETS[provider];
+  }
   const stored = await getPostbackCredential(provider);
   return stored?.token || POSTBACK_SECRETS[provider] || "";
 }

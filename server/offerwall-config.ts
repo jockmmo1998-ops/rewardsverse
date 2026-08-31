@@ -252,7 +252,10 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
   },
   gaintwall: {
     user: "userId",
-    reward: "reward",
+    // RewardsVerse balances are denominated in USD. Gaintwall sends both
+    // reward (virtual currency) and payout (USD); credit payout to avoid
+    // turning a $2.80 conversion into 280.00 balance units.
+    reward: "payout",
     transaction: "transactionId",
     auth: "sha256",
     response: "json",
