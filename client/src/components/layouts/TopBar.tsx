@@ -56,11 +56,11 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   }, [notifications.refetch, unread.refetch]);
   const handlePostback = useCallback(async (event: { amount: number; offerName: string; provider: string }) => {
     if (event.amount <= 0) return;
-    refreshNotifications();
-    await refreshProfile();
     if (localStorage.getItem('rewardsverse-reward-sound') !== 'off') {
       await playBellSound();
     }
+    refreshNotifications();
+    void refreshProfile();
     toast.success(`Reward received! +$${event.amount.toFixed(2)}`, {
       description: `${event.offerName} via ${event.provider}`,
       duration: 6000,
@@ -70,10 +70,13 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
     refreshNotifications();
     void refreshProfile();
   }, [refreshNotifications, refreshProfile]);
+  const handleSSEError = useCallback((error: Error) => {
+    console.warn('[TopBar] Realtime notification error:', error.message);
+  }, []);
   useSSE({
     onPostback: handlePostback,
     onBalanceUpdate: handleBalanceUpdate,
-    onError: (error) => console.warn('[TopBar] Realtime notification error:', error.message),
+    onError: handleSSEError,
     enabled: Boolean(user?.id),
   });
   const markRead = trpc.notifications.markRead.useMutation({ onSuccess: refreshNotifications });
