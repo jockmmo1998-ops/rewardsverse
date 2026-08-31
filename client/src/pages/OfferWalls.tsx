@@ -62,9 +62,10 @@ export default function OfferWalls() {
   useEffect(() => {
     const url = wallUrlQuery.data?.url;
     if (!url) return;
-    if (activeWall === 'gaintwall') {
-      // Gaintwall and some downstream offer domains reject iframe embedding.
-      // Use a top-level navigation so the provider controls its own offer flow.
+    if (activeWall === 'gaintwall' || activeWall === 'admaxflow') {
+      // These providers and some downstream offer domains reject iframe embedding
+      // or block redirects from an embedded context. Use top-level navigation so
+      // the provider controls its own offer flow without changing the URL.
       window.location.assign(url);
       return;
     }
