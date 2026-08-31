@@ -265,11 +265,18 @@ function verifyProviderSha256Signature(
   // empty value. The documented hash still includes that empty segment, so do
   // not reject it before computing SHA-256.
   if (!user || !transaction || !signature) return false;
-  const expected = crypto
-    .createHash("sha256")
-    .update(`${user}${offerId}${transaction}${secret}`)
-    .digest("hex");
-  return constantTimeEqual(expected, signature.toLowerCase());
+  // The Gaintwall test form stores an optional offer_id as an empty string,
+  // while some versions generate the test hash using the placeholder value
+  // "0". Try both only when the field is empty; both candidates still require
+  // the configured placement secret and a full SHA-256 match.
+  const offerIds = offerId === "" ? ["", "0"] : [offerId];
+  return offerIds.some((candidateOfferId) => {
+    const expected = crypto
+      .createHash("sha256")
+      .update(`${user}${candidateOfferId}${transaction}${secret}`)
+      .digest("hex");
+    return constantTimeEqual(expected, signature.toLowerCase());
+  });
 }
 
 /**
