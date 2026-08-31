@@ -55,7 +55,6 @@ export default function OfferWalls() {
   const [wallUrl, setWallUrl] = useState('');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
-  const [previousBalance, setPreviousBalance] = useState<string | null>(null);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
   const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
@@ -75,13 +74,6 @@ export default function OfferWalls() {
   useEffect(() => { if (!wallUrlQuery.error) return; setWallUrl(''); toast.error(wallUrlQuery.error.message || 'This offer wall is not available yet.'); setActiveWall(null); }, [wallUrlQuery.error]);
 
   useEffect(() => {
-    if (!user?.balance) return;
-    const current = parseFloat(String(user.balance));
-    const previous = previousBalance ? parseFloat(previousBalance) : current;
-    if (current > previous) { playBellSound().catch(() => {}); toast.success(`Balance updated +$${(current - previous).toFixed(2)}`); }
-    setPreviousBalance(String(user.balance));
-  }, [user?.balance]);
-  useEffect(() => {
     if (!activeWall) return;
     pollingIntervalRef.current = setInterval(() => refreshProfile(), 15000);
     return () => { if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); pollingIntervalRef.current = null; };
@@ -92,7 +84,15 @@ export default function OfferWalls() {
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [activeWall, refreshProfile]);
   useSSE({
-    onPostback: async (event) => { await playBellSound().catch(() => {}); toast.success(`+$${event.amount.toFixed(2)} from ${event.provider}${event.offerName ? ` — ${event.offerName}` : ''}`, { duration: 6000 }); refreshProfile(); setTimeout(() => refreshProfile(), 1500); },
+    onPostback: async (event) => {
+      // The server emits this event only after a successful credit/ledger write.
+      // Ignore reversals so they cannot trigger a completion notification.
+      if (event.amount <= 0) return;
+      await playBellSound().catch(() => {});
+      toast.success(`Offer completed! +$${event.amount.toFixed(2)}`, { duration: 6000 });
+      refreshProfile();
+      setTimeout(() => refreshProfile(), 1500);
+    },
     onBalanceUpdate: () => refreshProfile(),
   });
 
