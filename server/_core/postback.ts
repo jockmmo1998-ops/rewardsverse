@@ -107,12 +107,22 @@ const CHARGEBACK_STATUSES = new Set([
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Pick the first non-empty value from a list of param-map fields */
+/**
+ * Pick the last usable value from a list of fields. Some provider test tools
+ * append a second query string to an already templated callback URL, which
+ * makes Node expose duplicate keys as arrays such as
+ * ["{signature}", "actual-signature"]. Never stringify that array: it would
+ * invalidate the signature and numeric parsing.
+ */
 function pick(params: Record<string, any>, fields: string[]): string {
   for (const f of fields) {
     const v = params[f];
-    if (v !== undefined && v !== null && String(v).trim() !== "") {
-      return String(v).trim();
+    const candidates = Array.isArray(v) ? [...v].reverse() : [v];
+    for (const candidate of candidates) {
+      if (candidate === undefined || candidate === null) continue;
+      const value = String(candidate).trim();
+      if (value === "" || /^[\[{].*[\]}]$/.test(value)) continue;
+      return value;
     }
   }
   return "";
@@ -127,14 +137,17 @@ function pick(params: Record<string, any>, fields: string[]): string {
 function pickNumeric(params: Record<string, any>, fields: string[]): string {
   for (const f of fields) {
     const v = params[f];
-    // Allow explicit "0" — only skip undefined/null/empty
-    if (v === undefined || v === null) continue;
-    const s = String(v).trim();
-    if (s === "") continue;
-    // Reject template placeholders e.g. {AMOUNT}, [AMOUNT]
-    if (/^[\[{]/.test(s)) continue;
-    const n = Number(s);
-    if (!isNaN(n) && isFinite(n) && n >= 0) return s;
+    const candidates = Array.isArray(v) ? [...v].reverse() : [v];
+    for (const candidate of candidates) {
+      // Allow explicit "0" — only skip undefined/null/empty
+      if (candidate === undefined || candidate === null) continue;
+      const s = String(candidate).trim();
+      if (s === "") continue;
+      // Reject template placeholders e.g. {AMOUNT}, [AMOUNT]
+      if (/^[\[{]/.test(s)) continue;
+      const n = Number(s);
+      if (!isNaN(n) && isFinite(n) && n >= 0) return s;
+    }
   }
   return "";
 }
@@ -143,11 +156,14 @@ function pickNumeric(params: Record<string, any>, fields: string[]): string {
 function pickSignedNumeric(params: Record<string, any>, fields: string[]): string {
   for (const f of fields) {
     const v = params[f];
-    if (v === undefined || v === null) continue;
-    const s = String(v).trim();
-    if (s === "" || /^[\[{]/.test(s)) continue;
-    const n = Number(s);
-    if (!isNaN(n) && isFinite(n)) return s;
+    const candidates = Array.isArray(v) ? [...v].reverse() : [v];
+    for (const candidate of candidates) {
+      if (candidate === undefined || candidate === null) continue;
+      const s = String(candidate).trim();
+      if (s === "" || /^[\[{]/.test(s)) continue;
+      const n = Number(s);
+      if (!isNaN(n) && isFinite(n)) return s;
+    }
   }
   return "";
 }
