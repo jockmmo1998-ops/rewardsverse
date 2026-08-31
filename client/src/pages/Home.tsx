@@ -602,13 +602,13 @@ export default function Home() {
                         </div>
                         <div className="min-w-0 pt-0.5">
                           <div className="flex items-center gap-2"><h3 className="truncate text-sm font-semibold text-white">{wall.name}</h3><span className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider" style={{ background: wall.badgeSurface, color: wall.accent }}>{wall.tag}</span></div>
-                          <p className="mt-1 truncate text-xs text-slate-400">{wall.desc}</p>
+                          <p className="mt-1 truncate text-xs text-white/75">{wall.desc}</p>
                         </div>
                       </div>
                       <ChevronRight className="mt-1 h-4 w-4 shrink-0" style={{ color: wall.accent }} />
                     </div>
-                    <div className="mt-4 rounded-xl border p-3" style={{ borderColor: `${wall.border}99`, background: `${wall.track}55` }}><div className="h-1.5 overflow-hidden rounded-full" style={{ background: wall.track }}><div className="h-full rounded-full" style={{ width: "100%", background: wall.gradient }} /></div><div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[.12em]"><span style={{ color: wall.accent }}>100%</span><span className="text-slate-400">Rate</span></div></div>
-                    <div className="mt-auto flex items-center justify-between border-t pt-3" style={{ borderColor: `${wall.border}99` }}><div className="flex items-center gap-3"><span className="flex items-center gap-1 text-xs text-amber-300"><Star className="h-3 w-3 fill-current" /> {wall.rating}</span><span className="flex items-center gap-1 text-xs text-slate-400">5–20 min</span></div><span className="text-xs font-semibold" style={{ color: wall.accent }}>Earn {wall.reward}</span></div>
+                    <div className="mt-4 rounded-xl border p-3" style={{ borderColor: `${wall.border}99`, background: `${wall.track}55` }}><div className="h-1.5 overflow-hidden rounded-full" style={{ background: wall.track }}><div className="h-full rounded-full" style={{ width: "100%", background: wall.gradient }} /></div><div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[.12em]"><span style={{ color: wall.accent }}>100%</span><span className="text-white/75">Rate</span></div></div>
+                    <div className="mt-auto flex items-center justify-between border-t pt-3" style={{ borderColor: `${wall.border}99` }}><div className="flex items-center gap-3"><span className="flex items-center gap-1 text-xs text-amber-300"><Star className="h-3 w-3 fill-current" /> {wall.rating}</span><span className="flex items-center gap-1 text-xs text-white/75">5–20 min</span></div><span className="text-xs font-semibold" style={{ color: wall.accent }}>Earn {wall.reward}</span></div>
                   </div>
               </motion.div>
             ))}
