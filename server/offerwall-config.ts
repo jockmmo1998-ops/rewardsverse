@@ -288,7 +288,9 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
     url.searchParams.set("sub1", "{aff_sub}");
     url.searchParams.set("sub2", "{aff_sub2}");
     url.searchParams.set("hash", "{hash}");
-    return url.toString();
+    // Gaintwall's test and live callback engines require literal macro
+    // delimiters and do not substitute %7Bmacro%7D/%7D.
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
   }
   if (provider === "taskwall") {
     // Taskwall uses a fixed token for endpoint authentication and sends its
