@@ -192,6 +192,21 @@ async function runMigrations() {
           CONSTRAINT \`postback_credentials_provider_unique\` UNIQUE (\`provider\`)
         )`);
         await connection.query("CREATE INDEX IF NOT EXISTS `postback_credentials_provider_idx` ON `postback_credentials` (`provider`)").catch(() => undefined);
+        // Legacy production databases can also predate the notification tables.
+        // Keep reward callbacks successful while ensuring the notification bell
+        // has a durable table to read from and postbacks can insert into it.
+        await connection.query(`CREATE TABLE IF NOT EXISTS \`notifications\` (
+          \`id\` int AUTO_INCREMENT NOT NULL,
+          \`userId\` int NOT NULL,
+          \`title\` varchar(128) NOT NULL,
+          \`message\` text NOT NULL,
+          \`type\` enum('reward','withdrawal','system','offer') NOT NULL DEFAULT 'system',
+          \`isRead\` tinyint DEFAULT 0,
+          \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT \`notifications_id\` PRIMARY KEY(\`id\`)
+        )`);
+        await connection.query("CREATE INDEX IF NOT EXISTS `notifications_userId_idx` ON `notifications` (`userId`)").catch(() => undefined);
+        await connection.query("CREATE INDEX IF NOT EXISTS `notifications_type_idx` ON `notifications` (`type`)").catch(() => undefined);
         console.warn("[Migration] Additive admin schema is ready.");
         return;
       }
