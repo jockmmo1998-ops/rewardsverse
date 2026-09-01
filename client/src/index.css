@@ -253,25 +253,25 @@
   pointer-events: none;
   background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 30%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 70%, transparent 100%);
   background-size: 320% 100%;
-  box-shadow: 0 0 6px color-mix(in srgb, var(--provider-accent) 62%, transparent);
-  animation: providerBorderSideFlowHorizontal 4.5s linear infinite;
+  box-shadow: 0 0 4px color-mix(in srgb, var(--provider-accent) 48%, transparent);
+  animation: providerBorderSideFlowHorizontal 7.5s linear infinite;
 }
 .provider-border-top,
 .provider-border-bottom { left: 1px; right: 1px; height: 2px; }
 .provider-border-top { top: 0; }
 .provider-border-bottom { bottom: 0; }
 .provider-border-right,
-.provider-border-left { top: 1px; bottom: 1px; width: 2px; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 30%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 70%, transparent 100%); background-size: 100% 320%; animation-name: providerBorderSideFlowVertical; }
+.provider-border-left {   top: 1px; bottom: 1px; width: 2px; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 24%, transparent) 30%, color-mix(in srgb, var(--provider-accent) 86%, white) 50%, color-mix(in srgb, var(--provider-accent) 24%, transparent) 70%, transparent 100%); background-size: 100% 320%; animation-name: providerBorderSideFlowVertical; animation-duration: 7.5s; }
 .provider-border-right { right: 0; }
 .provider-border-left { left: 0; }
 
 @keyframes providerBorderSideFlowHorizontal {
-  from { background-position: 0% 50%; }
-  to { background-position: 100% 50%; }
+  from { background-position: -100% 50%; }
+  to { background-position: 200% 50%; }
 }
 @keyframes providerBorderSideFlowVertical {
-  from { background-position: 50% 0%; }
-  to { background-position: 50% 100%; }
+  from { background-position: 50% -100%; }
+  to { background-position: 50% 200%; }
 }
 @keyframes providerCardBorderTrace {
   from { --provider-border-angle: 0deg; }
@@ -279,7 +279,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .provider-border-side {
-    animation-duration: 4.5s !important;
+    animation-duration: 7.5s !important;
     animation-iteration-count: infinite !important;
     animation-play-state: running !important;
   }
