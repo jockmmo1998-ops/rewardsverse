@@ -251,23 +251,27 @@
   z-index: 2;
   display: block;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--provider-accent) 74%, transparent) 25%, color-mix(in srgb, var(--provider-accent) 98%, white) 50%, color-mix(in srgb, var(--provider-accent) 74%, transparent) 75%, transparent);
-  background-size: 220% 100%;
-  box-shadow: 0 0 4px color-mix(in srgb, var(--provider-accent) 44%, transparent);
-  animation: providerBorderSideFlow 5s linear infinite;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 30%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 70%, transparent 100%);
+  background-size: 320% 100%;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--provider-accent) 62%, transparent);
+  animation: providerBorderSideFlowHorizontal 4.5s linear infinite;
 }
 .provider-border-top,
 .provider-border-bottom { left: 1px; right: 1px; height: 2px; }
 .provider-border-top { top: 0; }
 .provider-border-bottom { bottom: 0; }
 .provider-border-right,
-.provider-border-left { top: 1px; bottom: 1px; width: 2px; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--provider-accent) 74%, transparent) 25%, color-mix(in srgb, var(--provider-accent) 98%, white) 50%, color-mix(in srgb, var(--provider-accent) 74%, transparent) 75%, transparent); background-size: 100% 220%; }
+.provider-border-left { top: 1px; bottom: 1px; width: 2px; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 30%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 70%, transparent 100%); background-size: 100% 320%; animation-name: providerBorderSideFlowVertical; }
 .provider-border-right { right: 0; }
 .provider-border-left { left: 0; }
 
-@keyframes providerBorderSideFlow {
+@keyframes providerBorderSideFlowHorizontal {
   from { background-position: 0% 50%; }
   to { background-position: 100% 50%; }
+}
+@keyframes providerBorderSideFlowVertical {
+  from { background-position: 50% 0%; }
+  to { background-position: 50% 100%; }
 }
 @keyframes providerCardBorderTrace {
   from { --provider-border-angle: 0deg; }
