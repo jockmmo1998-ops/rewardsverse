@@ -54,6 +54,7 @@ export default function AdminPanel() {
 
   const statsQuery = trpc.admin.getStats.useQuery();
   const withdrawalsQuery = trpc.admin.getWithdrawals.useQuery();
+  const pendingOffersQuery = trpc.admin.getPendingOffers.useQuery();
   const usersQuery = trpc.admin.getUsers.useQuery();
 
   const approveMutation = trpc.admin.approveWithdrawal.useMutation({
@@ -69,6 +70,15 @@ export default function AdminPanel() {
     onSuccess: () => {
       toast.success("Withdrawal rejected & refunded to user.");
       withdrawalsQuery.refetch();
+      statsQuery.refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const approvePendingOfferMutation = trpc.admin.approvePendingOffer.useMutation({
+    onSuccess: () => {
+      toast.success("Pending offer approved and credited.");
+      pendingOffersQuery.refetch();
       statsQuery.refetch();
     },
     onError: (err) => toast.error(err.message),
@@ -101,6 +111,7 @@ export default function AdminPanel() {
   const stats = statsQuery.data;
   const users = usersQuery.data || [];
   const withdrawals = withdrawalsQuery.data || [];
+  const pendingOffers = pendingOffersQuery.data || [];
   const balance = parseFloat(user.balance || "0") || 0;
 
   const filteredUsers = searchQuery 
@@ -232,6 +243,56 @@ export default function AdminPanel() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="border-border/50 bg-card/50 mb-6">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-yellow-400" />
+                  Pending Offers Over 4,000 Points
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => pendingOffersQuery.refetch()} className="h-8">
+                  <RefreshCcw className="w-3 h-3 mr-1" /> Refresh
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {pendingOffers.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle2 className="w-8 h-8 text-green-400 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm text-muted-foreground">No pending high-value offers</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                  {pendingOffers.map((offer: any) => (
+                    <div key={offer.id} className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border border-border/50">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-yellow-500/20">
+                        <AlertCircle className="w-5 h-5 text-yellow-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-bold truncate">{offer.username || `User #${offer.userId}`}</p>
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 text-yellow-400 border-yellow-500/30 bg-yellow-500/10">PENDING</Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          <span className="font-bold text-white">${Number(offer.amount || 0).toFixed(2)}</span> via {offer.provider} {offer.offerName ? `| ${offer.offerName}` : ""}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground mt-0.5">{offer.createdAt ? new Date(offer.createdAt).toLocaleString() : ""} · ID {offer.externalId || offer.id}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => approvePendingOfferMutation.mutate({ id: offer.id })}
+                        disabled={approvePendingOfferMutation.isPending}
+                        className="bg-green-500 hover:bg-green-600 text-white text-xs h-8 px-3 font-bold shrink-0"
+                      >
+                        Approve
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Withdrawals */}

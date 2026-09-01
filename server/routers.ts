@@ -588,6 +588,25 @@ export const appRouter = router({
       return db.getAllPostbacks();
     }),
 
+    getPendingOffers: adminProcedure.query(async () => {
+      return db.getPendingOfferHistory();
+    }),
+
+    approvePendingOffer: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const offer = await db.resolvePendingOffer(input.id);
+        if (!offer) throw new TRPCError({ code: "CONFLICT", message: "This offer is no longer pending." });
+        await db.addAuditLog({
+          adminUserId: ctx.user.id,
+          action: "offer_approved",
+          targetType: "offer",
+          targetId: String(input.id),
+          details: JSON.stringify({ userId: offer.userId, provider: offer.provider, amount: offer.amount, externalId: offer.externalId }),
+        });
+        return { success: true, offer };
+      }),
+
     getPostbackLogs: adminProcedure.query(async () => {
       return db.getPostbackLogs(200);
     }),

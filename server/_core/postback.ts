@@ -59,6 +59,7 @@ const REWARD_FIELDS = [
 
 // The provider amount is the gross/original reward. Credit exactly 50% to the user.
 const USER_PAYOUT_SHARE = 0.5;
+const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -782,7 +783,51 @@ async function handlePostback(req: Request, res: Response) {
       }, "processed", user.id, rawAmount, txid, offerName, undefined, eventKey);
     }
 
-    // ── 11. Credit user (wrapped — critical path) ─────────────────────────
+    // ── 11. Hold high-value offers for manual review ────────────────────────
+    // The provider reward is the offerwall's points value. Offers strictly
+    // above 4,000 points remain pending and do not change the user's balance
+    // until an administrator approves them.
+    if (!isChargeback && providerReward > PENDING_REWARD_THRESHOLD_POINTS) {
+      try {
+        await db.addOfferHistory({
+          userId: user.id,
+          provider,
+          offerName: offerName || undefined,
+          amount: reward.toFixed(2),
+          externalId: eventKey,
+          status: "pending",
+        });
+        await db.addNotification({
+          userId: user.id,
+          title: "Reward pending review",
+          message: `Your ${provider} offer reward is pending verification before it is added to your balance.`,
+          type: "reward",
+          isRead: 0,
+        });
+        diagnostics.balanceCredit = "PENDING_REVIEW_NO_CREDIT";
+        diagnostics.ledger = "PENDING_REVIEW";
+        return respond(200, {
+          success: true,
+          pending: true,
+          message: "High-value offer received and is pending review",
+          detectedUser: rawUserId,
+          detectedReward: rawAmount,
+          creditedReward: "0.00",
+          thresholdPoints: PENDING_REWARD_THRESHOLD_POINTS,
+          transactionId: txid,
+          offerId,
+          offerName,
+        }, "processed", user.id, rawAmount, txid, offerName, undefined, eventKey);
+      } catch (error: any) {
+        console.error(`[Postback][${provider}] Failed to record pending offer:`, error?.message);
+        return respond(500, {
+          success: false,
+          message: "Failed to record pending offer",
+        }, "failed", user.id, rawAmount, txid, offerName, error?.message, eventKey);
+      }
+    }
+
+    // ── 12. Credit user (wrapped — critical path) ─────────────────────────
     const balanceDelta = isChargeback ? -reward : reward;
     console.log(`[Postback][${provider}] ${isChargeback ? "Reversing" : "Crediting"} $${reward.toFixed(2)} ${isChargeback ? "from" : "to"} ${user.username} (id=${user.id})`);
 
@@ -802,7 +847,7 @@ async function handlePostback(req: Request, res: Response) {
       return res;
     }
 
-    // ── 12. Non-critical side-effects (fire and log, never crash) ─────────
+    // ── 13. Non-critical side-effects (fire and log, never crash) ─────────
     const creditLabel = offerName ? `[${provider}] ${offerName}` : `[${provider}] Offer`;
 
     if (isChargeback) {
@@ -873,7 +918,7 @@ async function handlePostback(req: Request, res: Response) {
       diagnostics.ledger = ledgerResults.every(result => result.status === "fulfilled") ? "PASS" : "FAIL";
     }
 
-    // ── 13. SSE real-time push ────────────────────────────────────────────
+    // ── 14. SSE real-time push ────────────────────────────────────────────
     try {
       sseManager.sendPostbackEvent(user.id, {
         type: "postback",
@@ -886,7 +931,7 @@ async function handlePostback(req: Request, res: Response) {
       console.warn(`[Postback][${provider}] SSE send failed (non-critical):`, e);
     }
 
-    // ── 14. Success ────────────────────────────────────────────────────────
+    // ── 15. Success ────────────────────────────────────────────────────────
     console.log(`[Postback][${provider}] ✅ SUCCESS — $${reward.toFixed(2)} credited to ${user.username}`);
     return respond(200, {
       success: true,
