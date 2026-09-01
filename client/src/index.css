@@ -201,3 +201,9 @@
 }
 @keyframes liveMarquee { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } .live-activity-items { animation: liveMarquee 55s linear infinite !important; } }
+
+.offerwall-rate-track { position: relative; height: .375rem; overflow: hidden; border-radius: 999px; }
+.offerwall-rate-fill { position: relative; height: 100%; overflow: hidden; border-radius: inherit; }
+.offerwall-rate-fill::after { content: ''; position: absolute; top: 0; bottom: 0; left: -18%; width: 18%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent); animation: offerwallRateSweep 3s ease-in-out infinite; }
+@keyframes offerwallRateSweep { 0%, 20% { transform: translateX(0); opacity: 0; } 35% { opacity: .7; } 78%, 100% { transform: translateX(650%); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .offerwall-rate-fill::after { animation: none; } }
