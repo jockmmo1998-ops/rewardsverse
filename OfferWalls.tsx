@@ -29,6 +29,20 @@ const OFFER_WALLS = [
   { id: "buckswall",   name: "BucksWall",       desc: "Mobile apps, surveys & gaming offers", reward: "$0.10–$6.00", logo: "https://www.google.com/s2/favicons?domain=buckswall.com&sz=128",                                       color: "from-sky-500 to-blue-500",      glow: "rgba(14,165,233,0.15)",   tag: "SETUP",    rating: 4.6 },
 ];
 
+const PROVIDER_ACCENTS: Record<string, string> = {
+  gemiwall: "#f59e0b",
+  revtoo: "#3b82f6",
+  clickwall: "#22c55e",
+  moustache: "#a855f7",
+  taskwall: "#6366f1",
+  cointo: "#f59e0b",
+  klink: "#14b8a6",
+  adswedmedia: "#f43f5e",
+  admaxflow: "#06b6d4",
+  gaintwall: "#ec4899",
+  buckswall: "#0ea5e9",
+};
+
 const tickerBadge = (type: string) => {
   const map: Record<string, string> = {
     offer_complete: "bg-green-500/10 text-green-400 border-green-500/30",
@@ -201,7 +215,11 @@ export default function OfferWalls() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {OFFER_WALLS.map((wall, i) => (
               <motion.div key={wall.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.06 }} whileHover={{ y: -4 }}>
-                <div className="cyber-card cyber-corner rounded-2xl overflow-hidden cursor-pointer group" onClick={() => openWall(wall.id)}>
+                <div
+                  className={`cyber-card provider-card provider-card-${wall.id} cyber-corner rounded-2xl overflow-hidden cursor-pointer group`}
+                  style={{ "--provider-accent": PROVIDER_ACCENTS[wall.id] } as React.CSSProperties}
+                  onClick={() => openWall(wall.id)}
+                >
                   {/* top colour bar */}
                   <div className={`h-1 w-full bg-gradient-to-r ${wall.color}`} />
                   <div className="p-5">
