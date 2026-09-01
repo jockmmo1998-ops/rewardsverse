@@ -221,17 +221,21 @@
   padding: 1px;
   background: conic-gradient(
     from 270deg,
-    transparent 0deg 342deg,
-    color-mix(in srgb, var(--provider-accent) 72%, white) 350deg,
-    var(--provider-accent) 356deg,
+    transparent 0deg 334deg,
+    color-mix(in srgb, var(--provider-accent) 58%, white) 342deg,
+    color-mix(in srgb, var(--provider-accent) 82%, white) 348deg,
+    white 353deg,
+    var(--provider-accent) 358deg,
     transparent 360deg
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  opacity: .78;
-  animation: providerCardBorderSweep 3.5s linear infinite;
+  opacity: .94;
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--provider-accent) 68%, transparent));
+  will-change: transform;
+  animation: providerCardBorderSweep 3.2s linear infinite !important;
   transition: opacity .2s var(--ease-out);
 }
 .provider-card:hover::before {
@@ -246,5 +250,5 @@
   to { transform: rotate(360deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .provider-card::before { animation: none; }
+  .provider-card::before { animation: providerCardBorderSweep 3.2s linear infinite !important; }
 }
