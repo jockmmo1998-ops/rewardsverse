@@ -221,10 +221,11 @@
   padding: 1px;
   background: conic-gradient(
     from 270deg,
-    transparent 0deg 334deg,
-    color-mix(in srgb, var(--provider-accent) 58%, white) 342deg,
-    color-mix(in srgb, var(--provider-accent) 82%, white) 348deg,
-    white 353deg,
+    transparent 0deg 342deg,
+    color-mix(in srgb, var(--provider-accent) 28%, white) 346deg,
+    color-mix(in srgb, var(--provider-accent) 62%, white) 349deg,
+    white 352deg,
+    color-mix(in srgb, var(--provider-accent) 72%, white) 355deg,
     var(--provider-accent) 358deg,
     transparent 360deg
   );
@@ -232,10 +233,15 @@
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  opacity: .94;
-  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--provider-accent) 68%, transparent));
+  opacity: .98;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--provider-accent) 82%, transparent));
+  transform-origin: center;
+  transform-box: border-box;
   will-change: transform;
-  animation: providerCardBorderSweep 3.2s linear infinite !important;
+  animation-name: providerCardBorderSweep !important;
+  animation-duration: 3.2s !important;
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
   transition: opacity .2s var(--ease-out);
 }
 .provider-card:hover::before {
@@ -250,5 +256,10 @@
   to { transform: rotate(360deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .provider-card::before { animation: providerCardBorderSweep 3.2s linear infinite !important; }
+  .provider-card::before {
+    animation-name: providerCardBorderSweep !important;
+    animation-duration: 3.2s !important;
+    animation-timing-function: linear !important;
+    animation-iteration-count: infinite !important;
+  }
 }
