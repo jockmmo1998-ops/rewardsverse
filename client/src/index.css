@@ -205,11 +205,6 @@
 .offerwall-rate-track { position: relative; height: .375rem; overflow: hidden; border-radius: 999px; }
 .offerwall-rate-fill { height: 100%; overflow: hidden; border-radius: inherit; }
 
-@property --provider-border-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
 .provider-card {
   isolation: isolate;
 }
@@ -222,13 +217,13 @@
   border-radius: calc(1.2rem - 1px);
   padding: 1px;
   background: conic-gradient(
-    from var(--provider-border-angle),
+    from 0deg,
     color-mix(in srgb, var(--provider-accent) 22%, transparent) 0deg,
     color-mix(in srgb, var(--provider-accent) 22%, transparent) 56deg,
     color-mix(in srgb, var(--provider-accent) 38%, transparent) 78deg,
-    color-mix(in srgb, var(--provider-accent) 52%, transparent) 104deg,
-    color-mix(in srgb, var(--provider-accent) 38%, transparent) 128deg,
-    color-mix(in srgb, var(--provider-accent) 22%, transparent) 156deg,
+    color-mix(in srgb, var(--provider-accent) 54%, transparent) 102deg,
+    color-mix(in srgb, var(--provider-accent) 38%, transparent) 126deg,
+    color-mix(in srgb, var(--provider-accent) 22%, transparent) 150deg,
     color-mix(in srgb, var(--provider-accent) 22%, transparent) 236deg,
     color-mix(in srgb, var(--provider-accent) 36%, transparent) 282deg,
     color-mix(in srgb, var(--provider-accent) 22%, transparent) 320deg,
@@ -238,7 +233,8 @@
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: .92;
-  animation: providerCardBorderTrace 12s linear infinite;
+  transform: rotate(0deg);
+  animation: providerCardBorderTrace 9s linear infinite;
 }
 .provider-card:hover::before {
   opacity: .98;
@@ -248,8 +244,8 @@
   z-index: 1;
 }
 @keyframes providerCardBorderTrace {
-  from { --provider-border-angle: 0deg; }
-  to { --provider-border-angle: 360deg; }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .provider-card::before {
