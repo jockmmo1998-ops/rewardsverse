@@ -207,3 +207,44 @@
 .offerwall-rate-fill::after { content: ''; position: absolute; top: 0; bottom: 0; left: -18%; width: 18%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent); animation: offerwallRateSweep 3s ease-in-out infinite; }
 @keyframes offerwallRateSweep { 0%, 20% { transform: translateX(0); opacity: 0; } 35% { opacity: .7; } 78%, 100% { transform: translateX(650%); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .offerwall-rate-fill::after { animation: none; } }
+
+.provider-card {
+  isolation: isolate;
+}
+.provider-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 270deg,
+    transparent 0deg 342deg,
+    color-mix(in srgb, var(--provider-accent) 72%, white) 350deg,
+    var(--provider-accent) 356deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: .78;
+  animation: providerCardBorderSweep 3.5s linear infinite;
+  transition: opacity .2s var(--ease-out);
+}
+.provider-card:hover::before {
+  opacity: .98;
+}
+.provider-card > * {
+  position: relative;
+  z-index: 1;
+}
+@keyframes providerCardBorderSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .provider-card::before { animation: none; }
+}
