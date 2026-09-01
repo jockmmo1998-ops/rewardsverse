@@ -208,23 +208,36 @@
 .provider-card {
   isolation: isolate;
 }
+@property --provider-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .provider-card::before {
   content: '';
   position: absolute;
-  top: -1px;
-  left: -1px;
+  inset: 0;
   z-index: 2;
-  width: 30%;
-  height: 3px;
   pointer-events: none;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--provider-accent) 72%, transparent) 18%, color-mix(in srgb, var(--provider-accent) 98%, white) 50%, color-mix(in srgb, var(--provider-accent) 72%, transparent) 82%, transparent);
-  box-shadow: 0 0 5px color-mix(in srgb, var(--provider-accent) 58%, transparent), 0 0 10px color-mix(in srgb, var(--provider-accent) 28%, transparent);
-  offset-path: inset(1px round 1.2rem);
-  offset-anchor: 50% 50%;
-  offset-rotate: auto;
-  offset-distance: 0%;
-  will-change: offset-distance;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--provider-border-angle) at 50% 50%,
+    transparent 0deg 300deg,
+    color-mix(in srgb, var(--provider-accent) 30%, transparent) 314deg,
+    var(--provider-accent) 326deg,
+    color-mix(in srgb, var(--provider-accent) 98%, white) 338deg,
+    var(--provider-accent) 350deg,
+    color-mix(in srgb, var(--provider-accent) 30%, transparent) 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: .98;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--provider-accent) 45%, transparent));
+  will-change: background;
   animation: providerCardBorderTrace 5s linear infinite !important;
   animation-play-state: running !important;
 }
@@ -236,8 +249,8 @@
   z-index: 1;
 }
 @keyframes providerCardBorderTrace {
-  from { offset-distance: 0%; }
-  to { offset-distance: 100%; }
+  from { --provider-border-angle: 0deg; }
+  to { --provider-border-angle: 360deg; }
 }
 @media (prefers-reduced-motion: reduce) {
   .provider-card::before {
