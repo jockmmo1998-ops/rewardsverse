@@ -216,28 +216,31 @@
 .provider-card::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 2px;
   z-index: 2;
   pointer-events: none;
-  border-radius: inherit;
-  padding: 1px;
+  border: 1px solid transparent;
+  border-radius: calc(1.2rem - 2px);
   background: conic-gradient(
     from var(--provider-border-angle),
-    color-mix(in srgb, var(--provider-accent) 26%, transparent) 0deg,
-    color-mix(in srgb, var(--provider-accent) 26%, transparent) 46deg,
-    color-mix(in srgb, var(--provider-accent) 72%, transparent) 86deg,
-    color-mix(in srgb, var(--provider-accent) 78%, transparent) 112deg,
-    color-mix(in srgb, var(--provider-accent) 26%, transparent) 152deg,
-    color-mix(in srgb, var(--provider-accent) 26%, transparent) 360deg
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    color-mix(in srgb, var(--provider-accent) 30%, transparent) 0deg,
+    color-mix(in srgb, var(--provider-accent) 30%, transparent) 44deg,
+    color-mix(in srgb, var(--provider-accent) 46%, transparent) 84deg,
+    color-mix(in srgb, var(--provider-accent) 56%, transparent) 108deg,
+    color-mix(in srgb, var(--provider-accent) 46%, transparent) 132deg,
+    color-mix(in srgb, var(--provider-accent) 30%, transparent) 176deg,
+    color-mix(in srgb, var(--provider-accent) 30%, transparent) 224deg,
+    color-mix(in srgb, var(--provider-accent) 46%, transparent) 304deg,
+    color-mix(in srgb, var(--provider-accent) 30%, transparent) 360deg
+  ) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: .78;
-  animation: providerCardBorderTrace 10s linear infinite;
+  opacity: .9;
+  animation: providerCardBorderTrace 12s linear infinite;
 }
 .provider-card:hover::before {
-  opacity: .88;
+  opacity: .96;
 }
 .provider-card > * {
   position: relative;
