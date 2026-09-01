@@ -234,7 +234,8 @@
   mask-composite: exclude;
   opacity: .92;
   transform: rotate(0deg);
-  animation: providerCardBorderTrace 9s linear infinite;
+  will-change: transform;
+  animation: providerCardBorderTrace 5.5s linear infinite;
 }
 .provider-card:hover::before {
   opacity: .98;
