@@ -218,25 +218,22 @@
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 0;
   pointer-events: none;
+  border: 2px solid transparent;
   border-radius: inherit;
-  padding: 2px;
-  background: conic-gradient(
-    from var(--provider-border-angle) at 50% 50%,
-    transparent 0deg 300deg,
-    color-mix(in srgb, var(--provider-accent) 30%, transparent) 314deg,
-    var(--provider-accent) 326deg,
-    color-mix(in srgb, var(--provider-accent) 98%, white) 338deg,
-    var(--provider-accent) 350deg,
-    color-mix(in srgb, var(--provider-accent) 30%, transparent) 360deg
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(
+      from var(--provider-border-angle) at 50% 50%,
+      var(--provider-accent) 0deg 300deg,
+      color-mix(in srgb, var(--provider-accent) 42%, transparent) 314deg,
+      color-mix(in srgb, var(--provider-accent) 98%, white) 330deg,
+      color-mix(in srgb, var(--provider-accent) 42%, transparent) 346deg,
+      var(--provider-accent) 360deg
+    ) border-box;
   opacity: .98;
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--provider-accent) 45%, transparent));
+  box-shadow: 0 0 5px color-mix(in srgb, var(--provider-accent) 42%, transparent);
   will-change: background;
   animation: providerCardBorderTrace 5s linear infinite !important;
   animation-play-state: running !important;
