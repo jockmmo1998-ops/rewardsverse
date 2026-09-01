@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RewardsVerse">
-  <rect width="64" height="64" rx="14" fill="#16a34a"/>
-  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-    <path d="M25 39l-4 4a9 9 0 0 1-13-13l7-7a9 9 0 0 1 13 0"/>
-    <path d="M39 25l4-4a9 9 0 0 1 13 13l-7 7a9 9 0 0 1-13 0"/>
-    <path d="M23 41l18-18"/>
+  <rect width="64" height="64" rx="16" fill="#16a34a"/>
+  <g transform="translate(12 12) scale(1.6666667)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="6"/>
+    <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
+    <path d="M7 6h1v4"/>
+    <path d="m16.71 13.88.7.71-2.82 2.82"/>
   </g>
 </svg>
