@@ -216,31 +216,32 @@
 .provider-card::before {
   content: '';
   position: absolute;
-  inset: 2px;
+  inset: 1px;
   z-index: 2;
   pointer-events: none;
-  border: 1px solid transparent;
-  border-radius: calc(1.2rem - 2px);
+  border-radius: calc(1.2rem - 1px);
+  padding: 1px;
   background: conic-gradient(
     from var(--provider-border-angle),
-    color-mix(in srgb, var(--provider-accent) 30%, transparent) 0deg,
-    color-mix(in srgb, var(--provider-accent) 30%, transparent) 44deg,
-    color-mix(in srgb, var(--provider-accent) 46%, transparent) 84deg,
-    color-mix(in srgb, var(--provider-accent) 56%, transparent) 108deg,
-    color-mix(in srgb, var(--provider-accent) 46%, transparent) 132deg,
-    color-mix(in srgb, var(--provider-accent) 30%, transparent) 176deg,
-    color-mix(in srgb, var(--provider-accent) 30%, transparent) 224deg,
-    color-mix(in srgb, var(--provider-accent) 46%, transparent) 304deg,
-    color-mix(in srgb, var(--provider-accent) 30%, transparent) 360deg
-  ) border-box;
-  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+    color-mix(in srgb, var(--provider-accent) 22%, transparent) 0deg,
+    color-mix(in srgb, var(--provider-accent) 22%, transparent) 56deg,
+    color-mix(in srgb, var(--provider-accent) 38%, transparent) 78deg,
+    color-mix(in srgb, var(--provider-accent) 52%, transparent) 104deg,
+    color-mix(in srgb, var(--provider-accent) 38%, transparent) 128deg,
+    color-mix(in srgb, var(--provider-accent) 22%, transparent) 156deg,
+    color-mix(in srgb, var(--provider-accent) 22%, transparent) 236deg,
+    color-mix(in srgb, var(--provider-accent) 36%, transparent) 282deg,
+    color-mix(in srgb, var(--provider-accent) 22%, transparent) 320deg,
+    color-mix(in srgb, var(--provider-accent) 22%, transparent) 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: .9;
+  opacity: .92;
   animation: providerCardBorderTrace 12s linear infinite;
 }
 .provider-card:hover::before {
-  opacity: .96;
+  opacity: .98;
 }
 .provider-card > * {
   position: relative;
