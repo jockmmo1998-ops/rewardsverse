@@ -278,6 +278,11 @@
   to { --provider-border-angle: 360deg; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .provider-border-side {
+    animation-duration: 4.5s !important;
+    animation-iteration-count: infinite !important;
+    animation-play-state: running !important;
+  }
   .provider-card::before {
     animation: providerCardBorderTrace 5s linear infinite !important;
     animation-duration: 5s !important;
