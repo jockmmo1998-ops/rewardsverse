@@ -207,19 +207,16 @@
 
 .provider-card {
   isolation: isolate;
-  border: 1px solid transparent !important;
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    conic-gradient(
-      from var(--provider-border-angle) at 50% 50%,
-      var(--provider-accent) 0deg 300deg,
-      color-mix(in srgb, var(--provider-accent) 42%, transparent) 314deg,
-      color-mix(in srgb, var(--provider-accent) 98%, white) 330deg,
-      color-mix(in srgb, var(--provider-accent) 42%, transparent) 346deg,
-      var(--provider-accent) 360deg
-    ) border-box !important;
-  background-clip: padding-box, border-box;
-  background-origin: border-box;
+  border: 2px solid transparent !important;
+  border-image-source: conic-gradient(
+    from var(--provider-border-angle),
+    var(--provider-accent) 0deg 300deg,
+    color-mix(in srgb, var(--provider-accent) 42%, transparent) 314deg,
+    color-mix(in srgb, var(--provider-accent) 98%, white) 330deg,
+    color-mix(in srgb, var(--provider-accent) 42%, transparent) 346deg,
+    var(--provider-accent) 360deg
+  );
+  border-image-slice: 1;
   box-shadow: 0 0 5px color-mix(in srgb, var(--provider-accent) 42%, transparent);
   animation: providerCardBorderTrace 5s linear infinite !important;
   animation-play-state: running !important;
