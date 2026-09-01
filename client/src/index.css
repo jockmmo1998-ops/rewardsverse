@@ -211,29 +211,20 @@
 .provider-card::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: -1px;
+  left: -1px;
   z-index: 2;
+  width: 30%;
+  height: 3px;
   pointer-events: none;
-  border-radius: inherit;
-  padding: 2px;
-  background: conic-gradient(
-    from 0deg at 50% 50%,
-    transparent 0deg 286deg,
-    color-mix(in srgb, var(--provider-accent) 28%, transparent) 298deg,
-    var(--provider-accent) 314deg,
-    color-mix(in srgb, var(--provider-accent) 98%, white) 330deg,
-    var(--provider-accent) 346deg,
-    color-mix(in srgb, var(--provider-accent) 28%, transparent) 360deg
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  opacity: .98;
-  will-change: transform;
-  transform-origin: center;
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--provider-accent) 52%, transparent));
-  transform: rotate(0deg);
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--provider-accent) 72%, transparent) 18%, color-mix(in srgb, var(--provider-accent) 98%, white) 50%, color-mix(in srgb, var(--provider-accent) 72%, transparent) 82%, transparent);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--provider-accent) 58%, transparent), 0 0 10px color-mix(in srgb, var(--provider-accent) 28%, transparent);
+  offset-path: inset(1px round 1.2rem);
+  offset-anchor: 50% 50%;
+  offset-rotate: auto;
+  offset-distance: 0%;
+  will-change: offset-distance;
   animation: providerCardBorderTrace 5s linear infinite !important;
   animation-play-state: running !important;
 }
@@ -245,8 +236,8 @@
   z-index: 1;
 }
 @keyframes providerCardBorderTrace {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .provider-card::before {
