@@ -203,55 +203,52 @@
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } .live-activity-items { animation: liveMarquee 55s linear infinite !important; } }
 
 .offerwall-rate-track { position: relative; height: .375rem; overflow: hidden; border-radius: 999px; }
-.offerwall-rate-fill { position: relative; height: 100%; overflow: hidden; border-radius: inherit; }
-.offerwall-rate-fill::after { content: ''; position: absolute; top: 0; bottom: 0; left: -18%; width: 18%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent); animation: offerwallRateSweep 3s ease-in-out infinite; }
-@keyframes offerwallRateSweep { 0%, 20% { transform: translateX(0); opacity: 0; } 35% { opacity: .7; } 78%, 100% { transform: translateX(650%); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .offerwall-rate-fill::after { animation: none; } }
+.offerwall-rate-fill { height: 100%; overflow: hidden; border-radius: inherit; }
 
+@property --provider-border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
 .provider-card {
   isolation: isolate;
 }
 .provider-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 2.2rem;
-  height: 2px;
+  inset: 0;
   z-index: 2;
   pointer-events: none;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--provider-accent) 55%, white) 18%, white 50%, color-mix(in srgb, var(--provider-accent) 55%, white) 82%, transparent);
-  box-shadow: 0 0 4px 1px var(--provider-accent), 0 0 9px 2px color-mix(in srgb, var(--provider-accent) 78%, transparent);
-  opacity: 1;
-  offset-path: inset(1px round 1.2rem);
-  offset-anchor: 50% 50%;
-  offset-rotate: auto;
-  offset-distance: 0%;
-  will-change: offset-distance;
-  animation-name: providerCardBorderTrace !important;
-  animation-duration: 3.2s !important;
-  animation-timing-function: linear !important;
-  animation-iteration-count: infinite !important;
-  transition: filter .2s var(--ease-out), opacity .2s var(--ease-out);
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--provider-border-angle),
+    color-mix(in srgb, var(--provider-accent) 26%, transparent) 0deg,
+    color-mix(in srgb, var(--provider-accent) 26%, transparent) 46deg,
+    color-mix(in srgb, var(--provider-accent) 72%, transparent) 86deg,
+    color-mix(in srgb, var(--provider-accent) 78%, transparent) 112deg,
+    color-mix(in srgb, var(--provider-accent) 26%, transparent) 152deg,
+    color-mix(in srgb, var(--provider-accent) 26%, transparent) 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: .78;
+  animation: providerCardBorderTrace 10s linear infinite;
 }
 .provider-card:hover::before {
-  opacity: 1;
-  filter: brightness(1.16);
+  opacity: .88;
 }
 .provider-card > * {
   position: relative;
   z-index: 1;
 }
 @keyframes providerCardBorderTrace {
-  from { offset-distance: 0%; }
-  to { offset-distance: 100%; }
+  from { --provider-border-angle: 0deg; }
+  to { --provider-border-angle: 360deg; }
 }
 @media (prefers-reduced-motion: reduce) {
   .provider-card::before {
-    animation-name: providerCardBorderTrace !important;
-    animation-duration: 3.2s !important;
-    animation-timing-function: linear !important;
-    animation-iteration-count: infinite !important;
+    animation: none;
   }
 }
