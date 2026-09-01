@@ -208,6 +208,12 @@
 .provider-card {
   isolation: isolate;
 }
+@property --provider-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .provider-card::before {
   content: '';
   position: absolute;
@@ -216,8 +222,9 @@
   pointer-events: none;
   border-radius: inherit;
   padding: 1px;
+  --provider-border-angle: 0deg;
   background: conic-gradient(
-    from 0deg at 50% 50%,
+    from var(--provider-border-angle) at 50% 50%,
     transparent 0deg 310deg,
     color-mix(in srgb, var(--provider-accent) 35%, transparent) 322deg,
     var(--provider-accent) 334deg,
@@ -231,8 +238,7 @@
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   opacity: .96;
-  transform: rotate(0deg);
-  will-change: transform;
+  will-change: background;
   filter: drop-shadow(0 0 3px color-mix(in srgb, var(--provider-accent) 42%, transparent));
   animation: providerCardBorderTrace 5s linear infinite !important;
   animation-play-state: running !important;
@@ -245,6 +251,6 @@
   z-index: 1;
 }
 @keyframes providerCardBorderTrace {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from { --provider-border-angle: 0deg; }
+  to { --provider-border-angle: 360deg; }
 }
