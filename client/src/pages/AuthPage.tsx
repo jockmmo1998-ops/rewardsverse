@@ -217,7 +217,7 @@ export default function AuthPage() {
           </p>
         </section>
 
-        <p className="mt-5 text-center text-xs text-muted-foreground">No email verification or OTP required.</p>
+        <p className="mt-5 text-center text-xs text-muted-foreground">Your rewards journey starts here</p>
       </div>
     </main>
   );
