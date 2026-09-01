@@ -218,6 +218,8 @@
       color-mix(in srgb, var(--provider-accent) 42%, transparent) 346deg,
       var(--provider-accent) 360deg
     ) border-box !important;
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
   box-shadow: 0 0 5px color-mix(in srgb, var(--provider-accent) 42%, transparent);
   animation: providerCardBorderTrace 5s linear infinite !important;
   animation-play-state: running !important;
