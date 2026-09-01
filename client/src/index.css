@@ -214,50 +214,42 @@
 .provider-card::before {
   content: '';
   position: absolute;
-  inset: 0;
-  z-index: 0;
+  top: 0;
+  left: 0;
+  width: 2.2rem;
+  height: 2px;
+  z-index: 2;
   pointer-events: none;
-  border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(
-    from 270deg,
-    transparent 0deg 342deg,
-    color-mix(in srgb, var(--provider-accent) 28%, white) 346deg,
-    color-mix(in srgb, var(--provider-accent) 62%, white) 349deg,
-    white 352deg,
-    color-mix(in srgb, var(--provider-accent) 72%, white) 355deg,
-    var(--provider-accent) 358deg,
-    transparent 360deg
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  opacity: .98;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--provider-accent) 82%, transparent));
-  transform-origin: center;
-  transform-box: border-box;
-  will-change: transform;
-  animation-name: providerCardBorderSweep !important;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--provider-accent) 55%, white) 18%, white 50%, color-mix(in srgb, var(--provider-accent) 55%, white) 82%, transparent);
+  box-shadow: 0 0 4px 1px var(--provider-accent), 0 0 9px 2px color-mix(in srgb, var(--provider-accent) 78%, transparent);
+  opacity: 1;
+  offset-path: inset(1px round 1.2rem);
+  offset-anchor: 50% 50%;
+  offset-rotate: auto;
+  offset-distance: 0%;
+  will-change: offset-distance;
+  animation-name: providerCardBorderTrace !important;
   animation-duration: 3.2s !important;
   animation-timing-function: linear !important;
   animation-iteration-count: infinite !important;
-  transition: opacity .2s var(--ease-out);
+  transition: filter .2s var(--ease-out), opacity .2s var(--ease-out);
 }
 .provider-card:hover::before {
-  opacity: .98;
+  opacity: 1;
+  filter: brightness(1.16);
 }
 .provider-card > * {
   position: relative;
   z-index: 1;
 }
-@keyframes providerCardBorderSweep {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes providerCardBorderTrace {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .provider-card::before {
-    animation-name: providerCardBorderSweep !important;
+    animation-name: providerCardBorderTrace !important;
     animation-duration: 3.2s !important;
     animation-timing-function: linear !important;
     animation-iteration-count: infinite !important;
