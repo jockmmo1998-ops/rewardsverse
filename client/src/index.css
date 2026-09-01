@@ -231,7 +231,8 @@
   transform: rotate(0deg);
   will-change: transform;
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--provider-accent) 48%, transparent));
-  animation: providerCardBorderTrace 4.5s linear infinite;
+  animation: providerCardBorderTrace 4.5s linear infinite !important;
+  animation-play-state: running !important;
 }
 .provider-card:hover::before {
   opacity: .98;
@@ -243,9 +244,4 @@
 @keyframes providerCardBorderTrace {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .provider-card::before {
-    animation: none;
-  }
 }
