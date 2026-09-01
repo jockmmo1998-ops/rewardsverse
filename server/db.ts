@@ -725,6 +725,66 @@ export async function getOfferHistoryByUserId(userId: number) {
     .orderBy(desc(offerHistory.createdAt));
 }
 
+export async function getPendingOfferHistory(limit = 200) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: offerHistory.id,
+      userId: offerHistory.userId,
+      username: users.username,
+      provider: offerHistory.provider,
+      offerName: offerHistory.offerName,
+      amount: offerHistory.amount,
+      externalId: offerHistory.externalId,
+      status: offerHistory.status,
+      createdAt: offerHistory.createdAt,
+    })
+    .from(offerHistory)
+    .leftJoin(users, eq(offerHistory.userId, users.id))
+    .where(eq(offerHistory.status, "pending"))
+    .orderBy(desc(offerHistory.createdAt))
+    .limit(limit);
+}
+
+/** Approve one pending offer atomically and credit it exactly once. */
+export async function resolvePendingOffer(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .select()
+      .from(offerHistory)
+      .where(and(eq(offerHistory.id, id), eq(offerHistory.status, "pending")))
+      .limit(1);
+    const offer = rows[0];
+    if (!offer) return null;
+
+    const amount = Number(offer.amount || 0);
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error("Pending offer amount is invalid");
+    const userRows = await tx.select({ username: users.username }).from(users).where(eq(users.id, offer.userId)).limit(1);
+    const username = userRows[0]?.username || `User #${offer.userId}`;
+
+    const updateResult = await tx
+      .update(offerHistory)
+      .set({ status: "completed" })
+      .where(and(eq(offerHistory.id, id), eq(offerHistory.status, "pending")));
+    if (Number((updateResult as any)[0]?.affectedRows ?? 0) !== 1) return null;
+
+    await tx.update(users).set({
+      balance: sql`balance + ${amount}`,
+      totalEarned: sql`totalEarned + ${amount}`,
+      offersCompleted: sql`offersCompleted + 1`,
+    }).where(eq(users.id, offer.userId));
+    await tx.insert(earnings).values({ userId: offer.userId, amount: amount.toFixed(2), type: "offer", source: `[${offer.provider}] ${offer.offerName || "Offer"}` });
+    await tx.insert(walletTransactions).values({ userId: offer.userId, type: "credit", amount: amount.toFixed(2), description: `Earned $${amount.toFixed(2)} on ${offer.provider}${offer.offerName ? ` — ${offer.offerName}` : ""}`, source: offer.provider });
+    await tx.insert(activities).values({ userId: offer.userId, username, type: "offer_complete", description: `earned $${amount.toFixed(2)} on ${offer.provider}${offer.offerName ? ` — ${offer.offerName}` : ""}`, amount: amount.toFixed(2) });
+    await tx.insert(notifications).values({ userId: offer.userId, title: "Pending reward approved", message: `Your ${offer.provider} reward of $${amount.toFixed(2)} was approved and added to your balance.`, type: "reward", isRead: 0 });
+    return { ...offer, amount: amount.toFixed(2) };
+  });
+}
+
 
 export async function getFeaturedOffers(userId: string, limit = 24) {
   return getRevtooFeaturedOffers(userId, limit);
