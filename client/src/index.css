@@ -207,6 +207,10 @@
 
 .provider-card {
   isolation: isolate;
+  border-width: 2px !important;
+  border-color: color-mix(in srgb, var(--provider-accent) 46%, #d8e2eb) !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--provider-accent) 12%, transparent), 0 0 0 1px color-mix(in srgb, var(--provider-accent) 22%, transparent);
+  transition: transform .22s var(--ease-out), border-color .22s var(--ease-out), box-shadow .22s var(--ease-out), background-color .22s var(--ease-out);
 }
 @property --provider-border-angle {
   syntax: '<angle>';
@@ -215,10 +219,10 @@
 }
 
 .provider-card::before {
-  display: none;
+  display: block;
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -2px;
   z-index: 0;
   pointer-events: none;
   border: 2px solid transparent;
@@ -227,20 +231,25 @@
     linear-gradient(#fff, #fff) padding-box,
     conic-gradient(
       from var(--provider-border-angle) at 50% 50%,
-      var(--provider-accent) 0deg 300deg,
-      color-mix(in srgb, var(--provider-accent) 42%, transparent) 314deg,
-      color-mix(in srgb, var(--provider-accent) 98%, white) 330deg,
-      color-mix(in srgb, var(--provider-accent) 42%, transparent) 346deg,
-      var(--provider-accent) 360deg
+      color-mix(in srgb, var(--provider-accent) 94%, white) 0deg 292deg,
+      color-mix(in srgb, var(--provider-accent) 38%, transparent) 306deg,
+      color-mix(in srgb, var(--provider-accent) 100%, white) 322deg 338deg,
+      color-mix(in srgb, var(--provider-accent) 38%, transparent) 352deg,
+      color-mix(in srgb, var(--provider-accent) 94%, white) 360deg
     ) border-box;
-  opacity: .98;
-  box-shadow: 0 0 5px color-mix(in srgb, var(--provider-accent) 42%, transparent);
+  opacity: .92;
+  box-shadow: 0 0 9px color-mix(in srgb, var(--provider-accent) 52%, transparent), 0 0 22px color-mix(in srgb, var(--provider-accent) 20%, transparent);
   will-change: background;
-  animation: providerCardBorderTrace 5s linear infinite !important;
-  animation-play-state: running !important;
+  animation: providerCardBorderTrace 6s linear infinite;
+  animation-play-state: running;
+}
+.provider-card:hover {
+  border-color: color-mix(in srgb, var(--provider-accent) 72%, #cbd5e1) !important;
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--provider-accent) 20%, transparent), 0 0 0 2px color-mix(in srgb, var(--provider-accent) 32%, transparent), 0 0 24px color-mix(in srgb, var(--provider-accent) 22%, transparent);
 }
 .provider-card:hover::before {
-  opacity: .98;
+  opacity: 1;
+  animation-duration: 4.5s;
 }
 .provider-card > * {
   position: relative;
@@ -251,17 +260,17 @@
   z-index: 2;
   display: block;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 30%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 32%, transparent) 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 54%, transparent) 28%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 54%, transparent) 72%, transparent 100%);
   background-size: 320% 100%;
-  box-shadow: 0 0 4px color-mix(in srgb, var(--provider-accent) 48%, transparent);
-  animation: providerBorderSideFlowHorizontal 7.5s linear infinite;
+  box-shadow: 0 0 7px color-mix(in srgb, var(--provider-accent) 68%, transparent);
+  animation: providerBorderSideFlowHorizontal 6.5s linear infinite;
 }
 .provider-border-top,
-.provider-border-bottom { left: 1px; right: 1px; height: 2px; }
+.provider-border-bottom { left: 0; right: 0; height: 3px; }
 .provider-border-top { top: 0; }
 .provider-border-bottom { bottom: 0; }
 .provider-border-right,
-.provider-border-left {   top: 1px; bottom: 1px; width: 2px; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 24%, transparent) 30%, color-mix(in srgb, var(--provider-accent) 86%, white) 50%, color-mix(in srgb, var(--provider-accent) 24%, transparent) 70%, transparent 100%); background-size: 100% 320%; animation-name: providerBorderSideFlowVertical; animation-duration: 7.5s; }
+.provider-border-left { top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 48%, transparent) 28%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 48%, transparent) 72%, transparent 100%); background-size: 100% 320%; animation-name: providerBorderSideFlowVertical; animation-duration: 6.5s; }
 .provider-border-right { right: 0; }
 .provider-border-left { left: 0; }
 
@@ -278,15 +287,8 @@
   to { --provider-border-angle: 360deg; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .provider-border-side {
-    animation-duration: 7.5s !important;
-    animation-iteration-count: infinite !important;
-    animation-play-state: running !important;
-  }
+  .provider-border-side,
   .provider-card::before {
-    animation: providerCardBorderTrace 5s linear infinite !important;
-    animation-duration: 5s !important;
-    animation-iteration-count: infinite !important;
-    animation-play-state: running !important;
+    animation: none !important;
   }
 }
