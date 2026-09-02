@@ -173,7 +173,7 @@ export async function getAdminUserDetail(userId: number) {
   const user = await getUserById(userId);
   if (!user) return undefined;
   const [userEarnings, userOffers, userWithdrawals, userTransactions, userActivities, userPostbacks] = await Promise.all([
-    getEarningsByUserId(userId), getOfferHistoryByUserId(userId), getWithdrawalsByUserId(userId),
+    getEarningsByUserId(userId), getOfferHistoryByUserId(userId).catch(() => []), getWithdrawalsByUserId(userId),
     getWalletTransactionsByUserId(userId), getActivitiesByUserId(userId), getPostbackLogsByUser(userId),
   ]);
   return { user, earnings: userEarnings, offers: userOffers, withdrawals: userWithdrawals, transactions: userTransactions, activities: userActivities, postbacks: userPostbacks };
@@ -664,7 +664,7 @@ export async function getPlatformStats() {
     db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "approved" as any)),
     db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "rejected" as any)),
     db.select({ total: sql<string>`SUM(offersCompleted)` }).from(users),
-    db.select({ count: sql<number>`count(*)` }).from(offerHistory).where(and(eq(offerHistory.status, "completed"), gte(offerHistory.createdAt, startOfDay))),
+    db.select({ count: sql<number>`count(*)` }).from(activities).where(and(eq(activities.type, "offer_complete"), gte(activities.createdAt, startOfDay))),
   ]);
 
   return {
