@@ -13,6 +13,7 @@ import {
   TrendingUp, Clock3, Gift, ChevronRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BrandGlyph } from "@/components/shared/RewardUI";
 
 export default function Home() {
   const { user, loading, register, login, activities } = useAuth();
@@ -122,7 +123,7 @@ export default function Home() {
       <nav className="relative z-40 pt-12 px-6 max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-xl gradient-cyber flex items-center justify-center glow-green shadow-lg">
-            <Coins className="w-6 h-6 text-[#060818]" />
+            <BrandGlyph className="w-6 h-6 text-[#060818]" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight">
@@ -227,7 +228,7 @@ export default function Home() {
               <Card className="bg-transparent border-0 shadow-none">
                 <CardHeader className="text-center pb-2 pt-8">
                   <div className="w-14 h-14 gradient-cyber rounded-2xl flex items-center justify-center mx-auto mb-4 glow-green">
-                    <Coins className="w-7 h-7 text-[#060818]" />
+                    <BrandGlyph className="w-7 h-7 text-[#060818]" />
                   </div>
                   <CardTitle className="text-2xl font-bold">Welcome to RewardsVerse</CardTitle>
                   <p className="text-sm text-muted-foreground">Start earning in seconds</p>
