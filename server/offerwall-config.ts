@@ -62,6 +62,7 @@ export const OFFER_WALL_IDS = [
   "admaxflow",
   "gaintwall",
   "buckswall",
+  "offermintx",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -76,6 +77,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   admaxflow: "AdMaxFlow",
   gaintwall: "Gaintwall",
   buckswall: "BucksWall",
+  offermintx: "OfferMintX",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -144,6 +146,13 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     return url.toString();
   },
   buckswall: (userId) => appendUserId(env("BUCKSWALL_OFFERWALL_URL") || "https://buckswall.com/offerwall.php?placement_id=78", userId),
+  offermintx: (userId) => {
+    const placementId = env("OFFERMINTX_PLACEMENT_ID") || "42";
+    const url = new URL(env("OFFERMINTX_OFFERWALL_URL") || "https://offermintx.com/offerwall.php");
+    url.searchParams.set("placement_id", placementId);
+    url.searchParams.set("user_id", userId);
+    return url.toString();
+  },
 };
 
 const secretEntries: Array<[string, string]> = [
@@ -158,6 +167,7 @@ const secretEntries: Array<[string, string]> = [
   ["admaxflow", env("ADMAXFLOW_POSTBACK_SECRET")],
   ["gaintwall", env("GAINTWALL_POSTBACK_SECRET", "GAINTWALL_API_KEY", "GAINTWALL_PLACEMENT_KEY")],
   ["buckswall", env("BUCKSWALL_POSTBACK_SECRET")],
+  ["offermintx", env("OFFERMINTX_POSTBACK_SECRET")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -270,6 +280,16 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     auth: "none",
     response: "json",
     macros: ["subid1", "payout", "currency_amount", "currency_name", "offer_name", "ip_address", "status", "subid2", "event_id", "event_name"],
+  },
+  offermintx: {
+    user: "subid1",
+    reward: "payout",
+    transaction: "conversion_id",
+    auth: "token",
+    response: "json",
+    // OfferMintX documents both conversion_id and transactionId spellings.
+    // Keep both in the generated callback for dashboard-version compatibility.
+    macros: ["subid1", "payout", "reward", "currency_amount", "currency_name", "offer_name", "offer_id", "event_id", "click_id", "conversion_id", "transactionId", "status", "ip_address"],
   },
 };
 
