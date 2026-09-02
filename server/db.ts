@@ -641,6 +641,8 @@ export async function getPlatformStats() {
   const db = await getDb();
   if (!db) return null;
   const activeSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
   const [
     userCount,
     activeUserCount,
@@ -651,6 +653,7 @@ export async function getPlatformStats() {
     approvedWithdrawals,
     rejectedWithdrawals,
     totalOffersResult,
+    offersCompletedTodayResult,
   ] = await Promise.all([
     db.select({ count: sql<number>`count(*)` }).from(users),
     db.select({ count: sql<number>`count(*)` }).from(users).where(gte(users.lastSignedIn, activeSince)),
@@ -661,6 +664,7 @@ export async function getPlatformStats() {
     db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "approved" as any)),
     db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "rejected" as any)),
     db.select({ total: sql<string>`SUM(offersCompleted)` }).from(users),
+    db.select({ count: sql<number>`count(*)` }).from(offerHistory).where(and(eq(offerHistory.status, "completed"), gte(offerHistory.createdAt, startOfDay))),
   ]);
 
   return {
@@ -673,6 +677,7 @@ export async function getPlatformStats() {
     approvedWithdrawals: Number(approvedWithdrawals[0]?.count || 0),
     rejectedWithdrawals: Number(rejectedWithdrawals[0]?.count || 0),
     totalOffersCompleted: parseInt(totalOffersResult[0]?.total || "0"),
+    offersCompletedToday: Number(offersCompletedTodayResult[0]?.count || 0),
   };
 }
 // ===== WALLET TRANSACTIONS =====
