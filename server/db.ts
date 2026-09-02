@@ -654,6 +654,7 @@ export async function getPlatformStats() {
     rejectedWithdrawals,
     totalOffersResult,
     offersCompletedTodayResult,
+    offerAmountTodayResult,
   ] = await Promise.all([
     db.select({ count: sql<number>`count(*)` }).from(users),
     db.select({ count: sql<number>`count(*)` }).from(users).where(gte(users.lastSignedIn, activeSince)),
@@ -665,6 +666,7 @@ export async function getPlatformStats() {
     db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, "rejected" as any)),
     db.select({ total: sql<string>`SUM(offersCompleted)` }).from(users),
     db.select({ count: sql<number>`count(*)` }).from(activities).where(and(eq(activities.type, "offer_complete"), gte(activities.createdAt, startOfDay))),
+    db.select({ total: sql<string>`COALESCE(SUM(amount), 0)` }).from(activities).where(and(eq(activities.type, "offer_complete"), gte(activities.createdAt, startOfDay))),
   ]);
 
   return {
@@ -678,6 +680,7 @@ export async function getPlatformStats() {
     rejectedWithdrawals: Number(rejectedWithdrawals[0]?.count || 0),
     totalOffersCompleted: parseInt(totalOffersResult[0]?.total || "0"),
     offersCompletedToday: Number(offersCompletedTodayResult[0]?.count || 0),
+    offerAmountToday: parseFloat(offerAmountTodayResult[0]?.total || "0"),
   };
 }
 // ===== WALLET TRANSACTIONS =====
