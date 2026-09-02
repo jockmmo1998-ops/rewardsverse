@@ -173,8 +173,8 @@ export async function getAdminUserDetail(userId: number) {
   const user = await getUserById(userId);
   if (!user) return undefined;
   const [userEarnings, userOffers, userWithdrawals, userTransactions, userActivities, userPostbacks] = await Promise.all([
-    getEarningsByUserId(userId), getOfferHistoryByUserId(userId).catch(() => []), getWithdrawalsByUserId(userId),
-    getWalletTransactionsByUserId(userId), getActivitiesByUserId(userId), getPostbackLogsByUser(userId),
+    getEarningsByUserId(userId).catch(() => []), getOfferHistoryByUserId(userId).catch(() => []), getWithdrawalsByUserId(userId).catch(() => []),
+    getWalletTransactionsByUserId(userId).catch(() => []), getActivitiesByUserId(userId).catch(() => []), getPostbackLogsByUser(userId).catch(() => []),
   ]);
   return { user, earnings: userEarnings, offers: userOffers, withdrawals: userWithdrawals, transactions: userTransactions, activities: userActivities, postbacks: userPostbacks };
 }
