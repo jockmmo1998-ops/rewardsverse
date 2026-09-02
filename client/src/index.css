@@ -218,7 +218,7 @@
   initial-value: 0deg;
 }
 
-/* Static base ring: the moving runner is layered above it. */
+/* Calm base frame with a soft accent halo. */
 .provider-card::before {
   display: block;
   content: '';
@@ -231,7 +231,7 @@
   box-shadow: 0 0 8px color-mix(in srgb, var(--provider-accent) 34%, transparent), 0 0 18px color-mix(in srgb, var(--provider-accent) 16%, transparent);
 }
 
-/* A single bright segment travels around all four sides and their corners. */
+/* Slow, smooth perimeter trace keeps the frame alive without feeling busy. */
 .provider-card::after {
   display: block;
   content: '';
@@ -244,42 +244,65 @@
   border-radius: inherit;
   background: conic-gradient(
     from var(--provider-border-angle),
-    color-mix(in srgb, var(--provider-accent) 68%, transparent) 0deg 318deg,
-    color-mix(in srgb, var(--provider-accent) 98%, white) 318deg 330deg,
-    #ffffff 330deg 340deg,
-    color-mix(in srgb, var(--provider-accent) 100%, white) 340deg 348deg,
-    color-mix(in srgb, var(--provider-accent) 68%, transparent) 348deg 360deg
+    color-mix(in srgb, var(--provider-accent) 55%, transparent) 0deg 336deg,
+    color-mix(in srgb, var(--provider-accent) 96%, white) 336deg 344deg,
+    #ffffff 344deg 350deg,
+    color-mix(in srgb, var(--provider-accent) 96%, white) 350deg 356deg,
+    color-mix(in srgb, var(--provider-accent) 55%, transparent) 356deg 360deg
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--provider-accent) 88%, transparent)) drop-shadow(0 0 12px color-mix(in srgb, var(--provider-accent) 44%, transparent));
-  animation: providerCardBorderTrace 4.2s linear infinite;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--provider-accent) 78%, transparent)) drop-shadow(0 0 11px color-mix(in srgb, var(--provider-accent) 34%, transparent));
+  animation: providerCardBorderTrace 11s linear infinite;
   will-change: background;
 }
-.provider-card:hover {
-  border-color: color-mix(in srgb, var(--provider-accent) 82%, #94a3b8) !important;
-  box-shadow: 0 14px 28px color-mix(in srgb, var(--provider-accent) 22%, transparent), 0 0 0 2px color-mix(in srgb, var(--provider-accent) 38%, transparent), 0 0 30px color-mix(in srgb, var(--provider-accent) 30%, transparent);
+
+/* Four visible corner sparks pulse in sequence, clockwise, at a relaxed pace. */
+.provider-card > .provider-border-side {
+  position: absolute;
+  z-index: 4;
+  display: block;
+  width: 15px;
+  height: 15px;
+  pointer-events: none;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: radial-gradient(circle, #fff 0 25%, color-mix(in srgb, var(--provider-accent) 100%, white) 34% 54%, color-mix(in srgb, var(--provider-accent) 74%, transparent) 62%, transparent 76%);
+  box-shadow: 0 0 6px #fff, 0 0 13px color-mix(in srgb, var(--provider-accent) 92%, transparent), 0 0 24px color-mix(in srgb, var(--provider-accent) 42%, transparent);
+  animation: providerCornerSparkPulse 8s ease-in-out infinite;
+  will-change: transform, opacity;
 }
+.provider-border-top { top: 4px; left: 4px; }
+.provider-border-right { top: 4px; right: 4px; animation-delay: -2s !important; }
+.provider-border-bottom { right: 4px; bottom: 4px; animation-delay: -4s !important; }
+.provider-border-left { bottom: 4px; left: 4px; animation-delay: -6s !important; }
 .provider-card:hover::after {
-  animation-duration: 3.2s;
-  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--provider-accent) 100%, transparent)) drop-shadow(0 0 16px color-mix(in srgb, var(--provider-accent) 58%, transparent));
+  animation-duration: 8.5s;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--provider-accent) 88%, transparent)) drop-shadow(0 0 14px color-mix(in srgb, var(--provider-accent) 42%, transparent));
 }
-.provider-card > * {
+.provider-card:hover > .provider-border-side {
+  animation-duration: 6.5s;
+}
+.provider-card > *:not(.provider-border-side) {
   position: relative;
   z-index: 1;
-}
-.provider-border-side {
-  display: none;
 }
 
 @keyframes providerCardBorderTrace {
   from { --provider-border-angle: 0deg; }
   to { --provider-border-angle: 360deg; }
 }
+@keyframes providerCornerSparkPulse {
+  0%, 100% { opacity: .42; transform: scale(.72); }
+  10%, 28% { opacity: 1; transform: scale(1.24); }
+  42% { opacity: .68; transform: scale(.94); }
+  58%, 100% { opacity: .42; transform: scale(.72); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .provider-card::after {
+  .provider-card::after,
+  .provider-card > .provider-border-side {
     animation: none !important;
   }
 }
