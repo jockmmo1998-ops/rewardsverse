@@ -208,8 +208,8 @@
 .provider-card {
   isolation: isolate;
   border-width: 2px !important;
-  border-color: color-mix(in srgb, var(--provider-accent) 46%, #d8e2eb) !important;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--provider-accent) 12%, transparent), 0 0 0 1px color-mix(in srgb, var(--provider-accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--provider-accent) 58%, #cbd5e1) !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--provider-accent) 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--provider-accent) 28%, transparent);
   transition: transform .22s var(--ease-out), border-color .22s var(--ease-out), box-shadow .22s var(--ease-out), background-color .22s var(--ease-out);
 }
 @property --provider-border-angle {
@@ -218,77 +218,68 @@
   initial-value: 0deg;
 }
 
+/* Static base ring: the moving runner is layered above it. */
 .provider-card::before {
   display: block;
   content: '';
   position: absolute;
-  inset: -2px;
-  z-index: 0;
+  inset: 0;
+  z-index: 2;
   pointer-events: none;
-  border: 2px solid transparent;
+  border: 3px solid color-mix(in srgb, var(--provider-accent) 62%, #cbd5e1);
   border-radius: inherit;
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    conic-gradient(
-      from var(--provider-border-angle) at 50% 50%,
-      color-mix(in srgb, var(--provider-accent) 94%, white) 0deg 292deg,
-      color-mix(in srgb, var(--provider-accent) 38%, transparent) 306deg,
-      color-mix(in srgb, var(--provider-accent) 100%, white) 322deg 338deg,
-      color-mix(in srgb, var(--provider-accent) 38%, transparent) 352deg,
-      color-mix(in srgb, var(--provider-accent) 94%, white) 360deg
-    ) border-box;
-  opacity: .92;
-  box-shadow: 0 0 9px color-mix(in srgb, var(--provider-accent) 52%, transparent), 0 0 22px color-mix(in srgb, var(--provider-accent) 20%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--provider-accent) 34%, transparent), 0 0 18px color-mix(in srgb, var(--provider-accent) 16%, transparent);
+}
+
+/* A single bright segment travels around all four sides and their corners. */
+.provider-card::after {
+  display: block;
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  box-sizing: border-box;
+  padding: 3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--provider-border-angle),
+    color-mix(in srgb, var(--provider-accent) 68%, transparent) 0deg 318deg,
+    color-mix(in srgb, var(--provider-accent) 98%, white) 318deg 330deg,
+    #ffffff 330deg 340deg,
+    color-mix(in srgb, var(--provider-accent) 100%, white) 340deg 348deg,
+    color-mix(in srgb, var(--provider-accent) 68%, transparent) 348deg 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--provider-accent) 88%, transparent)) drop-shadow(0 0 12px color-mix(in srgb, var(--provider-accent) 44%, transparent));
+  animation: providerCardBorderTrace 4.2s linear infinite;
   will-change: background;
-  animation: providerCardBorderTrace 6s linear infinite;
-  animation-play-state: running;
 }
 .provider-card:hover {
-  border-color: color-mix(in srgb, var(--provider-accent) 72%, #cbd5e1) !important;
-  box-shadow: 0 14px 28px color-mix(in srgb, var(--provider-accent) 20%, transparent), 0 0 0 2px color-mix(in srgb, var(--provider-accent) 32%, transparent), 0 0 24px color-mix(in srgb, var(--provider-accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--provider-accent) 82%, #94a3b8) !important;
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--provider-accent) 22%, transparent), 0 0 0 2px color-mix(in srgb, var(--provider-accent) 38%, transparent), 0 0 30px color-mix(in srgb, var(--provider-accent) 30%, transparent);
 }
-.provider-card:hover::before {
-  opacity: 1;
-  animation-duration: 4.5s;
+.provider-card:hover::after {
+  animation-duration: 3.2s;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--provider-accent) 100%, transparent)) drop-shadow(0 0 16px color-mix(in srgb, var(--provider-accent) 58%, transparent));
 }
 .provider-card > * {
   position: relative;
   z-index: 1;
 }
 .provider-border-side {
-  position: absolute;
-  z-index: 2;
-  display: block;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 54%, transparent) 28%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 54%, transparent) 72%, transparent 100%);
-  background-size: 320% 100%;
-  box-shadow: 0 0 7px color-mix(in srgb, var(--provider-accent) 68%, transparent);
-  animation: providerBorderSideFlowHorizontal 6.5s linear infinite;
+  display: none;
 }
-.provider-border-top,
-.provider-border-bottom { left: 0; right: 0; height: 3px; }
-.provider-border-top { top: 0; }
-.provider-border-bottom { bottom: 0; }
-.provider-border-right,
-.provider-border-left { top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--provider-accent) 48%, transparent) 28%, color-mix(in srgb, var(--provider-accent) 100%, white) 50%, color-mix(in srgb, var(--provider-accent) 48%, transparent) 72%, transparent 100%); background-size: 100% 320%; animation-name: providerBorderSideFlowVertical; animation-duration: 6.5s; }
-.provider-border-right { right: 0; }
-.provider-border-left { left: 0; }
 
-@keyframes providerBorderSideFlowHorizontal {
-  from { background-position: -100% 50%; }
-  to { background-position: 200% 50%; }
-}
-@keyframes providerBorderSideFlowVertical {
-  from { background-position: 50% -100%; }
-  to { background-position: 50% 200%; }
-}
 @keyframes providerCardBorderTrace {
   from { --provider-border-angle: 0deg; }
   to { --provider-border-angle: 360deg; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .provider-border-side,
-  .provider-card::before {
+  .provider-card::after {
     animation: none !important;
   }
 }
