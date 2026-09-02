@@ -3,23 +3,14 @@ import { ArrowUpRight, CheckCircle2, Clock3, Coins, Inbox, Loader2 } from 'lucid
 import { cn } from '@/lib/utils';
 
 export function BrandGlyph({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" fill="none" className={cn('h-5 w-5', className)} aria-hidden="true">
-      <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="2" opacity="0.28" />
-      <path d="M8.5 20.5c2.15 2.2 4.65 3.3 7.5 3.3 4.55 0 7.15-2.55 7.8-7.65" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M9.5 11.75c1.9-2.2 4.08-3.3 6.55-3.3 3.35 0 5.65 1.2 6.9 3.6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M20.25 8.8 23.2 12l-4.25.35" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="16" cy="16" r="3.15" fill="currentColor" />
-      <path d="M14.6 16h2.8M16 14.6v2.8" stroke="white" strokeWidth="1.25" strokeLinecap="round" />
-    </svg>
-  );
+  return <img src="/rewardsverse-icon.png" alt="" className={cn('h-5 w-5 object-contain', className)} aria-hidden="true" />;
 }
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-3">
       <div className="brand-mark" aria-hidden="true">
-        <BrandGlyph className="h-4 w-4" />
+        <BrandGlyph className="h-full w-full" />
       </div>
       <span className={cn('font-display font-bold tracking-[0.08em] text-foreground', compact ? 'text-[0.72rem]' : 'text-[1.08rem]')}>
         REWARDSVERSE
