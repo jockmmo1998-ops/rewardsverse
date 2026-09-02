@@ -207,9 +207,9 @@
 
 .provider-card {
   isolation: isolate;
-  border-width: 2px !important;
-  border-color: color-mix(in srgb, var(--provider-accent) 58%, #cbd5e1) !important;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--provider-accent) 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--provider-accent) 28%, transparent);
+  border-width: 1px !important;
+  border-color: color-mix(in srgb, var(--provider-accent) 42%, #d7e2eb) !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--provider-accent) 10%, transparent), 0 0 0 1px color-mix(in srgb, var(--provider-accent) 16%, transparent);
   transition: transform .22s var(--ease-out), border-color .22s var(--ease-out), box-shadow .22s var(--ease-out), background-color .22s var(--ease-out);
 }
 @property --provider-border-angle {
@@ -218,7 +218,7 @@
   initial-value: 0deg;
 }
 
-/* Calm base frame with a soft accent halo. */
+/* Glass Light Rail: a quiet double-frame foundation. */
 .provider-card::before {
   display: block;
   content: '';
@@ -226,64 +226,51 @@
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  border: 3px solid color-mix(in srgb, var(--provider-accent) 62%, #cbd5e1);
+  border: 1px solid color-mix(in srgb, var(--provider-accent) 52%, #d7e2eb);
   border-radius: inherit;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--provider-accent) 34%, transparent), 0 0 18px color-mix(in srgb, var(--provider-accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--provider-accent) 12%, transparent), inset 0 0 16px color-mix(in srgb, var(--provider-accent) 7%, transparent), 0 0 10px color-mix(in srgb, var(--provider-accent) 14%, transparent);
 }
 
-/* Slow, smooth perimeter trace keeps the frame alive without feeling busy. */
+/* Thin light rail travels slowly inside the card, leaving the content untouched. */
 .provider-card::after {
   display: block;
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 5px;
   z-index: 3;
   pointer-events: none;
   box-sizing: border-box;
-  padding: 3px;
-  border-radius: inherit;
+  padding: 2px;
+  border-radius: 15px;
   background: conic-gradient(
     from var(--provider-border-angle),
-    color-mix(in srgb, var(--provider-accent) 55%, transparent) 0deg 336deg,
-    color-mix(in srgb, var(--provider-accent) 96%, white) 336deg 344deg,
+    transparent 0deg 318deg,
+    color-mix(in srgb, var(--provider-accent) 54%, transparent) 326deg 336deg,
+    color-mix(in srgb, var(--provider-accent) 86%, white) 336deg 344deg,
     #ffffff 344deg 350deg,
-    color-mix(in srgb, var(--provider-accent) 96%, white) 350deg 356deg,
-    color-mix(in srgb, var(--provider-accent) 55%, transparent) 356deg 360deg
+    color-mix(in srgb, var(--provider-accent) 86%, white) 350deg 356deg,
+    color-mix(in srgb, var(--provider-accent) 54%, transparent) 356deg 360deg
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--provider-accent) 78%, transparent)) drop-shadow(0 0 11px color-mix(in srgb, var(--provider-accent) 34%, transparent));
-  animation: providerCardBorderTrace 11s linear infinite;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--provider-accent) 64%, transparent)) drop-shadow(0 0 9px color-mix(in srgb, var(--provider-accent) 24%, transparent));
+  animation: providerCardBorderTrace 14s linear infinite;
   will-change: background;
 }
 
-/* Four visible corner sparks pulse in sequence, clockwise, at a relaxed pace. */
+/* Glass Light Rail uses the existing side markers only as a non-animated fallback. */
 .provider-card > .provider-border-side {
-  position: absolute;
-  z-index: 4;
-  display: block;
-  width: 15px;
-  height: 15px;
-  pointer-events: none;
-  border: 2px solid #fff;
-  border-radius: 999px;
-  background: radial-gradient(circle, #fff 0 25%, color-mix(in srgb, var(--provider-accent) 100%, white) 34% 54%, color-mix(in srgb, var(--provider-accent) 74%, transparent) 62%, transparent 76%);
-  box-shadow: 0 0 6px #fff, 0 0 13px color-mix(in srgb, var(--provider-accent) 92%, transparent), 0 0 24px color-mix(in srgb, var(--provider-accent) 42%, transparent);
-  animation: providerCornerSparkPulse 8s ease-in-out infinite;
-  will-change: transform, opacity;
+  display: none;
 }
-.provider-border-top { top: 4px; left: 4px; }
-.provider-border-right { top: 4px; right: 4px; animation-delay: -2s !important; }
-.provider-border-bottom { right: 4px; bottom: 4px; animation-delay: -4s !important; }
-.provider-border-left { bottom: 4px; left: 4px; animation-delay: -6s !important; }
+.provider-card:hover {
+  border-color: color-mix(in srgb, var(--provider-accent) 62%, #b9c9d6) !important;
+  box-shadow: 0 13px 26px color-mix(in srgb, var(--provider-accent) 16%, transparent), 0 0 0 1px color-mix(in srgb, var(--provider-accent) 24%, transparent), 0 0 18px color-mix(in srgb, var(--provider-accent) 16%, transparent);
+}
 .provider-card:hover::after {
-  animation-duration: 8.5s;
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--provider-accent) 88%, transparent)) drop-shadow(0 0 14px color-mix(in srgb, var(--provider-accent) 42%, transparent));
-}
-.provider-card:hover > .provider-border-side {
-  animation-duration: 6.5s;
+  animation-duration: 11s;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--provider-accent) 72%, transparent)) drop-shadow(0 0 11px color-mix(in srgb, var(--provider-accent) 32%, transparent));
 }
 .provider-card > *:not(.provider-border-side) {
   position: relative;
@@ -294,15 +281,8 @@
   from { --provider-border-angle: 0deg; }
   to { --provider-border-angle: 360deg; }
 }
-@keyframes providerCornerSparkPulse {
-  0%, 100% { opacity: .42; transform: scale(.72); }
-  10%, 28% { opacity: 1; transform: scale(1.24); }
-  42% { opacity: .68; transform: scale(.94); }
-  58%, 100% { opacity: .42; transform: scale(.72); }
-}
 @media (prefers-reduced-motion: reduce) {
-  .provider-card::after,
-  .provider-card > .provider-border-side {
+  .provider-card::after {
     animation: none !important;
   }
 }
