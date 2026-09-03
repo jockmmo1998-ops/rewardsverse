@@ -1,3 +1,5 @@
+import { createHash } from "crypto";
+
 /**
  * Runtime configuration for every RewardsVerse offerwall.
  *
@@ -63,6 +65,7 @@ export const OFFER_WALL_IDS = [
   "gaintwall",
   "buckswall",
   "offermintx",
+  "cpxresearch",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -78,6 +81,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   gaintwall: "Gaintwall",
   buckswall: "BucksWall",
   offermintx: "OfferMintX",
+  cpxresearch: "CPX Research",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -153,6 +157,15 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     url.searchParams.set("user_id", userId);
     return url.toString();
   },
+  cpxresearch: (userId) => {
+    const appId = env("CPX_APP_ID") || "35865";
+    const url = new URL(env("CPX_OFFERWALL_URL") || "https://offers.cpx-research.com/index.php");
+    url.searchParams.set("app_id", appId);
+    url.searchParams.set("ext_user_id", userId);
+    const secureHash = env("CPX_APP_SECURE_HASH");
+    if (secureHash) url.searchParams.set("secure_hash", createHash("md5").update(`${userId}-${secureHash}`).digest("hex"));
+    return url.toString();
+  },
 };
 
 const secretEntries: Array<[string, string]> = [
@@ -168,6 +181,7 @@ const secretEntries: Array<[string, string]> = [
   ["gaintwall", env("GAINTWALL_POSTBACK_SECRET", "GAINTWALL_API_KEY", "GAINTWALL_PLACEMENT_KEY")],
   ["buckswall", env("BUCKSWALL_POSTBACK_SECRET")],
   ["offermintx", env("OFFERMINTX_POSTBACK_SECRET")],
+  ["cpxresearch", env("CPX_APP_SECURE_HASH")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -281,6 +295,14 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["subid1", "payout", "currency_amount", "currency_name", "offer_name", "ip_address", "status", "subid2", "event_id", "event_name"],
   },
+  cpxresearch: {
+    user: "user_id",
+    reward: "amount_usd",
+    transaction: "trans_id",
+    auth: "md5",
+    response: "json",
+    macros: ["status", "trans_id", "user_id", "subid_1", "subid_2", "amount_local", "amount_usd", "offer_id", "hash", "ip_click", "type"],
+  },
   offermintx: {
     user: "subid1",
     reward: "payout",
@@ -312,6 +334,20 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
     url.searchParams.set("hash", "{hash}");
     // Gaintwall's test and live callback engines require literal macro
     // delimiters and do not substitute %7Bmacro%7D/%7D.
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
+  }
+  if (provider === "cpxresearch") {
+    url.searchParams.set("status", "{status}");
+    url.searchParams.set("trans_id", "{trans_id}");
+    url.searchParams.set("user_id", "{user_id}");
+    url.searchParams.set("sub_id", "{subid_1}");
+    url.searchParams.set("sub_id_2", "{subid_2}");
+    url.searchParams.set("amount_local", "{amount_local}");
+    url.searchParams.set("amount_usd", "{amount_usd}");
+    url.searchParams.set("offer_id", "{offer_ID}");
+    url.searchParams.set("hash", "{secure_hash}");
+    url.searchParams.set("ip_click", "{ip_click}");
+    url.searchParams.set("type", "{type}");
     return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
   }
   if (provider === "taskwall") {

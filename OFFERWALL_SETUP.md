@@ -18,6 +18,7 @@ Link hoàn chỉnh được tạo trong Admin Panel → **Postbacks** chỉ khi 
 
 | Offerwall | Giá trị cần lấy từ publisher dashboard | Điền vào Render | Endpoint |
 | --- | --- | --- | --- |
+| CPX Research | App ID và App Secure Hash trong Apps → Rewardsverse | `CPX_APP_ID`, `CPX_APP_SECURE_HASH` | `/api/postback/cpxresearch` |
 | Gemiwall | Placement ID và postback token/secret | `GEMIWALL_PLACEMENT_ID`, `GEMIWALL_POSTBACK_SECRET` | `/api/postback/gemiwall` |
 | Revtoo | API key/placement key và postback secret | `REVTOO_API_KEY` hoặc `REVTOO_PLACEMENT_ID`, `REVTOO_POSTBACK_SECRET` | `/api/postback/revtoo` |
 | Clickwall | Placement ID và postback token/secret | `CLICKWALL_PLACEMENT_ID`, `CLICKWALL_POSTBACK_SECRET` | `/api/postback/clickwall` |
@@ -29,6 +30,10 @@ Link hoàn chỉnh được tạo trong Admin Panel → **Postbacks** chỉ khi 
 | AdMaxFlow | Placement ID và postback secret | `ADMAXFLOW_PLACEMENT_ID`, `ADMAXFLOW_POSTBACK_SECRET` | `/api/postback/admaxflow` |
 | Gaintwall | Placement API key/placement key; postback secret nếu provider cấp riêng | `GAINTWALL_API_KEY` hoặc `GAINTWALL_PLACEMENT_KEY`, tùy chọn `GAINTWALL_POSTBACK_SECRET` | `/api/postback/gaintwall` |
 | BucksWall | Offerwall URL/placement URL và postback secret | `BUCKSWALL_OFFERWALL_URL`, `BUCKSWALL_POSTBACK_SECRET` | `/api/postback/buckswall` |
+
+## CPX Research: cấu hình
+
+CPX Research sử dụng App ID `35865` của ứng dụng Rewardsverse. Đặt `CPX_APP_SECURE_HASH` trong Render bằng App Secure Hash của CPX; không commit giá trị này. Trong CPX Publisher → Apps → Rewardsverse → Postback Settings, đặt Main Postback URL theo mẫu được tạo trong Admin Panel → Postbacks. Endpoint xác thực bằng `md5(trans_id-CPX_APP_SECURE_HASH)`, nhận `amount_usd`, `user_id` và xử lý `status=2` như giao dịch hủy/chargeback.
 
 ## Taskwall: cấu hình và test
 

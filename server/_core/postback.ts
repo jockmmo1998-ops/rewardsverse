@@ -213,6 +213,14 @@ function constantTimeEqual(left: string, right: string): boolean {
  * Revtoo, Cointo and AdswedMedia document the same MD5 formula:
  * md5(user + transaction + reward + secret).
  */
+function verifyCpxResearchSignature(secret: string, params: Record<string, any>): boolean {
+  const transaction = pick(params, ["trans_id"]);
+  const signature = extractSignature(params).toLowerCase();
+  if (!transaction || !signature) return false;
+  const expected = crypto.createHash("md5").update(`${transaction}-${secret}`).digest("hex");
+  return constantTimeEqual(expected, signature);
+}
+
 function verifyProviderMd5Signature(
   secret: string,
   params: Record<string, any>,
@@ -534,7 +542,8 @@ async function handlePostback(req: Request, res: Response) {
       // CoinToMedia has used both reward (virtual coins) and payout (USD) in
       // its MD5 formula across dashboard versions. Accept either documented
       // form, while still requiring the configured secret and transaction.
-      const md5Valid = (provider === "revtoo" && verifyRevtooSignature(expectedSecret, params))
+      const md5Valid = (provider === "cpxresearch" && verifyCpxResearchSignature(expectedSecret, params))
+        || (provider === "revtoo" && verifyRevtooSignature(expectedSecret, params))
         || verifyProviderMd5Signature(expectedSecret, params, spec)
         // AdsWedMedia has deployed integrations using both the documented
         // camelCase fields and the legacy short aliases. Verify the exact
@@ -616,7 +625,9 @@ async function handlePostback(req: Request, res: Response) {
     // field when both virtual points and a USD payout are present. The selected
     // value is the gross/original reward; the user credit is halved below.
     // Signature validation still uses the provider amount.
-    const rawAmount = provider === "revtoo"
+    const rawAmount = provider === "cpxresearch"
+      ? pickSignedNumeric(params, ["amount_usd"])
+      : provider === "revtoo"
       ? pickSignedNumeric(params, ["payout", "reward"])
       : provider === "gaintwall"
       // Gaintwall documents payout/reward as negative on reversals. The
