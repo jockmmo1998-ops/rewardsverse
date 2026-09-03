@@ -95,4 +95,10 @@ services:
         sync: false
       - key: BUCKSWALL_POSTBACK_SECRET
         sync: false
+      - key: CPX_APP_ID
+        value: 35865
+      - key: CPX_APP_SECURE_HASH
+        sync: false
+      - key: CPX_OFFERWALL_URL
+        value: https://offers.cpx-research.com/index.php
     healthCheckPath: /
