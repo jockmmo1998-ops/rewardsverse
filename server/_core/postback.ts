@@ -221,6 +221,16 @@ function verifyCpxResearchSignature(secret: string, params: Record<string, any>)
   return constantTimeEqual(expected, signature);
 }
 
+function verifyTheoremReachSignature(secret: string, requestUrl: string): boolean {
+  const hashMatch = requestUrl.match(/[?&]hash=([^&]*)/i);
+  if (!hashMatch) return false;
+  const provided = decodeURIComponent(hashMatch[1]).trim();
+  const unsignedUrl = requestUrl.replace(/[?&]hash=[^&]*&?/i, (match) => match.startsWith("?") && match.endsWith("&") ? "?" : "");
+  const digest = crypto.createHmac("sha1", secret).update(unsignedUrl).digest("base64");
+  const expected = digest.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  return constantTimeEqual(expected, provided);
+}
+
 function verifyProviderMd5Signature(
   secret: string,
   params: Record<string, any>,
@@ -336,6 +346,8 @@ function extractSignature(params: Record<string, any>): string {
  *     signature=md5(user + transaction + reward + secret)
  * - gaintwall:
  *     hash=sha256(user_id + offer_id + transaction_id + secret)
+ * - theoremreach:
+ *     HMAC-SHA1(URL without hash parameter, secret key), base64url encoded
  *
  * Chi tiết param từng provider:
  * - revtoo:      subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
@@ -564,6 +576,12 @@ async function handlePostback(req: Request, res: Response) {
         return respond(401, { success: false, message: "Invalid postback signature" },
           "failed", 0, "", "", "", "signature_mismatch");
       }
+    } else if (spec.auth === "hmac_sha1") {
+      if (!verifyTheoremReachSignature(expectedSecret, requestUrl)) {
+        console.error(`[Postback][${provider}] HMAC-SHA1 signature mismatch`);
+        return respond(401, { success: false, message: "Invalid postback signature" },
+          "failed", 0, "", "", "", "signature_mismatch");
+      }
     } else {
       const token = extractToken(params, spec);
       if (!token) {
@@ -594,7 +612,8 @@ async function handlePostback(req: Request, res: Response) {
     // If a status field IS present but is not a known completed value → skip.
     // If NO status field is present (empty string) → assume completed (many
     // providers only POST on completion and omit the status field entirely).
-    const isChargeback = CHARGEBACK_STATUSES.has(statusNorm);
+    const theoremReversal = provider === "theoremreach" && pick(params, ["reversal"]).toLowerCase() === "true";
+    const isChargeback = CHARGEBACK_STATUSES.has(statusNorm) || theoremReversal;
     if (statusNorm !== "" && !COMPLETED_STATUSES.has(statusNorm) && !isChargeback) {
       console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed or chargeback value — skipping`);
       return respond(200, {
@@ -627,6 +646,8 @@ async function handlePostback(req: Request, res: Response) {
     // Signature validation still uses the provider amount.
     const rawAmount = provider === "cpxresearch"
       ? pickSignedNumeric(params, ["amount_usd"])
+      : provider === "theoremreach"
+      ? pickSignedNumeric(params, ["currency", "reward"])
       : provider === "revtoo"
       ? pickSignedNumeric(params, ["payout", "reward"])
       : provider === "gaintwall"
@@ -656,6 +677,16 @@ async function handlePostback(req: Request, res: Response) {
 
     // Log every parsed field before any validation so debugging is easy
     console.log(`[Postback][${provider}] Detected → status="${statusNorm}" user="${rawUserId}" reward="${rawAmount}" params=${JSON.stringify(Object.keys(params))}`);
+
+    if (provider === "theoremreach" && pick(params, ["debug"]).toLowerCase() === "true") {
+      return respond(200, {
+        success: true,
+        message: "TheoremReach debug callback received — balance not updated",
+        debug: true,
+        detectedUser: rawUserId,
+        detectedReward: rawAmount || "0",
+      }, "processed", 0, rawAmount || "0", "", "");
+    }
 
     if (rawAmount === "") {
       console.error(`[Postback][${provider}] No numeric reward field found. Query: ${rawQuery}  Body: ${rawBody}`);

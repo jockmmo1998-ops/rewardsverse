@@ -101,4 +101,12 @@ services:
         sync: false
       - key: CPX_OFFERWALL_URL
         value: https://offers.cpx-research.com/index.php
+      - key: THEOREMREACH_APP_ID
+        value: 25491
+      - key: THEOREMREACH_API_KEY
+        sync: false
+      - key: THEOREMREACH_SECRET_KEY
+        sync: false
+      - key: THEOREMREACH_OFFERWALL_URL
+        value: https://theoremreach.com/respondent_entry/direct
     healthCheckPath: /

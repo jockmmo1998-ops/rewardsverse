@@ -10,7 +10,7 @@ import { createHash } from "crypto";
 
 type OfferWallUrlBuilder = (userId: string) => string | null;
 
-export type PostbackAuth = "none" | "token" | "md5" | "sha256";
+export type PostbackAuth = "none" | "token" | "md5" | "sha256" | "hmac_sha1";
 export type PostbackResponse = "json" | "ok" | "dup";
 
 export type PostbackParamSpec = {
@@ -66,6 +66,7 @@ export const OFFER_WALL_IDS = [
   "buckswall",
   "offermintx",
   "cpxresearch",
+  "theoremreach",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -82,6 +83,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   buckswall: "BucksWall",
   offermintx: "OfferMintX",
   cpxresearch: "CPX Research",
+  theoremreach: "TheoremReach",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -166,6 +168,15 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     if (secureHash) url.searchParams.set("secure_hash", createHash("md5").update(`${userId}-${secureHash}`).digest("hex"));
     return url.toString();
   },
+  theoremreach: (userId) => {
+    const apiKey = env("THEOREMREACH_API_KEY");
+    if (!apiKey) return null;
+    const url = new URL(env("THEOREMREACH_OFFERWALL_URL") || "https://theoremreach.com/respondent_entry/direct");
+    url.searchParams.set("api_key", apiKey);
+    url.searchParams.set("user_id", userId);
+    url.searchParams.set("transaction_id", `${userId}-${Date.now()}`);
+    return url.toString();
+  },
 };
 
 const secretEntries: Array<[string, string]> = [
@@ -182,6 +193,7 @@ const secretEntries: Array<[string, string]> = [
   ["buckswall", env("BUCKSWALL_POSTBACK_SECRET")],
   ["offermintx", env("OFFERMINTX_POSTBACK_SECRET")],
   ["cpxresearch", env("CPX_APP_SECURE_HASH")],
+  ["theoremreach", env("THEOREMREACH_SECRET_KEY")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -303,6 +315,14 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["status", "trans_id", "user_id", "subid_1", "subid_2", "amount_local", "amount_usd", "offer_id", "hash", "ip_click", "type"],
   },
+  theoremreach: {
+    user: "user_id",
+    reward: "currency",
+    transaction: "tx_id",
+    auth: "hmac_sha1",
+    response: "json",
+    macros: ["user_id", "reward", "currency", "tx_id", "hash", "reversal", "debug", "screenout", "profiler", "offer", "offer_name", "ip", "offer_id", "placement_id"],
+  },
   offermintx: {
     user: "subid1",
     reward: "payout",
@@ -348,6 +368,23 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
     url.searchParams.set("hash", "{secure_hash}");
     url.searchParams.set("ip_click", "{ip_click}");
     url.searchParams.set("type", "{type}");
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
+  }
+  if (provider === "theoremreach") {
+    url.searchParams.set("user_id", "{user_id}");
+    url.searchParams.set("reward", "{reward}");
+    url.searchParams.set("currency", "{currency}");
+    url.searchParams.set("tx_id", "{tx_id}");
+    url.searchParams.set("hash", "{hash}");
+    url.searchParams.set("reversal", "{reversal}");
+    url.searchParams.set("debug", "{debug}");
+    url.searchParams.set("screenout", "{screenout}");
+    url.searchParams.set("profiler", "{profiler}");
+    url.searchParams.set("offer", "{offer}");
+    url.searchParams.set("offer_name", "{offer_name}");
+    url.searchParams.set("ip", "{ip}");
+    url.searchParams.set("offer_id", "{offer_id}");
+    url.searchParams.set("placement_id", "{placement_id}");
     return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
   }
   if (provider === "taskwall") {
