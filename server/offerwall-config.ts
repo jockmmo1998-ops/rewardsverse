@@ -182,7 +182,8 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
 const secretEntries: Array<[string, string]> = [
   ["gemiwall", env("GEMIWALL_POSTBACK_SECRET")],
   ["revtoo", env("REVTOO_POSTBACK_SECRET")],
-  ["gleamads", env("GLEAMADS_POSTBACK_SECRET", "GLEAMADS_API_KEY")],
+  // GleamAds has no postback token field; its placement uses source-IP validation.
+  ["gleamads", ""],
   ["moustache", env("MOUSTACHE_POSTBACK_SECRET")],
   ["taskwall", env("TASKWALL_POSTBACK_SECRET")],
   ["cointo", env("COINTO_POSTBACK_SECRET")],
@@ -226,12 +227,15 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     macros: ["subId", "transId", "reward", "payout", "status", "offer_id", "offer_name", "userIp", "debug", "signature"],
   },
   gleamads: {
-    user: "user_id",
+    // GleamAds uses the identifiers and macros documented by its placement:
+    // subId, transId, reward, payout, userIp, country and status.
+    user: "subId",
     reward: "reward",
-    transaction: "transaction_id",
-    auth: "token",
+    transaction: "transId",
+    // GleamAds authenticates callbacks by source IP, not a query token.
+    auth: "none",
     response: "json",
-    macros: ["user_id", "reward", "transaction_id", "offer_name", "offer_id", "status"],
+    macros: ["subId", "transId", "reward", "payout", "offer_name", "userIp", "country", "status"],
   },
   moustache: {
     user: "user_id",

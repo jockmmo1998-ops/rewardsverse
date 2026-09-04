@@ -354,7 +354,7 @@ function extractSignature(params: Record<string, any>): string {
  * - cointo:      subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
  * - gemiwall:    sub_id=USERNAME   reward=AMOUNT    uuid=TXID
  * - taskwall:    userid=USERNAME   user_amount=AMOUNT password=AUTH_PASSWORD
- * - gleamads:   user_id=USER_ID    reward=AMOUNT  transaction_id=TXID
+ * - gleamads:   subId=USERNAME    reward=AMOUNT    transId=TXID    status=1/0
  * - adswedmedia: subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
  * - klink (GET): subId=USERNAME    payout=AMOUNT    transId=TXID    (GET query params)
  * - klink (POST JSON): userId=USERNAME  payout=AMOUNT  conversionId=TXID
@@ -613,7 +613,12 @@ async function handlePostback(req: Request, res: Response) {
     // If NO status field is present (empty string) → assume completed (many
     // providers only POST on completion and omit the status field entirely).
     const theoremReversal = provider === "theoremreach" && pick(params, ["reversal"]).toLowerCase() === "true";
-    const isChargeback = CHARGEBACK_STATUSES.has(statusNorm) || theoremReversal;
+    // GleamAds documents status=0 as a chargeback and status=1 as a
+    // conversion. Keep this provider-specific so other networks' status
+    // semantics and duplicate protection remain unchanged.
+    const isChargeback = (provider === "gleamads" && statusNorm === "0")
+      || CHARGEBACK_STATUSES.has(statusNorm)
+      || theoremReversal;
     if (statusNorm !== "" && !COMPLETED_STATUSES.has(statusNorm) && !isChargeback) {
       console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed or chargeback value — skipping`);
       return respond(200, {
