@@ -776,11 +776,12 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // Virtual-auth accounts in the existing production database may have a
-    // username like virtual_<baseUsername>_<timestamp>, while Taskwall sends
-    // only the base username. Resolve that legacy representation safely.
-    if (!user && provider === "taskwall" && /^[a-zA-Z0-9_]+$/.test(rawUserId)) {
+    // username like virtual_<baseUsername>_<timestamp>, while legacy providers
+    // send only the base username. Resolve this representation only for the
+    // providers that use that callback contract; do not alter other mappings.
+    if (!user && (provider === "taskwall" || provider === "gleamads") && /^[a-zA-Z0-9_]+$/.test(rawUserId)) {
       user = await db.getUserByVirtualUsername(rawUserId) ?? null;
-      if (user) console.log(`[Postback][taskwall] User found by virtual username mapping → id=${user.id}`);
+      if (user) console.log(`[Postback][${provider}] User found by virtual username mapping → id=${user.id}`);
     }
 
     // 10c. If rawUserId looks like "virtual_NAME_timestamp", extract NAME and retry
