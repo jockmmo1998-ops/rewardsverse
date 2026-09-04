@@ -63,8 +63,8 @@ const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
 /** AdMaxFlow Placement points per USD. This Placement is fixed at 400 = $1. */
 const ADMAXFLOW_CURRENCY_RATE = 400;
-/** TheoremReach callbacks return integer points; this integration uses 1000 = $1. */
-const THEOREMREACH_CURRENCY_RATE = 1000;
+/** GleamAds callbacks return integer points; this integration uses 1000 = $1. */
+const GLEAMADS_CURRENCY_RATE = 1000;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -657,14 +657,7 @@ async function handlePostback(req: Request, res: Response) {
     const rawAmount = provider === "cpxresearch"
       ? pickSignedNumeric(params, ["amount_usd"])
       : provider === "theoremreach"
-      // TheoremReach's currency/reward callback value is integer points, not USD.
-      // Convert using the configured exchange rate before writing the USD wallet.
-      ? (() => {
-          const points = pickSignedNumeric(params, ["currency", "reward"]);
-          if (points === "") return "";
-          const usd = Number(points) / THEOREMREACH_CURRENCY_RATE;
-          return Number.isFinite(usd) ? usd.toFixed(6) : "";
-        })()
+      ? pickSignedNumeric(params, ["currency", "reward"])
       : provider === "revtoo"
       ? pickSignedNumeric(params, ["payout", "reward"])
       : provider === "gaintwall"
@@ -685,10 +678,14 @@ async function handlePostback(req: Request, res: Response) {
           return pickNumeric(params, ["payout"]);
         })()
       : provider === "gleamads"
-      // GleamAds' configured placement currency is Points. Use its reward
-      // field as the point amount; never replace it with payout USD when both
-      // fields are present.
-      ? pickNumeric(params, ["reward"])
+      // GleamAds' configured placement currency is Points. Convert its reward
+      // field to the USD wallet using the placement exchange rate.
+      ? (() => {
+          const points = pickNumeric(params, ["reward"]);
+          if (points === "") return "";
+          const usd = Number(points) / GLEAMADS_CURRENCY_RATE;
+          return Number.isFinite(usd) ? usd.toFixed(6) : "";
+        })()
       : provider === "taskwall"
       // Taskwall test callbacks may leave user_amount as a literal macro while
       // payout contains the actual USD value. Prefer payout for our USD wallet
@@ -732,7 +729,7 @@ async function handlePostback(req: Request, res: Response) {
     // amount positive, apply the 50% user share once, and let balanceDelta
     // decide whether to credit or debit.
     const providerReward = Math.abs(parseFloat(rawAmount));
-    const reward = provider === "admaxflow" || provider === "theoremreach"
+    const reward = provider === "admaxflow" || provider === "gleamads"
       ? providerReward
       : providerReward * USER_PAYOUT_SHARE;
 
