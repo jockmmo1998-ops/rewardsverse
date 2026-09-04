@@ -290,7 +290,7 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     transaction: null,
     auth: "none",
     response: "json",
-    macros: ["subid1", "payout", "currency_amount", "currency_name", "offer_name", "ip_address", "status", "subid2"],
+    macros: ["subid1", "payout", "currency_amount", "currency_name", "offer_name", "ip_address", "status", "subid2", "placement_id"],
   },
   gaintwall: {
     user: "userId",

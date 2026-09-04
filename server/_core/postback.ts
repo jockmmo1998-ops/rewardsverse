@@ -61,6 +61,9 @@ const REWARD_FIELDS = [
 const USER_PAYOUT_SHARE = 0.5;
 const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
+/** AdMaxFlow Placement points per USD; override per deployment if needed. */
+const ADMAXFLOW_CURRENCY_RATE = Math.max(1, Number(process.env.ADMAXFLOW_CURRENCY_RATE || 400));
+
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
   // camelCase (Klink)
@@ -659,6 +662,19 @@ async function handlePostback(req: Request, res: Response) {
       // Gaintwall documents payout/reward as negative on reversals. The
       // credit path below applies the sign exactly once for chargebacks.
       ? pickSignedNumeric(params, [spec.reward, "reward"])
+      : provider === "admaxflow"
+      // AdMaxFlow's currency_amount is the virtual Points amount configured
+      // on the Placement (for example 400 Points = $1). Convert it directly
+      // instead of applying the generic 50% share to payout.
+      ? (() => {
+          const points = pickNumeric(params, ["currency_amount"]);
+          if (points !== "") {
+            const usd = Number(points) / ADMAXFLOW_CURRENCY_RATE;
+            return Number.isFinite(usd) && usd >= 0 ? usd.toFixed(6) : "";
+          }
+          // Older callbacks may omit currency_amount; payout is USD there.
+          return pickNumeric(params, ["payout"]);
+        })()
       : provider === "gleamads"
       // GleamAds' configured placement currency is Points. Use its reward
       // field as the point amount; never replace it with payout USD when both
@@ -707,7 +723,9 @@ async function handlePostback(req: Request, res: Response) {
     // amount positive, apply the 50% user share once, and let balanceDelta
     // decide whether to credit or debit.
     const providerReward = Math.abs(parseFloat(rawAmount));
-    const reward = providerReward * USER_PAYOUT_SHARE;
+    const reward = provider === "admaxflow"
+      ? providerReward
+      : providerReward * USER_PAYOUT_SHARE;
 
     diagnostics.rewardValidation = "PASS";
 
