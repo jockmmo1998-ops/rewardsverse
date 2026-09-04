@@ -63,6 +63,8 @@ const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
 /** AdMaxFlow Placement points per USD. This Placement is fixed at 400 = $1. */
 const ADMAXFLOW_CURRENCY_RATE = 400;
+/** TheoremReach callbacks return integer points; this integration uses 1000 = $1. */
+const THEOREMREACH_CURRENCY_RATE = 1000;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -655,7 +657,14 @@ async function handlePostback(req: Request, res: Response) {
     const rawAmount = provider === "cpxresearch"
       ? pickSignedNumeric(params, ["amount_usd"])
       : provider === "theoremreach"
-      ? pickSignedNumeric(params, ["currency", "reward"])
+      // TheoremReach's currency/reward callback value is integer points, not USD.
+      // Convert using the configured exchange rate before writing the USD wallet.
+      ? (() => {
+          const points = pickSignedNumeric(params, ["currency", "reward"]);
+          if (points === "") return "";
+          const usd = Number(points) / THEOREMREACH_CURRENCY_RATE;
+          return Number.isFinite(usd) ? usd.toFixed(6) : "";
+        })()
       : provider === "revtoo"
       ? pickSignedNumeric(params, ["payout", "reward"])
       : provider === "gaintwall"
@@ -723,7 +732,7 @@ async function handlePostback(req: Request, res: Response) {
     // amount positive, apply the 50% user share once, and let balanceDelta
     // decide whether to credit or debit.
     const providerReward = Math.abs(parseFloat(rawAmount));
-    const reward = provider === "admaxflow"
+    const reward = provider === "admaxflow" || provider === "theoremreach"
       ? providerReward
       : providerReward * USER_PAYOUT_SHARE;
 
