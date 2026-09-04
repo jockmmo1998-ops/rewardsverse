@@ -85,6 +85,11 @@ services:
         sync: false
       - key: ADMAXFLOW_POSTBACK_SECRET
         sync: false
+      # AdMaxFlow Placement currency: 400 virtual points = $1.00.
+      # Keep this explicit so an old deployment value (for example 500) cannot
+      # silently override the Placement payout conversion.
+      - key: ADMAXFLOW_CURRENCY_RATE
+        value: "400"
       - key: GAINTWALL_PLACEMENT_KEY
         sync: false
       - key: GAINTWALL_API_KEY

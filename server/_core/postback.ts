@@ -61,8 +61,8 @@ const REWARD_FIELDS = [
 const USER_PAYOUT_SHARE = 0.5;
 const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
-/** AdMaxFlow Placement points per USD; override per deployment if needed. */
-const ADMAXFLOW_CURRENCY_RATE = Math.max(1, Number(process.env.ADMAXFLOW_CURRENCY_RATE || 400));
+/** AdMaxFlow Placement points per USD. This Placement is fixed at 400 = $1. */
+const ADMAXFLOW_CURRENCY_RATE = 400;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
