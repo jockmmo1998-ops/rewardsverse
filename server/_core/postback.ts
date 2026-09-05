@@ -679,12 +679,16 @@ async function handlePostback(req: Request, res: Response) {
         })()
       : provider === "gleamads"
       // GleamAds' configured placement currency is Points. Convert its reward
-      // field to the USD wallet using the placement exchange rate.
+      // field to the USD wallet using the placement exchange rate. Some
+      // callback versions call the points field points/currency_amount, while
+      // payout is already a USD amount and is kept as a fallback.
       ? (() => {
-          const points = pickNumeric(params, ["reward"]);
-          if (points === "") return "";
-          const usd = Number(points) / GLEAMADS_CURRENCY_RATE;
-          return Number.isFinite(usd) ? usd.toFixed(6) : "";
+          const points = pickNumeric(params, ["reward", "points", "currency_amount"]);
+          if (points !== "") {
+            const usd = Number(points) / GLEAMADS_CURRENCY_RATE;
+            return Number.isFinite(usd) ? usd.toFixed(6) : "";
+          }
+          return pickSignedNumeric(params, ["payout"]);
         })()
       : provider === "taskwall"
       // Taskwall test callbacks may leave user_amount as a literal macro while
