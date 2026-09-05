@@ -729,7 +729,9 @@ async function handlePostback(req: Request, res: Response) {
     // amount positive, apply the 50% user share once, and let balanceDelta
     // decide whether to credit or debit.
     const providerReward = Math.abs(parseFloat(rawAmount));
-    const reward = provider === "admaxflow" || provider === "gleamads"
+    // AdMaxFlow is already configured as the user-facing payout amount.
+    // GleamAds points are first converted to USD, then the user receives 50%.
+    const reward = provider === "admaxflow"
       ? providerReward
       : providerReward * USER_PAYOUT_SHARE;
 
