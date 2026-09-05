@@ -65,6 +65,7 @@ const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 const ADMAXFLOW_CURRENCY_RATE = 400;
 /** GleamAds callbacks return integer points; this integration uses 1000 = $1. */
 const GLEAMADS_CURRENCY_RATE = 1000;
+const ADMAXFLOW_USER_SHARE = 0.40;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -733,10 +734,10 @@ async function handlePostback(req: Request, res: Response) {
     // amount positive, apply the 50% user share once, and let balanceDelta
     // decide whether to credit or debit.
     const providerReward = Math.abs(parseFloat(rawAmount));
-    // AdMaxFlow is already configured as the user-facing payout amount.
-    // GleamAds points are first converted to USD, then the user receives 50%.
+    // AdMaxFlow users receive 40% of the provider reward. GleamAds points are
+    // first converted to USD, then the user receives the existing 50% share.
     const reward = provider === "admaxflow"
-      ? providerReward
+      ? providerReward * ADMAXFLOW_USER_SHARE
       : providerReward * USER_PAYOUT_SHARE;
 
     diagnostics.rewardValidation = "PASS";
