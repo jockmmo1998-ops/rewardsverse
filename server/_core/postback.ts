@@ -31,7 +31,7 @@ const USER_FIELDS = [
   // member-style
   "member_id", "memberid",
   // sub-parameters sub1/sub2
-  "sub1", "sub2",
+  "sub1", "sub2", "subid1", "subid2",
   // sid / sid variants
   "sid",
   // click tracking
@@ -71,7 +71,7 @@ const TXID_FIELDS = [
   // camelCase (Klink)
   "transId", "conversionId", "transactionId",
   // snake_case
-  "transaction_id", "conversion_id",
+  "transaction_id", "conversion_id", "trans_id",
   // short forms
   "transid", "tid", "tx", "txid",
   // UUID style (Gemiwall / GemiAds)

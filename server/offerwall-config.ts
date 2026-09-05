@@ -391,6 +391,20 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
     url.searchParams.set("placement_id", "{placement_id}");
     return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
   }
+  if (provider === "gleamads") {
+    url.searchParams.set("subId", "{subId}");
+    url.searchParams.set("user_id", "{user_id}");
+    url.searchParams.set("subid1", "{subid1}");
+    url.searchParams.set("reward", "{reward}");
+    url.searchParams.set("points", "{points}");
+    url.searchParams.set("currency_amount", "{currency_amount}");
+    url.searchParams.set("payout", "{payout}");
+    url.searchParams.set("transId", "{transId}");
+    url.searchParams.set("transaction_id", "{transaction_id}");
+    url.searchParams.set("offer_name", "{offer_name}");
+    url.searchParams.set("status", "{status}");
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
+  }
   if (provider === "taskwall") {
     // Taskwall uses a fixed token for endpoint authentication and sends its
     // own password macro separately. Keep both parameters in the callback.
