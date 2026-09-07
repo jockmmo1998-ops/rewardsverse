@@ -182,7 +182,9 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
   timewall: (userId) => {
     const placementId = env("TIMEWALL_PLACEMENT_ID");
     if (!placementId) return null;
-    const url = new URL(env("TIMEWALL_OFFERWALL_URL") || "https://timewall.io/offerwall");
+    // TimeWall 2.0 no longer supports direct user login. Its reward-site
+    // profile entry is the root URL with the publisher placement and user ID.
+    const url = new URL("https://timewall.io/");
     url.searchParams.set("oid", placementId);
     url.searchParams.set("uid", userId);
     return url.toString();
