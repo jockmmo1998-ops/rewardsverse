@@ -586,6 +586,7 @@ export default function Home() {
               { id: "admaxflow", name: "AdMaxFlow", desc: "Surveys, apps & tasks worldwide", reward: "$0.10–$5.00", tag: "NEW", rating: 4.6, surface: '#5b2507', border: '#f97316', accent: '#fdba74', track: '#9a3412', gradient: 'linear-gradient(90deg, #ea580c, #fdba74)', badgeSurface: '#9a3412', logo: "/assets/provider-logos/admaxflow.png" },
               { id: "gaintwall", name: "Gaintwall", desc: "Earn with surveys & tasks worldwide", reward: "$0.10–$6.00", tag: "NEW", rating: 4.7, surface: '#5b1010', border: '#dc2626', accent: '#fca5a5', track: '#8f2020', gradient: 'linear-gradient(90deg, #dc2626, #fca5a5)', badgeSurface: '#8f2020', logo: "https://gaintwall.com/assets/img/brand/gaintwall-mark.svg" },
               { id: "buckswall", name: "BucksWall", desc: "Mobile apps, surveys & gaming offers", reward: "$0.10–$6.00", tag: "SETUP", rating: 4.6, surface: '#103b24', border: '#16a34a', accent: '#86efac', track: '#17633e', gradient: 'linear-gradient(90deg, #16a34a, #86efac)', badgeSurface: '#17633e', logo: "/assets/provider-logos/buckswall.svg" },
+              { id: "timewall", name: "TimeWall", desc: "Surveys, microtasks & paid offers", reward: "$0.10–$8.00", tag: "SURVEYS", rating: 4.8, surface: '#103b24', border: '#16a34a', accent: '#86efac', track: '#17633e', gradient: 'linear-gradient(90deg, #16a34a, #86efac)', badgeSurface: '#17633e', logo: "/assets/provider-logos/timewall.png" },
             ].map((wall, i) => (
               <motion.div
                 key={wall.id}

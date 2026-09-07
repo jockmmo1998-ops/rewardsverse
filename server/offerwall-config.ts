@@ -179,6 +179,14 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     url.searchParams.set("transaction_id", `${userId}-${Date.now()}`);
     return url.toString();
   },
+  timewall: (userId) => {
+    const placementId = env("TIMEWALL_PLACEMENT_ID");
+    if (!placementId) return null;
+    const url = new URL(env("TIMEWALL_OFFERWALL_URL") || "https://timewall.io/offerwall");
+    url.searchParams.set("oid", placementId);
+    url.searchParams.set("uid", userId);
+    return url.toString();
+  },
 };
 
 const secretEntries: Array<[string, string]> = [

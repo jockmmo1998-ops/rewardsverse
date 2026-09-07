@@ -39,11 +39,12 @@ const OFFER_WALLS: OfferWall[] = [
   { id: 'offermintx', name: 'OfferMintX', desc: 'Premium CPA offers worldwide', reward: '$0.10–$25.00', logo: 'https://www.offermintx.com/favicon.ico', tag: 'NEW', category: 'Tasks', rating: 4.8, surface: '#ffffff', border: '#bbf7d0', logoSurface: '#ffffff', accent: '#16a34a', track: '#f0fdf4', gradient: 'linear-gradient(90deg, #86efac, #16a34a)', badgeSurface: '#dcfce7' },
   { id: 'cpxresearch', name: 'CPX Research', desc: 'Paid surveys worldwide', reward: '$0.10–$5.00', logo: '/assets/provider-logos/cpxresearch.png', tag: 'SURVEYS', category: 'Tasks', rating: 4.8, surface: '#ffffff', border: '#bae6fd', logoSurface: '#ffffff', accent: '#0284c7', track: '#f0f9ff', gradient: 'linear-gradient(90deg, #7dd3fc, #0284c7)', badgeSurface: '#e0f2fe' },
   { id: 'theoremreach', name: 'TheoremReach', desc: 'Rewarded surveys worldwide', reward: '$0.10–$5.00', logo: '/assets/provider-logos/theoremreach.png', tag: 'SURVEYS', category: 'Tasks', rating: 4.8, surface: '#ffffff', border: '#ddd6fe', logoSurface: '#ffffff', accent: '#7c3aed', track: '#f5f3ff', gradient: 'linear-gradient(90deg, #c4b5fd, #7c3aed)', badgeSurface: '#ede9fe' },
+  { id: 'timewall', name: 'TimeWall', desc: 'Surveys, microtasks & paid offers', reward: '$0.10–$8.00', logo: '/assets/provider-logos/timewall.png', tag: 'SURVEYS', category: 'Tasks', rating: 4.8, surface: '#ffffff', border: '#bbf7d0', logoSurface: '#ffffff', accent: '#16a34a', track: '#f0fdf4', gradient: 'linear-gradient(90deg, #86efac, #16a34a)', badgeSurface: '#dcfce7' },
 ];
 
 // OfferMintX starts offer links in a new browsing context. Keeping it outside the
 // embedded iframe avoids sandboxed-popup restrictions on provider redirects.
-const NEW_TAB_WALL_IDS = new Set(['admaxflow', 'gaintwall', 'offermintx']);
+const NEW_TAB_WALL_IDS = new Set(['admaxflow', 'gaintwall', 'offermintx', 'timewall']);
 
 const categories = [
   { label: 'All', icon: Grid2X2 },
