@@ -61,4 +61,12 @@ describe("TimeWall postback", () => {
       creditUsd: 0.5,
     });
   });
+
+  it("pays exactly 40% of the provider USD amount", () => {
+    expect(calculateTimewallCredit("2.16", placement)).toEqual({
+      revenueUsd: 2.16,
+      pointsEarned: 864,
+      creditUsd: 0.86,
+    });
+  });
 });

@@ -11,8 +11,8 @@ export type TimewallPlacement = {
   pointsPerUsd: number;
 };
 
-// User wallet payout: 1,000 provider points = $1.00.
-export const TIMEWALL_USER_POINTS_PER_USD = 1000;
+// User wallet payout: user receives 40% of the provider USD amount.
+export const TIMEWALL_USER_SHARE = 0.40;
 
 export function verifyTimewallHash(
   userId: string,
@@ -54,10 +54,9 @@ export function calculateTimewallCredit(revenue: string, placement: TimewallPlac
   const revenueUsd = Number(revenue);
   if (!Number.isFinite(revenueUsd) || revenueUsd <= 0) return null;
   const pointsEarned = revenueUsd * placement.pointsPerUsd;
-  // TimeWall reports provider USD and points using the placement rate, while
-  // RewardsVerse pays users at 1,000 points per $1.00. Keep both values and
-  // credit the user-facing USD equivalent of the provider points.
-  const creditUsd = Number((pointsEarned / TIMEWALL_USER_POINTS_PER_USD).toFixed(2));
+  // TimeWall reports both provider USD and points. RewardsVerse pays users
+  // 40% of the provider USD amount, while retaining the points for logging.
+  const creditUsd = Number((revenueUsd * TIMEWALL_USER_SHARE).toFixed(2));
   return { revenueUsd, pointsEarned, creditUsd };
 }
 
