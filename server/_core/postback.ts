@@ -643,8 +643,18 @@ async function handlePostback(req: Request, res: Response) {
       || (provider === "timewall" && isTimewallChargeback(statusNorm))
       || CHARGEBACK_STATUSES.has(statusNorm)
       || theoremReversal;
-    const timewallStatusValid = provider !== "timewall" || isTimewallCredit(statusNorm) || isChargeback;
-    if (!timewallStatusValid || (statusNorm !== "" && !COMPLETED_STATUSES.has(statusNorm) && !isChargeback)) {
+    // TimeWall uses type=credit as its completion signal, while the generic
+    // status set intentionally does not treat "credit" as a completed status
+    // for other providers. Keep the provider-specific validation separate so
+    // a valid TimeWall credit is not rejected by the generic guard below.
+    const timewallStatusInvalid = provider === "timewall"
+      && !isTimewallCredit(statusNorm)
+      && !isChargeback;
+    const genericStatusInvalid = provider !== "timewall"
+      && statusNorm !== ""
+      && !COMPLETED_STATUSES.has(statusNorm)
+      && !isChargeback;
+    if (timewallStatusInvalid || genericStatusInvalid) {
       console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed or chargeback value — skipping`);
       return respond(200, {
         success: true,
