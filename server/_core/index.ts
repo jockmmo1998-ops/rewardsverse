@@ -17,7 +17,7 @@ import { getDatabaseConnectionOptions } from "../db";
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
     const server = net.createServer();
-    server.listen(port, () => {
+    server.listen(port, "0.0.0.0", () => {
       server.close(() => resolve(true));
     });
     server.on("error", () => resolve(false));
@@ -293,8 +293,10 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+  // Render's health scanner connects through the container network interface;
+  // bind explicitly to all interfaces instead of relying on Node's default.
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`Server running on http://0.0.0.0:${port}/`);
   });
 }
 
