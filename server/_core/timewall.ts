@@ -51,8 +51,8 @@ export function calculateTimewallCredit(revenue: string, placement: TimewallPlac
   const revenueUsd = Number(revenue);
   if (!Number.isFinite(revenueUsd) || revenueUsd <= 0) return null;
   const pointsEarned = revenueUsd * placement.pointsPerUsd;
-  // RewardsVerse balances are USD-denominated. Converting the placement points
-  // back by the same active rate credits the exact provider payout in USD.
+  // RewardsVerse balances are USD-denominated. Keep both values so the
+  // callback can report provider points while crediting the USD equivalent.
   return { revenueUsd, pointsEarned, creditUsd: pointsEarned / placement.pointsPerUsd };
 }
 

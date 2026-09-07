@@ -779,9 +779,18 @@ async function handlePostback(req: Request, res: Response) {
       ? providerReward * ADMAXFLOW_USER_SHARE
       : providerReward * USER_PAYOUT_SHARE;
 
+    const timewallPlacement = provider === "timewall" ? resolveTimewallPlacement() : null;
+    const timewallConversion = provider === "timewall" && timewallPlacement
+      ? calculateTimewallCredit(rawAmount, timewallPlacement)
+      : null;
+    if (timewallConversion) {
+      diagnostics.currencyAmount = timewallConversion.pointsEarned;
+      diagnostics.currency = "points";
+      diagnostics.usdAmount = timewallConversion.creditUsd;
+    }
+
     if (provider === "timewall") {
-      const placement = resolveTimewallPlacement();
-      if (!placement) {
+      if (!timewallPlacement) {
         return respond(503, { success: false, message: "TimeWall Placement/rate is not configured" }, "failed", 0, rawAmount, "", "", "placement_not_configured");
       }
       if (!isTimewallIpAllowed(remoteIp)) {
@@ -792,7 +801,7 @@ async function handlePostback(req: Request, res: Response) {
       if (!verifyTimewallHash(rawUserId, rawAmount, providedHash, secret)) {
         return respond(401, { success: false, message: "Invalid TimeWall postback hash" }, "failed", 0, rawAmount, "", "", "signature_mismatch");
       }
-      if (!Number.isFinite(reward) || reward <= 0) {
+      if (!timewallConversion || !Number.isFinite(reward) || reward <= 0) {
         return respond(400, { success: false, message: "Invalid TimeWall revenue" }, "failed", 0, rawAmount, "", "", "invalid_revenue");
       }
     }
@@ -1082,6 +1091,11 @@ async function handlePostback(req: Request, res: Response) {
         userId: user.id,
         username: user.username,
         amount: balanceDelta.toFixed(2),
+        ...(provider === "timewall" && timewallConversion ? {
+          currencyAmount: timewallConversion.pointsEarned,
+          currency: "points",
+          usdAmount: timewallConversion.creditUsd,
+        } : {}),
         provider,
         offerName,
         txid,
