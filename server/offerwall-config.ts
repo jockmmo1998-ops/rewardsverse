@@ -41,16 +41,16 @@ const env = (...names: string[]): string => {
 const encodedUserId = (userId: string): string => encodeURIComponent(userId);
 
 /**
- * TimeWall 2.0 opens a reward-site profile, not a standalone user login.
- * `uid` must be the RewardsVerse username because TimeWall postbacks resolve
- * the callback user by that same username.
+ * TimeWall's publisher portal provides a direct-link handler for reward-site
+ * profile entry. It is not a username/password login flow: TimeWall maps the
+ * reward-site user from `uid` and the publisher placement from `oid`.
  */
 export function buildTimewallProfileUrl(userId: string): string | null {
   const placementId = env("TIMEWALL_PLACEMENT_ID");
   const normalizedUserId = userId.trim();
   if (!placementId || !normalizedUserId) return null;
 
-  const url = new URL("https://timewall.io/");
+  const url = new URL("https://timewall.io/users/login");
   url.searchParams.set("oid", placementId);
   url.searchParams.set("uid", normalizedUserId);
   return url.toString();
