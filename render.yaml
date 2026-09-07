@@ -90,6 +90,12 @@ services:
       # silently override the Placement payout conversion.
       - key: ADMAXFLOW_CURRENCY_RATE
         value: "400"
+      - key: TIMEWALL_POSTBACK_SECRET
+        sync: false
+      - key: TIMEWALL_PLACEMENT_ID
+        sync: false
+      - key: TIMEWALL_POINTS_PER_USD
+        sync: false
       - key: GAINTWALL_PLACEMENT_KEY
         sync: false
       - key: GAINTWALL_API_KEY

@@ -67,6 +67,7 @@ export const OFFER_WALL_IDS = [
   "offermintx",
   "cpxresearch",
   "theoremreach",
+  "timewall",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -84,6 +85,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   offermintx: "OfferMintX",
   cpxresearch: "CPX Research",
   theoremreach: "TheoremReach",
+  timewall: "TimeWall",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -195,6 +197,7 @@ const secretEntries: Array<[string, string]> = [
   ["offermintx", env("OFFERMINTX_POSTBACK_SECRET")],
   ["cpxresearch", env("CPX_APP_SECURE_HASH")],
   ["theoremreach", env("THEOREMREACH_SECRET_KEY")],
+  ["timewall", env("TIMEWALL_POSTBACK_SECRET")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -326,6 +329,14 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     auth: "hmac_sha1",
     response: "json",
     macros: ["user_id", "reward", "currency", "tx_id", "hash", "reversal", "debug", "screenout", "profiler", "offer", "offer_name", "ip", "offer_id", "placement_id"],
+  },
+  timewall: {
+    user: "userid",
+    reward: "revenue",
+    transaction: "txid",
+    auth: "sha256",
+    response: "json",
+    macros: ["userid", "txid", "revenue", "currency", "hash", "ip", "type", "withdrawid", "reason", "offername", "offerdetail"],
   },
   offermintx: {
     user: "subid1",

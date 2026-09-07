@@ -8,6 +8,14 @@ import {
   type PostbackParamSpec,
 } from "../offerwall-config";
 import { sseManager } from "./sse";
+import {
+  calculateTimewallCredit,
+  isTimewallChargeback,
+  isTimewallCredit,
+  isTimewallIpAllowed,
+  resolveTimewallPlacement,
+  verifyTimewallHash,
+} from "./timewall";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UNIVERSAL PARAMETER MAPS
@@ -577,7 +585,16 @@ async function handlePostback(req: Request, res: Response) {
           "failed", 0, "", "", "", "signature_mismatch");
       }
     } else if (spec.auth === "sha256") {
-      if (!verifyProviderSha256Signature(expectedSecret, params, spec)) {
+      const valid = provider === "timewall"
+        ? isTimewallIpAllowed(remoteIp)
+          && verifyTimewallHash(
+            pick(params, ["userid"]),
+            pick(params, ["revenue"]),
+            pick(params, ["hash"]),
+            expectedSecret,
+          )
+        : verifyProviderSha256Signature(expectedSecret, params, spec);
+      if (!valid) {
         console.error(`[Postback][${provider}] SHA-256 signature mismatch`);
         return respond(401, { success: false, message: "Invalid postback signature" },
           "failed", 0, "", "", "", "signature_mismatch");
@@ -623,9 +640,11 @@ async function handlePostback(req: Request, res: Response) {
     // conversion. Keep this provider-specific so other networks' status
     // semantics and duplicate protection remain unchanged.
     const isChargeback = (provider === "gleamads" && statusNorm === "0")
+      || (provider === "timewall" && isTimewallChargeback(statusNorm))
       || CHARGEBACK_STATUSES.has(statusNorm)
       || theoremReversal;
-    if (statusNorm !== "" && !COMPLETED_STATUSES.has(statusNorm) && !isChargeback) {
+    const timewallStatusValid = provider !== "timewall" || isTimewallCredit(statusNorm) || isChargeback;
+    if (!timewallStatusValid || (statusNorm !== "" && !COMPLETED_STATUSES.has(statusNorm) && !isChargeback)) {
       console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed or chargeback value — skipping`);
       return respond(200, {
         success: true,
@@ -636,7 +655,9 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 4. Extract user identifier ─────────────────────────────────────────
-    const rawUserId = pick(params, [spec.user, ...USER_FIELDS]);
+    const rawUserId = provider === "timewall"
+      ? pick(params, ["userid"])
+      : pick(params, [spec.user, ...USER_FIELDS]);
     const sandboxRequested = rawUserId === "postback_test_user" || ["1", "true", "sandbox"].includes(pick(params, ["test_mode", "testMode"]).toLowerCase());
     diagnostics.userIdentifier = rawUserId;
     diagnostics.testMode = sandboxRequested;
@@ -655,7 +676,9 @@ async function handlePostback(req: Request, res: Response) {
     // field when both virtual points and a USD payout are present. The selected
     // value is the gross/original reward; the user credit is halved below.
     // Signature validation still uses the provider amount.
-    const rawAmount = provider === "cpxresearch"
+    const rawAmount = provider === "timewall"
+      ? pickSignedNumeric(params, ["revenue"])
+      : provider === "cpxresearch"
       ? pickSignedNumeric(params, ["amount_usd"])
       : provider === "theoremreach"
       ? pickSignedNumeric(params, ["currency", "reward"])
@@ -736,9 +759,33 @@ async function handlePostback(req: Request, res: Response) {
     const providerReward = Math.abs(parseFloat(rawAmount));
     // AdMaxFlow users receive 40% of the provider reward. GleamAds points are
     // first converted to USD, then the user receives the existing 50% share.
-    const reward = provider === "admaxflow"
+    const reward = provider === "timewall"
+      ? (() => {
+          const placement = resolveTimewallPlacement();
+          const conversion = placement ? calculateTimewallCredit(rawAmount, placement) : null;
+          return conversion?.creditUsd ?? NaN;
+        })()
+      : provider === "admaxflow"
       ? providerReward * ADMAXFLOW_USER_SHARE
       : providerReward * USER_PAYOUT_SHARE;
+
+    if (provider === "timewall") {
+      const placement = resolveTimewallPlacement();
+      if (!placement) {
+        return respond(503, { success: false, message: "TimeWall Placement/rate is not configured" }, "failed", 0, rawAmount, "", "", "placement_not_configured");
+      }
+      if (!isTimewallIpAllowed(remoteIp)) {
+        return respond(403, { success: false, message: "TimeWall source IP is not allowlisted" }, "failed", 0, rawAmount, "", "", "ip_not_allowed");
+      }
+      const secret = expectedSecret;
+      const providedHash = pick(params, ["hash"]);
+      if (!verifyTimewallHash(rawUserId, rawAmount, providedHash, secret)) {
+        return respond(401, { success: false, message: "Invalid TimeWall postback hash" }, "failed", 0, rawAmount, "", "", "signature_mismatch");
+      }
+      if (!Number.isFinite(reward) || reward <= 0) {
+        return respond(400, { success: false, message: "Invalid TimeWall revenue" }, "failed", 0, rawAmount, "", "", "invalid_revenue");
+      }
+    }
 
     diagnostics.rewardValidation = "PASS";
 
@@ -762,6 +809,9 @@ async function handlePostback(req: Request, res: Response) {
     // never use its callback password as an idempotency key.
     let rawTxid = spec.transaction ? pick(params, [spec.transaction]) : "";
     if (!rawTxid && spec.transaction) rawTxid = pick(params, TXID_FIELDS);
+    if (provider === "timewall" && !pick(params, ["txid"])) {
+      return respond(400, { success: false, message: "Missing TimeWall transactionID" }, "failed", 0, rawAmount, "", pick(params, OFFER_NAME_FIELDS), "missing_transaction_id");
+    }
     if (!rawTxid || rawTxid === "0" || rawTxid === "auto-id" || /^[\[{]/.test(rawTxid)) {
       rawTxid = buildDeterministicEventId(provider, params);
     }
@@ -796,12 +846,13 @@ async function handlePostback(req: Request, res: Response) {
     // ── 10. Resolve user ──────────────────────────────────────────────────
     let user: Awaited<ReturnType<typeof db.getUserByUsername>> | null = null;
 
-    // 10a. Try as username (case-insensitive) — most common: offerwalls put username in user_id
+    // 10a. Try as username (case-insensitive) — TimeWall is intentionally
+    // strict: its userID is resolved only as the RewardsVerse username.
     user = await db.getUserByUsername(rawUserId);
     if (user) console.log(`[Postback][${provider}] User found by username: "${rawUserId}" → id=${user.id}`);
 
     // 10b. Try as openId
-    if (!user) {
+    if (!user && provider !== "timewall") {
       user = await db.getUserByOpenId(rawUserId) ?? null;
       if (user) console.log(`[Postback][${provider}] User found by openId: "${rawUserId}" → id=${user.id}`);
     }
@@ -810,13 +861,13 @@ async function handlePostback(req: Request, res: Response) {
     // username like virtual_<baseUsername>_<timestamp>, while legacy providers
     // send only the base username. Resolve this representation only for the
     // providers that use that callback contract; do not alter other mappings.
-    if (!user && (provider === "taskwall" || provider === "gleamads") && /^[a-zA-Z0-9_]+$/.test(rawUserId)) {
+    if (!user && provider !== "timewall" && (provider === "taskwall" || provider === "gleamads") && /^[a-zA-Z0-9_]+$/.test(rawUserId)) {
       user = await db.getUserByVirtualUsername(rawUserId) ?? null;
       if (user) console.log(`[Postback][${provider}] User found by virtual username mapping → id=${user.id}`);
     }
 
     // 10c. If rawUserId looks like "virtual_NAME_timestamp", extract NAME and retry
-    if (!user && rawUserId.startsWith("virtual_")) {
+    if (!user && provider !== "timewall" && rawUserId.startsWith("virtual_")) {
       const parts = rawUserId.split("_");
       if (parts.length >= 2) {
         const extracted = parts[1];
