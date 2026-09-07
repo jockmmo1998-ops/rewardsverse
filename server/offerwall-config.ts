@@ -40,6 +40,22 @@ const env = (...names: string[]): string => {
 
 const encodedUserId = (userId: string): string => encodeURIComponent(userId);
 
+/**
+ * TimeWall 2.0 opens a reward-site profile, not a standalone user login.
+ * `uid` must be the RewardsVerse username because TimeWall postbacks resolve
+ * the callback user by that same username.
+ */
+export function buildTimewallProfileUrl(userId: string): string | null {
+  const placementId = env("TIMEWALL_PLACEMENT_ID");
+  const normalizedUserId = userId.trim();
+  if (!placementId || !normalizedUserId) return null;
+
+  const url = new URL("https://timewall.io/");
+  url.searchParams.set("oid", placementId);
+  url.searchParams.set("uid", normalizedUserId);
+  return url.toString();
+}
+
 function appendUserId(baseUrl: string, userId: string): string | null {
   if (!baseUrl) return null;
   try {
@@ -179,16 +195,7 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     url.searchParams.set("transaction_id", `${userId}-${Date.now()}`);
     return url.toString();
   },
-  timewall: (userId) => {
-    const placementId = env("TIMEWALL_PLACEMENT_ID");
-    if (!placementId) return null;
-    // TimeWall 2.0 no longer supports direct user login. Its reward-site
-    // profile entry is the root URL with the publisher placement and user ID.
-    const url = new URL("https://timewall.io/");
-    url.searchParams.set("oid", placementId);
-    url.searchParams.set("uid", userId);
-    return url.toString();
-  },
+  timewall: (userId) => buildTimewallProfileUrl(userId),
 };
 
 const secretEntries: Array<[string, string]> = [
