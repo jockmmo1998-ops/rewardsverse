@@ -29,10 +29,10 @@ function validInput(overrides: Partial<Parameters<typeof validateTimewallCallbac
 }
 
 describe("TimeWall postback", () => {
-  it("accepts a valid callback and credits the provider USD amount", () => {
+  it("accepts a valid callback and credits the user payout for provider points", () => {
     expect(validateTimewallCallback(validInput())).toEqual({
       ok: true,
-      creditUsd: 0.5,
+      creditUsd: 0.2,
       pointsEarned: 200,
     });
   });
@@ -58,7 +58,7 @@ describe("TimeWall postback", () => {
     expect(calculateTimewallCredit("1.25", placement)).toEqual({
       revenueUsd: 1.25,
       pointsEarned: 500,
-      creditUsd: 1.25,
+      creditUsd: 0.5,
     });
   });
 });
