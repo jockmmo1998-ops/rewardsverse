@@ -53,7 +53,9 @@ export const appRouter = router({
     register: publicProcedure
       .input(
         z.object({
-          username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/),
+          // New accounts must use the required Random User format: letters
+          // and numbers only, with at least one of each.
+          username: z.string().min(3).max(24).regex(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9]+$/),
           password: z.string().min(6).max(128),
           refCode: z.string().max(16).optional().default(""),
         })

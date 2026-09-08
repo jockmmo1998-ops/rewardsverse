@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
 import PageMeta from '@/components/common/PageMeta';
-import { Zap, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Zap, Eye, EyeOff, CheckCircle2, Shuffle } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 const schema = z
@@ -18,7 +18,7 @@ const schema = z
       .string()
       .min(3, 'Username must be at least 3 characters')
       .max(24, 'Username must be under 24 characters')
-      .regex(/^[a-zA-Z0-9_]+$/, 'Username may only contain letters, numbers, and underscores'),
+      .regex(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9]+$/, 'Use the Random User button to create a name with letters and numbers'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
     referralCode: z.string().optional(),
@@ -35,6 +35,22 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+
+  const americanNames = [
+    'Liam', 'Noah', 'Oliver', 'James', 'Elijah', 'William', 'Henry', 'Lucas',
+    'Mason', 'Michael', 'Ethan', 'Daniel', 'Jacob', 'Logan', 'Jackson', 'Sebastian',
+    'Jack', 'Aiden', 'Owen', 'Samuel', 'Matthew', 'Joseph', 'Levi', 'David',
+    'John', 'Wyatt', 'Carter', 'Julian', 'Luke', 'Grayson', 'Isaac', 'Jayden',
+    'Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella', 'Mia', 'Evelyn', 'Harper',
+    'Camila', 'Gianna', 'Abigail', 'Luna', 'Ella', 'Elizabeth', 'Sofia', 'Emily',
+    'Avery', 'Mila', 'Scarlett', 'Eleanor', 'Madison', 'Layla', 'Penelope', 'Aria',
+  ];
+
+  const generateRandomUser = () => {
+    const name = americanNames[Math.floor(Math.random() * americanNames.length)];
+    const number = Math.floor(1000 + Math.random() * 9000);
+    form.setValue('username', `${name}${number}`, { shouldValidate: true, shouldDirty: true });
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -110,10 +126,16 @@ export default function RegisterPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-medium text-muted-foreground">Username</FormLabel>
-                        <FormControl>
-                          <Input placeholder="cool_username" autoFocus className="px-3" {...field} />
-                        </FormControl>
+                        <FormLabel className="text-xs font-medium text-muted-foreground">Random User <span className="text-primary">(required)</span></FormLabel>
+                        <div className="flex gap-2">
+                          <FormControl>
+                            <Input placeholder="Click Random User" readOnly className="px-3 bg-muted/30" {...field} />
+                          </FormControl>
+                          <Button type="button" variant="outline" onClick={generateRandomUser} className="shrink-0 gap-1.5" aria-label="Generate random user">
+                            <Shuffle size={14} /> Random User
+                          </Button>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">Required: an American-style name with letters and numbers.</p>
                         <FormMessage />
                       </FormItem>
                     )}
