@@ -36,7 +36,7 @@ export default function RegisterPage() {
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
 
-  const americanNames = [
+  const randomUserNames = [
     'Liam', 'Noah', 'Oliver', 'James', 'Elijah', 'William', 'Henry', 'Lucas',
     'Mason', 'Michael', 'Ethan', 'Daniel', 'Jacob', 'Logan', 'Jackson', 'Sebastian',
     'Jack', 'Aiden', 'Owen', 'Samuel', 'Matthew', 'Joseph', 'Levi', 'David',
@@ -44,10 +44,26 @@ export default function RegisterPage() {
     'Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella', 'Mia', 'Evelyn', 'Harper',
     'Camila', 'Gianna', 'Abigail', 'Luna', 'Ella', 'Elizabeth', 'Sofia', 'Emily',
     'Avery', 'Mila', 'Scarlett', 'Eleanor', 'Madison', 'Layla', 'Penelope', 'Aria',
+    'Alexander', 'Benjamin', 'Charles', 'Christopher', 'Dylan', 'Edward', 'Gabriel',
+    'Nathan', 'Nicholas', 'Ryan', 'Thomas', 'Anthony', 'Andrew', 'Isaiah', 'Josiah',
+    'Victoria', 'Grace', 'Chloe', 'Riley', 'Nora', 'Zoey', 'Hannah', 'Lily',
+    'Aurora', 'Violet', 'Nova', 'Emilia', 'Stella', 'Zoe', 'Willow', 'Ivy',
+    'Oliver', 'George', 'Harry', 'Arthur', 'Freddie', 'Archie', 'Oscar', 'Theo',
+    'Olivia', 'Amelia', 'Isla', 'Poppy', 'Florence', 'Esme', 'Matilda', 'Evie',
+    'Luca', 'Mateo', 'Santiago', 'Diego', 'Marco', 'Rafael', 'Carlos', 'Luis',
+    'Sofia', 'Valentina', 'Lucia', 'Elena', 'Camila', 'Gabriela', 'Mariana', 'Alma',
+    'Noah', 'Elias', 'Hugo', 'Felix', 'Leon', 'Maxim', 'Milan', 'Lars',
+    'Emma', 'Clara', 'Freya', 'Elsa', 'Astrid', 'Nina', 'Lena', 'Maya',
+    'Arjun', 'Rohan', 'Aarav', 'Vikram', 'Dev', 'Kabir', 'Kiran', 'Aditya',
+    'Anaya', 'Priya', 'Aisha', 'Mira', 'Nisha', 'Diya', 'Zara', 'Sana',
+    'Hiro', 'Kenji', 'Ren', 'Haruto', 'Yuki', 'Minjun', 'Jisoo', 'Daeho',
+    'Aiko', 'Hana', 'Sakura', 'Yuna', 'Mei', 'Nari', 'Sora', 'Mina',
+    'Omar', 'Youssef', 'Amir', 'Karim', 'Samir', 'Zayn', 'Bilal', 'Malik',
+    'Layla', 'Amina', 'Fatima', 'Nour', 'Leila', 'Yasmin', 'Mariam', 'Zahra',
   ];
 
   const generateRandomUser = () => {
-    const name = americanNames[Math.floor(Math.random() * americanNames.length)];
+    const name = randomUserNames[Math.floor(Math.random() * randomUserNames.length)];
     const number = Math.floor(1000 + Math.random() * 9000);
     form.setValue('username', `${name}${number}`, { shouldValidate: true, shouldDirty: true });
   };
@@ -127,11 +143,11 @@ export default function RegisterPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium text-muted-foreground">Random User <span className="text-primary">(required)</span></FormLabel>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2 sm:flex-row">
                           <FormControl>
                             <Input placeholder="Click Random User" readOnly className="px-3 bg-muted/30" {...field} />
                           </FormControl>
-                          <Button type="button" variant="outline" onClick={generateRandomUser} className="shrink-0 gap-1.5" aria-label="Generate random user">
+                          <Button type="button" variant="outline" onClick={generateRandomUser} className="w-full shrink-0 gap-1.5 sm:w-auto" aria-label="Generate random user">
                             <Shuffle size={14} /> Random User
                           </Button>
                         </div>
