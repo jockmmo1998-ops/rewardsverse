@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Gift, LockKeyhole, UserRound } from "lucide-react";
+import { Eye, EyeOff, Gift, LockKeyhole, Shuffle, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string => {
@@ -28,6 +28,15 @@ const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string 
     : "Unable to log in right now. Please check your information and try again.";
 };
 
+const randomUserNames = [
+  "Liam", "Noah", "Oliver", "James", "Mason", "Ethan", "Daniel", "Lucas", "Henry", "William",
+  "Emma", "Olivia", "Ava", "Sophia", "Mia", "Amelia", "Isabella", "Harper", "Luna", "Grace",
+  "Alexander", "Benjamin", "Charles", "Gabriel", "Mateo", "Santiago", "Diego", "Marco", "Rafael", "Carlos",
+  "Sofia", "Valentina", "Lucia", "Elena", "Camila", "Gabriela", "Arjun", "Rohan", "Kabir", "Aditya",
+  "Priya", "Aisha", "Mira", "Zara", "Hiro", "Kenji", "Ren", "Haruto", "Yuki", "Mei",
+  "Aiko", "Hana", "Omar", "Amir", "Karim", "Zayn", "Amina", "Fatima", "Leila", "Nour",
+];
+
 export default function AuthPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -43,6 +52,13 @@ export default function AuthPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  const generateRandomUser = () => {
+    const name = randomUserNames[Math.floor(Math.random() * randomUserNames.length)];
+    const number = Math.floor(1000 + Math.random() * 9000);
+    setUsername(`${name}${number}`);
+    setError("");
+  };
 
   useEffect(() => {
     if (user && !loading) navigate("/dashboard", { replace: true });
@@ -64,7 +80,11 @@ export default function AuthPage() {
       setError("Username must be at least 3 characters.");
       return;
     }
-    if (!/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
+    if (isRegister && !/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9]+$/.test(cleanUsername)) {
+      setError("Click Random User to create a username with letters and numbers.");
+      return;
+    }
+    if (!isRegister && !/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
       setError("Username may only contain letters, numbers, and underscores.");
       return;
     }
@@ -131,17 +151,26 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium">Username</label>
-              <div className="relative">
-                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <div className={isRegister ? "flex flex-col gap-2 sm:flex-row" : "relative"}>
+                <div className="relative min-w-0 flex-1">
+                  <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="username"
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
-                  placeholder="Enter username"
+                  readOnly={isRegister}
+                  placeholder={isRegister ? "Click Random User" : "Enter username"}
                   autoComplete="username"
                   className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
                 />
+                </div>
+                {isRegister && (
+                  <button type="button" onClick={generateRandomUser} className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-50 px-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 sm:w-auto" aria-label="Generate random user">
+                    <Shuffle className="h-4 w-4" /> Random User
+                  </button>
+                )}
               </div>
+              {isRegister && <p className="text-[11px] text-muted-foreground">Required: choose a generated name with letters and numbers.</p>}
             </div>
 
             <div className="space-y-2">
