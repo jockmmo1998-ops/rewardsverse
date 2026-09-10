@@ -215,6 +215,7 @@ const secretEntries: Array<[string, string]> = [
   ["cpxresearch", env("CPX_APP_SECURE_HASH")],
   ["theoremreach", env("THEOREMREACH_SECRET_KEY")],
   ["timewall", env("TIMEWALL_POSTBACK_SECRET")],
+  ["pocketsfull", env("POCKETSFULL_SECURITY_HASH")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -355,6 +356,14 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["userid", "txid", "revenue", "currency", "hash", "ip", "type", "withdrawid", "reason", "offername", "offerdetail"],
   },
+  pocketsfull: {
+    user: "user_id",
+    reward: "amount_usd",
+    transaction: "trans_id",
+    auth: "md5",
+    response: "json",
+    macros: ["status", "trans_id", "user_id", "amount_local", "amount_usd", "hash", "ip_click", "survey_id", "offer_id", "type", "subId1", "subId2"],
+  },
   offermintx: {
     user: "subid1",
     reward: "payout",
@@ -431,6 +440,12 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
     url.searchParams.set("transaction_id", "{transaction_id}");
     url.searchParams.set("offer_name", "{offer_name}");
     url.searchParams.set("status", "{status}");
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
+  }
+  if (provider === "pocketsfull") {
+    for (const field of ["status", "trans_id", "user_id", "amount_local", "amount_usd", "hash", "ip_click", "survey_id", "offer_id", "type", "subId1", "subId2"]) {
+      url.searchParams.set(field, `{${field}}`);
+    }
     return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
   }
   if (provider === "taskwall") {

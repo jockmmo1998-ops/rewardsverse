@@ -235,6 +235,14 @@ function verifyCpxResearchSignature(secret: string, params: Record<string, any>)
   return constantTimeEqual(expected, signature);
 }
 
+function verifyPocketsfullSignature(secret: string, params: Record<string, any>): boolean {
+  const transaction = pick(params, ["trans_id"]);
+  const provided = pick(params, ["hash"]).toLowerCase();
+  if (!transaction || !provided) return false;
+  const expected = crypto.createHash("md5").update(`${transaction}-${secret}`).digest("hex");
+  return constantTimeEqual(expected, provided);
+}
+
 function verifyTheoremReachSignature(secret: string, requestUrl: string): boolean {
   const hashMatch = requestUrl.match(/[?&]hash=([^&]*)/i);
   if (!hashMatch) return false;
@@ -546,11 +554,12 @@ async function handlePostback(req: Request, res: Response) {
     // ── 2. Authentication ───────────────────────────────────────────────────
     const spec = POSTBACK_PARAM_SPECS[provider];
     const expectedSecret = await db.getActivePostbackSecret(provider);
-    if (!spec || !(OFFER_WALL_IDS as readonly string[]).includes(provider)) {
+    const supportedBackendProvider = provider === "pocketsfull";
+    if (!spec || (!(OFFER_WALL_IDS as readonly string[]).includes(provider) && !supportedBackendProvider)) {
       return respond(404, {
         success: false,
         message: "Unknown offerwall provider",
-        supportedProviders: OFFER_WALL_IDS,
+        supportedProviders: [...OFFER_WALL_IDS, "pocketsfull"],
       }, "failed", 0, "", "", "", "unknown_provider");
     }
     if (spec.auth !== "none" && !expectedSecret) {
@@ -578,7 +587,8 @@ async function handlePostback(req: Request, res: Response) {
         || (provider === "adswedmedia" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, user: "sub", transaction: "transid", reward: "payout" }))
         || (provider === "adswedmedia" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, user: "subId", transaction: "transId", reward: "payout" }))
         || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "payout" }))
-        || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "round_reward" }));
+        || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "round_reward" }))
+        || (provider === "pocketsfull" && verifyPocketsfullSignature(expectedSecret, params));
       if (!md5Valid) {
         console.error(`[Postback][${provider}] MD5 signature mismatch`);
         return respond(401, { success: false, message: "Invalid postback signature" },

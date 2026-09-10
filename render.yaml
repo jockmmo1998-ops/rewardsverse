@@ -96,6 +96,8 @@ services:
         sync: false
       - key: TIMEWALL_POINTS_PER_USD
         sync: false
+      - key: POCKETSFULL_SECURITY_HASH
+        sync: false
       - key: GAINTWALL_PLACEMENT_KEY
         sync: false
       - key: GAINTWALL_API_KEY
