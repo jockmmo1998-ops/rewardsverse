@@ -84,6 +84,7 @@ export const OFFER_WALL_IDS = [
   "cpxresearch",
   "theoremreach",
   "timewall",
+  "pocketsfull",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -102,6 +103,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   cpxresearch: "CPX Research",
   theoremreach: "TheoremReach",
   timewall: "TimeWall",
+  pocketsfull: "PocketFull",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -196,6 +198,15 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     return url.toString();
   },
   timewall: (userId) => buildTimewallProfileUrl(userId),
+  pocketsfull: (userId) => {
+    const appId = env("POCKETSFULL_APP_ID") || "723";
+    const appKey = env("POCKETSFULL_APP_KEY") || "eadf1b09-02b0-4e05-a10b-b2751982e9e6";
+    const url = new URL("https://uf.pocketsfull.ai/earn");
+    url.searchParams.set("appId", appId);
+    url.searchParams.set("key", appKey);
+    url.searchParams.set("uid", userId);
+    return url.toString();
+  },
 };
 
 const secretEntries: Array<[string, string]> = [

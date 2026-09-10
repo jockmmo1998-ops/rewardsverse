@@ -74,6 +74,7 @@ const ADMAXFLOW_CURRENCY_RATE = 400;
 /** GleamAds callbacks return integer points; this integration uses 1000 = $1. */
 const GLEAMADS_CURRENCY_RATE = 1000;
 const ADMAXFLOW_USER_SHARE = 0.40;
+const POCKETSFULL_USER_SHARE = 0.40;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -787,6 +788,8 @@ async function handlePostback(req: Request, res: Response) {
         })()
       : provider === "admaxflow"
       ? providerReward * ADMAXFLOW_USER_SHARE
+      : provider === "pocketsfull"
+      ? providerReward * POCKETSFULL_USER_SHARE
       : providerReward * USER_PAYOUT_SHARE;
 
     const timewallPlacement = provider === "timewall" ? resolveTimewallPlacement() : null;
