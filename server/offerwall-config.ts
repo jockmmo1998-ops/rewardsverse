@@ -357,6 +357,7 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     macros: ["userid", "txid", "revenue", "currency", "hash", "ip", "type", "withdrawid", "reason", "offername", "offerdetail"],
   },
   pocketsfull: {
+    // PocketFull app 723: hash is md5(trans_id-security_hash).
     user: "user_id",
     reward: "amount_usd",
     transaction: "trans_id",
