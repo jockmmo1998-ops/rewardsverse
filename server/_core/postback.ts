@@ -65,7 +65,7 @@ const REWARD_FIELDS = [
   "sale_amount", "commission",
 ];
 
-// The provider amount is the gross/original reward. Credit exactly 50% to the user.
+// The provider amount is the gross/original reward. Credit the configured provider share to the user.
 const USER_PAYOUT_SHARE = 0.5;
 const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
@@ -75,6 +75,7 @@ const ADMAXFLOW_CURRENCY_RATE = 400;
 const GLEAMADS_CURRENCY_RATE = 1000;
 const ADMAXFLOW_USER_SHARE = 0.40;
 const POCKETSFULL_USER_SHARE = 0.40;
+const GAINTWALL_USER_SHARE = 0.40;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -790,6 +791,8 @@ async function handlePostback(req: Request, res: Response) {
       ? providerReward * ADMAXFLOW_USER_SHARE
       : provider === "pocketsfull"
       ? providerReward * POCKETSFULL_USER_SHARE
+      : provider === "gaintwall"
+      ? providerReward * GAINTWALL_USER_SHARE
       : providerReward * USER_PAYOUT_SHARE;
 
     const timewallPlacement = provider === "timewall" ? resolveTimewallPlacement() : null;
