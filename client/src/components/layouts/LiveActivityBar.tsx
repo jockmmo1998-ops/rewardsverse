@@ -19,6 +19,20 @@ function activityTone(type: unknown) {
   return 'text-slate-300';
 }
 
+function compactActivityDescription(value: unknown) {
+  const description = String(value || 'completed a verified reward');
+  const separator = ' — ';
+  const separatorIndex = description.indexOf(separator);
+  if (separatorIndex === -1) return description;
+  const prefix = description.slice(0, separatorIndex + separator.length);
+  const offerName = description.slice(separatorIndex + separator.length).trim();
+  const maxOfferNameLength = 28;
+  const compactName = offerName.length > maxOfferNameLength
+    ? `${offerName.slice(0, maxOfferNameLength - 1).trimEnd()}…`
+    : offerName;
+  return `${prefix}${compactName}`;
+}
+
 export function LiveActivityBar() {
   const activities = trpc.user.getActivities.useQuery(undefined, {
     staleTime: 10_000,
@@ -42,7 +56,7 @@ export function LiveActivityBar() {
                     <span key={`${item.id}-${group}-${index}`} className="live-activity-item">
                       <Activity className={`h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />
                       <span className="font-semibold text-foreground">{maskUsername(item.username)}</span>
-                      <span className="text-muted-foreground">{String(item.description || 'completed a verified reward')}</span>
+                      <span className="text-muted-foreground">{compactActivityDescription(item.description)}</span>
                       {formatAmount(item.amount) && <span className="font-semibold text-emerald-300">{formatAmount(item.amount)}</span>}
                     </span>
                   ))}
