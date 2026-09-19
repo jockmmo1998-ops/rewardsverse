@@ -35,6 +35,7 @@ const OFFER_WALLS: OfferWall[] = [
   { id: 'adswedmedia', name: 'AdsWedMedia', desc: 'CPA & incent offers worldwide', reward: '$0.10–$6.00', logo: '/assets/provider-logos/adswedmedia.png', tag: 'NEW', rating: 4.7, surface: '#ffffff', border: '#fecdd3', logoSurface: '#ffffff', accent: '#e11d48', track: '#fff1f2', gradient: 'linear-gradient(90deg, #fda4af, #e11d48)', badgeSurface: '#ffe4e6' },
   { id: 'admaxflow', name: 'AdMaxFlow', desc: 'Surveys, apps & tasks worldwide', reward: '$0.10–$5.00', logo: '/assets/provider-logos/admaxflow.png', tag: 'NEW', category: 'Tasks', rating: 4.6, surface: '#ffffff', border: '#fed7aa', logoSurface: '#ffffff', accent: '#ea580c', track: '#fff7ed', gradient: 'linear-gradient(90deg, #fdba74, #ea580c)', badgeSurface: '#ffedd5' },
   { id: 'gaintwall', name: 'Gaintwall', desc: 'Earn with surveys & tasks worldwide', reward: '$0.10–$6.00', logo: 'https://gaintwall.com/assets/img/brand/gaintwall-mark.svg', tag: 'NEW', rating: 4.7, surface: '#ffffff', border: '#fecaca', logoSurface: '#ffffff', accent: '#dc2626', track: '#fef2f2', gradient: 'linear-gradient(90deg, #fca5a5, #dc2626)', badgeSurface: '#fee2e2' },
+  { id: 'opinionuniverse', name: 'OpinionUniverse', desc: 'Surveys, apps & rewarded tasks', reward: '$0.10–$10.00', logo: 'https://opinionuniverse.com/favicon.ico', tag: 'NEW', category: 'Tasks', rating: 4.8, surface: '#ffffff', border: '#bfdbfe', logoSurface: '#ffffff', accent: '#2563eb', track: '#eff6ff', gradient: 'linear-gradient(90deg, #93c5fd, #2563eb)', badgeSurface: '#dbeafe' },
   { id: 'buckswall', name: 'BucksWall', desc: 'Mobile apps, surveys & gaming offers', reward: '$0.10–$6.00', logo: '/assets/provider-logos/buckswall.svg', tag: 'SETUP', category: 'Mobile', rating: 4.6, surface: '#ffffff', border: '#bbf7d0', logoSurface: '#ffffff', accent: '#16a34a', track: '#f0fdf4', gradient: 'linear-gradient(90deg, #bbf7d0, #16a34a)', badgeSurface: '#dcfce7' },
   { id: 'offermintx', name: 'OfferMintX', desc: 'Premium CPA offers worldwide', reward: '$0.10–$25.00', logo: 'https://www.offermintx.com/favicon.ico', tag: 'NEW', category: 'Tasks', rating: 4.8, surface: '#ffffff', border: '#bbf7d0', logoSurface: '#ffffff', accent: '#16a34a', track: '#f0fdf4', gradient: 'linear-gradient(90deg, #86efac, #16a34a)', badgeSurface: '#dcfce7' },
   { id: 'cpxresearch', name: 'CPX Research', desc: 'Paid surveys worldwide', reward: '$0.10–$5.00', logo: '/assets/provider-logos/cpxresearch.png', tag: 'SURVEYS', category: 'Tasks', rating: 4.8, surface: '#ffffff', border: '#bae6fd', logoSurface: '#ffffff', accent: '#0284c7', track: '#f0f9ff', gradient: 'linear-gradient(90deg, #7dd3fc, #0284c7)', badgeSurface: '#e0f2fe' },
@@ -46,6 +47,8 @@ const OFFER_WALLS: OfferWall[] = [
 // OfferMintX starts offer links in a new browsing context. Keeping it outside the
 // embedded iframe avoids sandboxed-popup restrictions on provider redirects.
 const NEW_TAB_WALL_IDS = new Set(['admaxflow', 'gaintwall', 'offermintx', 'timewall', 'pocketsfull']);
+const OPINION_UNIVERSE_WALL_ID = 'opinionuniverse';
+const OPINION_UNIVERSE_URL = 'https://opinionuniverse.com/offerwall?pubId=4078&appId=ID_95cdecb90aad77eaa007a2a89e6661d9';
 
 const categories = [
   { label: 'All', icon: Grid2X2 },
@@ -65,10 +68,15 @@ export default function OfferWalls() {
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const offerWallWindowRef = useRef<Window | null>(null);
   const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
-  const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
+  const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && activeWall !== OPINION_UNIVERSE_WALL_ID && user?.id) && !loading, retry: false, refetchOnWindowFocus: false });
 
   useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading, navigate]);
   useEffect(() => {
+    if (activeWall === OPINION_UNIVERSE_WALL_ID) {
+      const sid = String(user?.username || user?.name || user?.id || '').trim();
+      setWallUrl(sid ? `${OPINION_UNIVERSE_URL}&SID=${encodeURIComponent(sid)}` : '');
+      return;
+    }
     const url = wallUrlQuery.data?.url;
     if (!url) return;
     if (NEW_TAB_WALL_IDS.has(activeWall ?? '')) {
@@ -80,7 +88,7 @@ export default function OfferWalls() {
       return;
     }
     setWallUrl(url);
-  }, [activeWall, wallUrlQuery.data]);
+  }, [activeWall, user?.id, user?.name, user?.username, wallUrlQuery.data]);
   useEffect(() => {
     if (!wallUrlQuery.error) return;
     if (NEW_TAB_WALL_IDS.has(activeWall ?? '') && offerWallWindowRef.current && !offerWallWindowRef.current.closed) {

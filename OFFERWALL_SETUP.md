@@ -29,6 +29,7 @@ Link hoàn chỉnh được tạo trong Admin Panel → **Postbacks** chỉ khi 
 | AdsWedMedia | Public/site key và postback secret | `ADSWEDMEDIA_PUBLIC_KEY` hoặc `ADSWEDMEDIA_PLACEMENT_ID`, `ADSWEDMEDIA_POSTBACK_SECRET` | `/api/postback/adswedmedia` |
 | AdMaxFlow | Placement ID và postback secret | `ADMAXFLOW_PLACEMENT_ID`, `ADMAXFLOW_POSTBACK_SECRET` | `/api/postback/admaxflow` |
 | Gaintwall | Placement API key/placement key; postback secret nếu provider cấp riêng | `GAINTWALL_API_KEY` hoặc `GAINTWALL_PLACEMENT_KEY`, tùy chọn `GAINTWALL_POSTBACK_SECRET` | `/api/postback/gaintwall` |
+| OpinionUniverse | Publisher ID và App ID được cấp trong placement; cấu hình iFrame dùng trực tiếp trong client | `4078` / `ID_95cdecb90aad77eaa007a2a89e6661d9` | Provider callback cần cấu hình riêng |
 | BucksWall | Offerwall URL/placement URL và postback secret | `BUCKSWALL_OFFERWALL_URL`, `BUCKSWALL_POSTBACK_SECRET` | `/api/postback/buckswall` |
 
 ## CPX Research: cấu hình
@@ -59,6 +60,10 @@ Taskwall báo “sent successfully” chỉ có nghĩa request đã được g�
 8. Đăng nhập Admin Panel → **Postbacks**, kiểm tra provider chuyển sang `Configured`.
 9. Dùng test conversion của provider với một username thật.
 10. Kiểm tra Admin Panel → **Postbacks/Tracking** và Wallet của user.
+
+## OpinionUniverse: cấu hình iFrame
+
+Placement `RewardsVerse — Earn Rewards Online` sử dụng iFrame URL với publisher ID `4078` và App ID `ID_95cdecb90aad77eaa007a2a89e6661d9`. Ứng dụng truyền username của người dùng dưới dạng `SID` để provider gắn conversion với đúng tài khoản. API key của OpinionUniverse không được yêu cầu cho iFrame và không được đưa vào GitHub. Nếu muốn ghi nhận payout tự động, hãy cấu hình postback/conversion callback theo tài liệu của OpinionUniverse và bổ sung server-side handler trước khi bật production crediting.
 
 ## Xử lý lỗi
 
