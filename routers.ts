@@ -78,23 +78,40 @@ export const appRouter = router({
           Math.floor(Math.random() * 9999).toString().padStart(4, "0");
 
         const hashedPassword = await hashPassword(password);
-        await db.upsertUser({
-          openId,
-          username,
-          password: hashedPassword,
-          refCode: userRefCode,
-          referredBy: referredBy || undefined,
-          role: "user",
-          name: username,
-          loginMethod: "virtual",
-          balance: "0.00",
-          xp: 0,
-          streak: 0,
-          offersCompleted: 0,
-          totalEarned: "0.00",
-          refEarnings: "0.00",
-          lastSignedIn: new Date(),
-        });
+        try {
+          await db.upsertUser({
+            openId,
+            username,
+            password: hashedPassword,
+            refCode: userRefCode,
+            referredBy: referredBy || undefined,
+            role: "user",
+            name: username,
+            loginMethod: "virtual",
+            balance: "0.00",
+            xp: 0,
+            streak: 0,
+            offersCompleted: 0,
+            totalEarned: "0.00",
+            refEarnings: "0.00",
+            lastSignedIn: new Date(),
+          });
+        } catch (error) {
+          console.error("[Auth] Failed to persist virtual registration:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Registration is temporarily unavailable. Please try again in a few minutes.",
+            cause: error,
+          });
+        }
+
+        const createdUser = await db.getUserByOpenId(openId);
+        if (!createdUser) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Registration could not be completed. Please try again.",
+          });
+        }
 
         // Create session token
         const sessionToken = await sdk.createSessionToken(openId, {
@@ -107,32 +124,38 @@ export const appRouter = router({
           maxAge: 30 * 24 * 60 * 60,
         });
 
-        // Referral bonus
-        if (referredBy) {
-          const referrer = await db.getUserByRefCode(referredBy);
-          if (referrer) {
-            await db.addRefEarnings(referrer.id, 0.10);
-            await db.addEarning({
-              userId: referrer.id,
-              amount: "0.10",
-              type: "referral",
-              source: `Referral: ${username}`,
-            });
-            await db.addActivity({
-              userId: referrer.id,
-              username: referrer.username || "User",
-              type: "referral",
-              description: `earned $0.10 from referral ${username}`,
-              amount: "0.10",
-            });
+        // Referral and leaderboard writes are non-critical follow-up work. Do not
+        // turn a successfully created account into a generic data error if an
+        // older deployment is missing one of these auxiliary tables.
+        try {
+          if (referredBy) {
+            const referrer = await db.getUserByRefCode(referredBy);
+            if (referrer) {
+              await db.addRefEarnings(referrer.id, 0.10);
+              await db.addEarning({
+                userId: referrer.id,
+                amount: "0.10",
+                type: "referral",
+                source: `Referral: ${username}`,
+              });
+              await db.addActivity({
+                userId: referrer.id,
+                username: referrer.username || "User",
+                type: "referral",
+                description: `earned $0.10 from referral ${username}`,
+                amount: "0.10",
+              });
+            }
           }
+        } catch (error) {
+          console.error("[Auth] Referral follow-up failed after registration:", error);
         }
 
-        // Log activity
-        const newUser = await db.getUserByOpenId(openId);
-        if (newUser) {
+        try {
           // Activity logging removed for signup bonus
-          await db.updateLeaderboard(newUser.id, newUser.username || username, 0.00);
+          await db.updateLeaderboard(createdUser.id, createdUser.username || username, 0.00);
+        } catch (error) {
+          console.error("[Auth] Leaderboard follow-up failed after registration:", error);
         }
 
         return {
