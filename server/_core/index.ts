@@ -33,6 +33,38 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
+// Ensure the authentication-facing users columns exist without changing any
+// existing rows. This is intentionally additive and idempotent for legacy
+// production databases whose migration journal is incomplete.
+async function ensureUsersAuthSchema(connection: any) {
+  const [columns] = await connection.query(
+    "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'"
+  );
+  const names = new Set((columns as any[]).map(column => column.COLUMN_NAME));
+  const additions: Array<[string, string]> = [
+    ["username", "varchar(64) NULL"],
+    ["password", "varchar(256) NULL"],
+    ["refCode", "varchar(16) NULL"],
+    ["referredBy", "varchar(16) NULL"],
+    ["balance", "decimal(10,2) DEFAULT '0.00'"],
+    ["xp", "int DEFAULT 0"],
+    ["streak", "int DEFAULT 0"],
+    ["offersCompleted", "int DEFAULT 0"],
+    ["totalEarned", "decimal(10,2) DEFAULT '0.00'"],
+    ["refEarnings", "decimal(10,2) DEFAULT '0.00'"],
+    ["lastDailyClaim", "timestamp NULL"],
+    ["accountStatus", "enum('active','suspended') NOT NULL DEFAULT 'active'"],
+    ["suspensionReason", "text NULL"],
+  ];
+
+  for (const [name, definition] of additions) {
+    if (!names.has(name)) {
+      console.warn(`[Migration] Adding missing users.${name} column.`);
+      await connection.query(`ALTER TABLE \`users\` ADD COLUMN \`${name}\` ${definition}`);
+    }
+  }
+}
+
 // Run database migrations at startup (only when DATABASE_URL is set).
 // Render/TiDB connections can briefly drop while the database wakes up, so
 // retry a few times before failing the production deployment.
@@ -76,16 +108,7 @@ async function runMigrations() {
         // migrator stops at the first baseline table, so apply only the
         // additive admin schema idempotently instead of skipping it.
         console.warn("[Migration] Existing users table detected; applying additive admin schema.");
-        const [columns] = await connection.query<any[]>(
-          "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME IN ('accountStatus','suspensionReason')"
-        );
-        const names = new Set((columns as any[]).map(column => column.COLUMN_NAME));
-        if (!names.has("accountStatus")) {
-          await connection.query("ALTER TABLE `users` ADD COLUMN `accountStatus` enum('active','suspended') NOT NULL DEFAULT 'active'");
-        }
-        if (!names.has("suspensionReason")) {
-          await connection.query("ALTER TABLE `users` ADD COLUMN `suspensionReason` text");
-        }
+        await ensureUsersAuthSchema(connection);
         // Older production databases may have a partial withdrawals table.
         // Repair every column required by the current withdrawal flow before
         // the app accepts requests, rather than only repairing timestamps.
