@@ -230,6 +230,17 @@ export const appRouter = router({
 
       return user as any;
     }),
+    updateProfile: protectedProcedure
+      .input(z.object({
+        username: z.string().trim().min(3).max(64).optional(),
+        avatar: z.string().max(20000).regex(/^data:image\/svg\+xml,/).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const user = await db.getUserByOpenId(ctx.user.openId);
+        if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+        await db.updateUserProfile(user.id, input);
+        return { success: true };
+      }),
 
     verifyEmail: publicProcedure
       .input(z.object({ token: z.string().min(32).max(128) }))
