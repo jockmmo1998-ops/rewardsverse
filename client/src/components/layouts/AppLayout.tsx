@@ -13,6 +13,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
 
   return (
     <div className="app-shell flex min-h-screen w-full overflow-x-hidden">
+      <div className="app-shell-background" aria-hidden="true" />
       <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
