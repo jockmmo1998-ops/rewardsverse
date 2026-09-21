@@ -211,7 +211,9 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
 
 const secretEntries: Array<[string, string]> = [
   ["gemiwall", env("GEMIWALL_POSTBACK_SECRET")],
-  ["revtoo", env("REVTOO_POSTBACK_SECRET")],
+  // Revtoo's API key identifies the offerwall placement; its postback
+  // signature uses the separate Secret Key from the placement settings.
+  ["revtoo", env("REVTOO_POSTBACK_SECRET", "REVTOO_SECRET_KEY", "REVTOO_SECRET")],
   // GleamAds has no postback token field; its placement uses source-IP validation.
   ["gleamads", ""],
   ["moustache", env("MOUSTACHE_POSTBACK_SECRET")],
