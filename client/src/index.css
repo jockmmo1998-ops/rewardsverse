@@ -40,38 +40,38 @@
 }
 
 .dark {
-  --background: #071014;
-  --foreground: #e8f3ed;
-  --card: #0d1a1f;
-  --card-foreground: #e8f3ed;
-  --popover: #102127;
-  --popover-foreground: #e8f3ed;
-  --primary: #28c77b;
-  --primary-foreground: #04110b;
-  --secondary: #12252a;
-  --secondary-foreground: #d2e5dc;
-  --muted: #102126;
-  --muted-foreground: #91aaa0;
-  --accent: #38e28d;
-  --accent-foreground: #082416;
+  --background: #0a1713;
+  --foreground: #eff8f2;
+  --card: #10231d;
+  --card-foreground: #eff8f2;
+  --popover: #162d25;
+  --popover-foreground: #eff8f2;
+  --primary: #55d98d;
+  --primary-foreground: #06150d;
+  --secondary: #17352a;
+  --secondary-foreground: #d9f1e1;
+  --muted: #132820;
+  --muted-foreground: #9db8aa;
+  --accent: #7af2ad;
+  --accent-foreground: #082116;
   --destructive: #f27676;
   --destructive-foreground: #fff7f7;
-  --border: #1d3539;
-  --input: #0c1a1f;
-  --ring: #38e28d;
-  --chart-1: #28c77b;
-  --chart-2: #22d3ee;
-  --chart-3: #7dd3fc;
-  --chart-4: #a7f3d0;
+  --border: #294b3d;
+  --input: #10241d;
+  --ring: #55d98d;
+  --chart-1: #55d98d;
+  --chart-2: #7af2ad;
+  --chart-3: #8dd9c0;
+  --chart-4: #b7f7d0;
   --chart-5: #f27676;
-  --sidebar-background: #09171b;
-  --sidebar-foreground: #b5cbc1;
-  --sidebar-primary: #38e28d;
-  --sidebar-primary-foreground: #04110b;
-  --sidebar-accent: #11272b;
-  --sidebar-accent-foreground: #e8f3ed;
-  --sidebar-border: #183237;
-  --sidebar-ring: #38e28d;
+  --sidebar-background: #0c1d17;
+  --sidebar-foreground: #bed6c7;
+  --sidebar-primary: #55d98d;
+  --sidebar-primary-foreground: #06150d;
+  --sidebar-accent: #17372b;
+  --sidebar-accent-foreground: #eff8f2;
+  --sidebar-border: #244636;
+  --sidebar-ring: #55d98d;
 }
 
 @theme inline {
@@ -132,42 +132,42 @@
   ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted-foreground) 32%, transparent); border-radius: 999px; }
 }
 
-/* Dark mode surfaces: soft graphite, not pure black, so rewards and CTAs retain focus. */
-.dark .hud-sidebar { box-shadow: 12px 0 30px rgba(0,0,0,.18); }
-.dark .hud-topbar { background: rgba(7,16,20,.92); }
-.dark .hud-nav-link:hover, .dark .nav-link-idle:hover { background: #11272b; border-color: #24464b; }
-.dark .nav-link-active { color: #8af0ba; background: rgba(40,199,123,.12); border-color: rgba(40,199,123,.3); }
-.dark .hud-label, .dark .footer-title, .dark .dashboard-kicker, .dark .offer-category { color: #8fa99f; }
-.dark .hud-search, .dark .support-button, .dark .balance-pill { border-color: #1d3539; background: #0c1a1f; color: #c8ddd3; }
-.dark .hud-search:focus-within { background: #0f2025; }
-.dark .rv-dropdown { border-color: #25444a; background: #102127; box-shadow: 0 22px 50px rgba(0,0,0,.32); }
-.dark .dropdown-link:hover { background: #173036; color: #8af0ba; }
-.dark .live-activity-bar, .dark .app-footer { border-color: #1a3338; background: #09171b; }
-.dark .dashboard-hero::before { background: linear-gradient(135deg, rgba(30,73,68,.3), transparent 55%); }
-.dark .welcome-panel, .dark .hero-side-card, .dark .offer-marketplace, .dark .trust-strip { border-color: #1d3539; background: #0d1a1f; box-shadow: 0 14px 34px rgba(0,0,0,.2); }
-.dark .hero-step, .dark .rv-surface-soft { border-color: #1d3539; background: #102127; }
-.dark .balance-panel, .dark .balance-icon, .dark .quick-stat-icon, .dark .trust-icon { border-color: #1d3539; background: #102127; }
-.dark .offer-card { border-color: #1d3539; background: #0c1a1f; }
-.dark .offer-card:hover { border-color: rgba(56,226,141,.48); background: #11272b; box-shadow: 0 14px 24px rgba(0,0,0,.24); }
-.dark .filter-pill { border-color: #25444a; background: #0f2025; color: #9fb8ad; }
-.dark .filter-pill:hover { color: #8af0ba; }
-.dark .filter-pill-active { border-color: rgba(56,226,141,.5); background: rgba(56,226,141,.13); color: #8af0ba; }
-.dark .status-success { color: #8af0ba; }
+/* Dark mode: Forest Graphite — calm fintech surfaces with restrained emerald accents. */
+.dark .hud-sidebar { box-shadow: 14px 0 34px rgba(0,0,0,.22); }
+.dark .hud-topbar { background: rgba(10,23,19,.94); }
+.dark .hud-nav-link:hover, .dark .nav-link-idle:hover { background: #17372b; border-color: #35664f; }
+.dark .nav-link-active { color: #9af3bb; background: rgba(85,217,141,.14); border-color: rgba(85,217,141,.38); box-shadow: inset 3px 0 0 #55d98d; }
+.dark .hud-label, .dark .footer-title, .dark .dashboard-kicker, .dark .offer-category { color: #9db8aa; }
+.dark .hud-search, .dark .support-button, .dark .balance-pill { border-color: #294b3d; background: #10241d; color: #d9f1e1; }
+.dark .hud-search:focus-within { background: #17352a; border-color: rgba(85,217,141,.62); }
+.dark .rv-dropdown { border-color: #355c49; background: #162d25; box-shadow: 0 22px 50px rgba(0,0,0,.38); }
+.dark .dropdown-link:hover { background: #1c3b2e; color: #9af3bb; }
+.dark .live-activity-bar, .dark .app-footer { border-color: #244636; background: #0c1d17; }
+.dark .dashboard-hero::before { background: linear-gradient(135deg, rgba(42,108,76,.22), transparent 55%); }
+.dark .welcome-panel, .dark .hero-side-card, .dark .offer-marketplace, .dark .trust-strip { border-color: #294b3d; background: #10231d; box-shadow: 0 14px 34px rgba(0,0,0,.24); }
+.dark .hero-step, .dark .rv-surface-soft { border-color: #294b3d; background: #162d25; }
+.dark .balance-panel, .dark .balance-icon, .dark .quick-stat-icon, .dark .trust-icon { border-color: #294b3d; background: #162d25; }
+.dark .offer-card { border-color: #294b3d; background: #10241d; }
+.dark .offer-card:hover { border-color: rgba(122,242,173,.58); background: #1a3b2d; box-shadow: 0 14px 24px rgba(0,0,0,.28); }
+.dark .filter-pill { border-color: #355c49; background: #132a21; color: #b4cdbd; }
+.dark .filter-pill:hover { color: #9af3bb; }
+.dark .filter-pill-active { border-color: rgba(122,242,173,.62); background: rgba(85,217,141,.16); color: #9af3bb; }
+.dark .status-success { color: #9af3bb; }
 .dark .status-pending { color: #f5d27a; }
 .dark .status-failed { color: #ff9b9b; }
-.dark .provider-card { border-color: color-mix(in srgb, var(--provider-accent) 42%, #1d3539) !important; }
-.dark .text-emerald-300 { color: #8af0ba; }
-.dark .text-green-400 { color: #6ee7a4; }
+.dark .provider-card { border-color: color-mix(in srgb, var(--provider-accent) 42%, #294b3d) !important; }
+.dark .text-emerald-300 { color: #9af3bb; }
+.dark .text-green-400 { color: #7af2ad; }
 .dark .bg-white { background-color: var(--card); }
 .dark .border-white, .dark .border-gray-200, .dark .border-slate-200 { border-color: var(--border); }
 
 .app-shell { position: relative; isolation: isolate; min-height: 100vh; width: 100%; max-width: 100vw; overflow-x: hidden; background: var(--background); }
 .app-shell-background { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.28), rgba(255,255,255,.28)), url('/rewardsverse-dashboard-bg-v2.png'); background-size: cover; background-position: center top; background-repeat: no-repeat; opacity: .92; }
 .app-shell > *:not(.app-shell-background) { position: relative; z-index: 1; }
-.dark .app-shell-background { background-image: linear-gradient(rgba(7,16,20,.48), rgba(7,16,20,.48)), url('/rewardsverse-dashboard-bg-v2.png'); opacity: .86; }
+.dark .app-shell-background { background-image: linear-gradient(rgba(6,20,14,.82), rgba(6,20,14,.82)), url('/rewardsverse-dashboard-bg-v2.png'); opacity: .34; }
 .rewards-auth-page { isolation: isolate; overflow: hidden; }
 .rewards-auth-page::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.2), rgba(255,255,255,.2)), url('/rewardsverse-dashboard-bg-v2.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
-.dark .rewards-auth-page::before { background-image: linear-gradient(rgba(7,16,20,.56), rgba(7,16,20,.56)), url('/rewardsverse-dashboard-bg-v2.png'); }
+.dark .rewards-auth-page::before { background-image: linear-gradient(rgba(6,20,14,.78), rgba(6,20,14,.78)), url('/rewardsverse-dashboard-bg-v2.png'); }
   .hud-sidebar { background: var(--sidebar-background); border-right: 1px solid var(--sidebar-border); box-shadow: 12px 0 30px rgba(15,23,42,.05); }
 .hud-topbar { position: sticky; top: 0; z-index: 30; display: flex; height: 64px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.94); padding: 0 1.5rem; backdrop-filter: blur(14px); }
 .hud-topbar::after { content: ''; position: absolute; bottom: -1px; left: 1.5rem; height: 2px; width: 56px; background: var(--primary); }
