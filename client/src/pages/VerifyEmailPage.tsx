@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Gift, Loader2, XCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function VerifyEmailPage() {
   const [params] = useSearchParams();
@@ -28,7 +29,8 @@ export default function VerifyEmailPage() {
   }, [params, verify]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
+    <main className="relative flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
+      <div className="absolute right-4 top-4 sm:right-6 sm:top-6"><ThemeToggle /></div>
       <section className="w-full max-w-md rounded-2xl border border-border/60 bg-card/90 p-8 text-center shadow-2xl">
         <Link to="/home" className="inline-flex items-center gap-2 text-xl font-black tracking-[0.08em]">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white"><Gift className="h-5 w-5" /></span>

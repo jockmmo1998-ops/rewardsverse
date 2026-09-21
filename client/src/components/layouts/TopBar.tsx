@@ -8,6 +8,7 @@ import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSSE } from '@/hooks/useSSE';
 import { playBellSound, unlockBellSound } from '@/utils/bellSound';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const labels: Record<string, string> = {
   '/home': 'Dashboard', '/dashboard': 'Dashboard', '/offerwalls': 'Earn rewards', '/leaderboard': 'Leaderboard', '/achievements': 'Achievements',
@@ -120,6 +121,7 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
         <div className="flex min-w-0 items-center gap-2.5"><span className="hud-status-dot" /><span className="truncate font-display text-sm font-semibold text-foreground">{pageLabel}</span></div>
       </div>
       <div ref={menuRef} className="relative flex items-center gap-1.5 sm:gap-3">
+        <ThemeToggle compact />
         <a href="https://t.me/wilsonrobertul804" target="_blank" rel="noreferrer" className="support-button focus-ring hidden items-center gap-2 sm:inline-flex"><ExternalLink className="h-3.5 w-3.5" />Support</a>
         <label className="hud-search hidden xl:flex" aria-label="Search rewards"><Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><input placeholder="Search rewards…" /></label>
         <button type="button" onClick={() => toggleMenu('notifications')} className={cn('focus-ring relative rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground', openMenu === 'notifications' && 'bg-primary/[.09] text-primary')} aria-label="Notifications" aria-expanded={openMenu === 'notifications'}>
