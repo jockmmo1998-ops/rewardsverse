@@ -162,9 +162,12 @@
 .dark .border-white, .dark .border-gray-200, .dark .border-slate-200 { border-color: var(--border); }
 
 .app-shell { position: relative; isolation: isolate; min-height: 100vh; background: var(--background); }
-.app-shell-background { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.7), rgba(255,255,255,.7)), url('/rewardsverse-dashboard-bg-v2.png'); background-size: cover; background-position: center top; background-repeat: no-repeat; opacity: .72; }
+.app-shell-background { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.28), rgba(255,255,255,.28)), url('/rewardsverse-dashboard-bg-v2.png'); background-size: cover; background-position: center top; background-repeat: no-repeat; opacity: .92; }
 .app-shell > *:not(.app-shell-background) { position: relative; z-index: 1; }
-.dark .app-shell-background { background-image: linear-gradient(rgba(7,16,20,.84), rgba(7,16,20,.84)), url('/rewardsverse-dashboard-bg-v2.png'); opacity: .52; }
+.dark .app-shell-background { background-image: linear-gradient(rgba(7,16,20,.48), rgba(7,16,20,.48)), url('/rewardsverse-dashboard-bg-v2.png'); opacity: .86; }
+.rewards-auth-page { isolation: isolate; overflow: hidden; }
+.rewards-auth-page::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.2), rgba(255,255,255,.2)), url('/rewardsverse-dashboard-bg-v2.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
+.dark .rewards-auth-page::before { background-image: linear-gradient(rgba(7,16,20,.56), rgba(7,16,20,.56)), url('/rewardsverse-dashboard-bg-v2.png'); }
   .hud-sidebar { background: var(--sidebar-background); border-right: 1px solid var(--sidebar-border); box-shadow: 12px 0 30px rgba(15,23,42,.05); }
 .hud-topbar { position: sticky; top: 0; z-index: 30; display: flex; height: 64px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.94); padding: 0 1.5rem; backdrop-filter: blur(14px); }
 .hud-topbar::after { content: ''; position: absolute; bottom: -1px; left: 1.5rem; height: 2px; width: 56px; background: var(--primary); }
