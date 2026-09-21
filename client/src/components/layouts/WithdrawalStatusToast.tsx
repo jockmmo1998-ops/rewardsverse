@@ -45,21 +45,20 @@ export function WithdrawalStatusToast() {
       : { border: 'border-amber-200', icon: 'bg-amber-100 text-amber-700', title: 'Withdrawal pending', text: 'Your request is waiting for payment review.' };
 
   return (
-    <aside className={`fixed bottom-4 left-4 z-[70] w-[min(340px,calc(100vw-2rem))] rounded-xl border ${tone.border} bg-white/95 p-3 shadow-[0_14px_30px_rgba(15,23,42,.14)] backdrop-blur-md dark:border-[#25444a] dark:bg-[#102127]/95`} role="status" aria-live="polite">
-      <div className="flex items-start gap-3">
-        <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}>
-          {isSuccess ? <CheckCircle2 className="h-5 w-5" /> : isRejected ? <XCircle className="h-5 w-5" /> : <Clock3 className="h-5 w-5" />}
+    <aside className={`fixed bottom-3 left-3 z-[70] w-[min(280px,calc(100vw-1.5rem))] rounded-lg border ${tone.border} bg-white/95 px-2.5 py-2 shadow-[0_10px_24px_rgba(15,23,42,.12)] backdrop-blur-md dark:border-[#25444a] dark:bg-[#102127]/95`} role="status" aria-live="polite">
+      <div className="flex items-center gap-2">
+        <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${tone.icon}`}>
+          {isSuccess ? <CheckCircle2 className="h-4 w-4" /> : isRejected ? <XCircle className="h-4 w-4" /> : <Clock3 className="h-4 w-4" />}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{tone.title}</p>
-            <button type="button" onClick={() => setDismissedId(Number(latest.id))} className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-[#173036] dark:hover:text-slate-100" aria-label="Dismiss withdrawal status">
-              <X className="h-3.5 w-3.5" />
+            <p className="truncate text-[11px] font-bold text-slate-800 dark:text-slate-100">{tone.title}</p>
+            <button type="button" onClick={() => setDismissedId(Number(latest.id))} className="shrink-0 rounded-md p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-[#173036] dark:hover:text-slate-100" aria-label="Dismiss withdrawal status">
+              <X className="h-3 w-3" />
             </button>
           </div>
-          <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-300">{tone.text}</p>
-          <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
-            <span className="font-semibold text-slate-700 dark:text-slate-200">{money(latest.amount)} · {String(latest.cryptoType || 'payout')}</span>
+          <div className="mt-0.5 flex items-center justify-between gap-2 text-[10px]">
+            <span className="truncate text-slate-500 dark:text-slate-300">{money(latest.amount)} · {String(latest.cryptoType || 'payout')}</span>
             <span className={isSuccess ? 'font-bold text-emerald-700 dark:text-emerald-300' : isRejected ? 'font-bold text-red-600 dark:text-red-300' : 'font-bold text-amber-700 dark:text-amber-300'}>{isSuccess ? 'PAID' : isRejected ? 'REVIEW' : 'PENDING'}</span>
           </div>
         </div>
@@ -67,4 +66,3 @@ export function WithdrawalStatusToast() {
     </aside>
   );
 }
-
