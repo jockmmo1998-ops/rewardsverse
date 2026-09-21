@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, Clock3, LockKeyhole, ShieldCheck, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
@@ -29,6 +29,7 @@ function statusLabel(status: string) {
 
 export default function WithdrawPage() {
   const { profile, refreshProfile } = useAuth();
+  const navigate = useNavigate();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('litecoin');
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
@@ -69,6 +70,11 @@ export default function WithdrawPage() {
       toast.error('Enter a valid wallet address.');
       return;
     }
+    if (!emailVerified) {
+      toast.info('Please verify your email before submitting a withdrawal request.');
+      navigate('/profile', { state: { verificationRequired: true } });
+      return;
+    }
     setConfirmOpen(true);
   };
 
@@ -94,9 +100,7 @@ export default function WithdrawPage() {
         <StatTile label="Minimum withdrawal" value={`$${MIN_WITHDRAWAL.toFixed(2)}`} helper="Applied on the server" icon={ShieldCheck} accent="violet" />
       </div>
 
-      {!emailVerified && <Surface className="border-amber-400/30 bg-amber-400/5 p-5"><div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" /><div><h2 className="font-semibold text-foreground">Verify your email from Profile</h2><p className="mt-1 text-sm text-muted-foreground">Email verification is managed in your Profile. Complete it there before submitting a withdrawal request.</p><Link to="/profile" className="mt-3 inline-flex rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Open Profile</Link></div></div></Surface>}
-
-      {emailVerified && <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)]">
         <Surface className="p-5 sm:p-7">
           <div className="flex items-start justify-between gap-4">
             <div><p className="rv-eyebrow">Create request</p><h2 className="mt-1 font-display text-xl font-semibold">Payout details</h2></div>
@@ -125,7 +129,7 @@ export default function WithdrawPage() {
         </Surface>
 
         <div className="space-y-6"><Surface className="p-5 sm:p-6"><div className="flex items-center gap-2 text-foreground"><Clock3 className="h-4 w-4 text-primary" /><h2 className="font-display text-base font-semibold">What happens next?</h2></div><ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground"><li><span className="font-semibold text-foreground">1.</span> Your balance is reserved atomically when the request is accepted.</li><li><span className="font-semibold text-foreground">2.</span> The payout team reviews the destination and request.</li><li><span className="font-semibold text-foreground">3.</span> You can follow the status in your activity history.</li></ol></Surface><Surface className="p-5 sm:p-6"><p className="rv-eyebrow">Recent requests</p>{withdrawalsQuery.isLoading ? <p className="mt-3 text-sm text-muted-foreground">Loading requests…</p> : withdrawalsQuery.data?.length ? <div className="mt-3 space-y-2">{withdrawalsQuery.data.slice(0, 4).map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 text-sm"><div><p className="font-medium text-foreground">${Number(item.amount).toFixed(2)} · {item.cryptoType === 'litecoin' ? 'LTC' : 'Binance'}</p><p className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</p></div><span className="text-xs font-semibold text-muted-foreground">{statusLabel(item.status)}</span></div>)}</div> : <p className="mt-3 text-sm text-muted-foreground">No withdrawal requests yet.</p>}</Surface></div>
-      </div>}
+      </div>
 
       {confirmOpen && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"><div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"><p className="rv-eyebrow">Final review</p><h2 className="mt-1 font-display text-xl font-semibold text-foreground">Confirm withdrawal</h2><div className="mt-6 space-y-3 rounded-xl border border-border bg-muted/50 p-4 text-sm"><div className="flex justify-between gap-3"><span className="text-muted-foreground">Method</span><span className="font-medium text-foreground">{selected.symbol} · {selected.network}</span></div><div className="flex justify-between gap-3"><span className="text-muted-foreground">Amount</span><span className="font-medium text-foreground">${formattedAmount}</span></div><div className="flex justify-between gap-3"><span className="text-muted-foreground">Destination</span><span className="max-w-[190px] truncate font-mono text-xs text-foreground">{address}</span></div></div><p className="mt-4 text-xs leading-5 text-muted-foreground">The server will re-check your balance, payment method and duplicate requests before creating the record.</p><div className="mt-6 flex gap-3"><button type="button" onClick={() => setConfirmOpen(false)} className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted">Cancel</button><button type="button" onClick={confirmWithdraw} disabled={!canReview} className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">{withdrawMutation.isPending ? 'Submitting…' : 'Confirm request'}</button></div></div></div>}
     </div>
