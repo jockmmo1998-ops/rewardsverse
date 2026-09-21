@@ -149,6 +149,32 @@ function pick(params: Record<string, any>, fields: string[]): string {
 }
 
 /**
+ * Provider dashboards sometimes send a URL-encoded identifier with a trailing
+ * `+` (or decode it to a trailing space). Usernames in RewardsVerse are
+ * canonical identifiers, so normalize only transport noise before lookup.
+ */
+function normalizeUserIdentifier(value: string): string {
+  let normalized = value.trim();
+  try {
+    normalized = decodeURIComponent(normalized);
+  } catch {
+    // Keep the original value when a provider sends malformed percent escapes.
+  }
+  normalized = normalized.trim().replace(/\s+/g, " ");
+  return normalized.endsWith("+") ? normalized.slice(0, -1).trim() : normalized;
+}
+
+function uniqueValues(values: string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+/** Revtoo's test UI has emitted both the canonical value and a literal `+`. */
+function revtooUserVariants(value: string): string[] {
+  const normalized = normalizeUserIdentifier(value);
+  return uniqueValues([value.trim(), normalized, normalized ? `${normalized}+` : ""]);
+}
+
+/**
  * Pick the first value that parses as a non-negative finite number.
  * Returns the string as-is (e.g. "0", "0.50") so the caller can decide
  * how to handle zero-value test postbacks.
@@ -288,10 +314,12 @@ function verifyRevtooSignature(secret: string, params: Record<string, any>): boo
         const transaction = pick(params, [transactionField]);
         const reward = pick(params, [rewardField]);
         if (!user || !transaction || !reward) continue;
-        const expected = crypto.createHash("md5")
-          .update(`${user}${transaction}${reward}${secret}`)
-          .digest("hex");
-        if (constantTimeEqual(expected, signature)) return true;
+        for (const userVariant of revtooUserVariants(user)) {
+          const expected = crypto.createHash("md5")
+            .update(`${userVariant}${transaction}${reward}${secret}`)
+            .digest("hex");
+          if (constantTimeEqual(expected, signature)) return true;
+        }
       }
     }
   }
@@ -680,7 +708,8 @@ async function handlePostback(req: Request, res: Response) {
     const rawUserId = provider === "timewall"
       ? pick(params, ["userid"])
       : pick(params, [spec.user, ...USER_FIELDS]);
-    const sandboxRequested = rawUserId === "postback_test_user" || ["1", "true", "sandbox"].includes(pick(params, ["test_mode", "testMode"]).toLowerCase());
+    const normalizedUserId = normalizeUserIdentifier(rawUserId);
+    const sandboxRequested = normalizedUserId === "postback_test_user" || ["1", "true", "sandbox"].includes(pick(params, ["test_mode", "testMode"]).toLowerCase());
     diagnostics.userIdentifier = rawUserId;
     diagnostics.testMode = sandboxRequested;
     if (!rawUserId) {
@@ -880,34 +909,52 @@ async function handlePostback(req: Request, res: Response) {
 
     // ── 10. Resolve user ──────────────────────────────────────────────────
     let user: Awaited<ReturnType<typeof db.getUserByUsername>> | null = null;
+    const identifiers = uniqueValues([rawUserId, normalizedUserId]);
 
-    // 10a. Try as username (case-insensitive) — TimeWall is intentionally
-    // strict: its userID is resolved only as the RewardsVerse username.
-    user = await db.getUserByUsername(rawUserId);
-    if (user) console.log(`[Postback][${provider}] User found by username: "${rawUserId}" → id=${user.id}`);
+    // 10a. Resolve exact username/openId for every provider. Provider callback
+    // identifiers are the username carried into the offerwall URL, while some
+    // networks return the virtual openId instead.
+    for (const identifier of identifiers) {
+      user = await db.getUserByUsername(identifier) ?? null;
+      if (user) {
+        console.log(`[Postback][${provider}] User found by username: "${identifier}" → id=${user.id}`);
+        break;
+      }
+      if (provider !== "timewall") {
+        user = await db.getUserByOpenId(identifier) ?? null;
+        if (user) {
+          console.log(`[Postback][${provider}] User found by openId: "${identifier}" → id=${user.id}`);
+          break;
+        }
+      }
+    }
 
-    // 10b. Try as openId
+    // Virtual-auth accounts may have a username like
+    // virtual_<baseUsername>_<timestamp>, while providers send only the base
+    // username. This mapping is safe because it still requires an existing
+    // database row and is now consistent across all offerwalls.
     if (!user && provider !== "timewall") {
-      user = await db.getUserByOpenId(rawUserId) ?? null;
-      if (user) console.log(`[Postback][${provider}] User found by openId: "${rawUserId}" → id=${user.id}`);
+      for (const identifier of identifiers) {
+        if (!/^[a-zA-Z0-9_]+$/.test(identifier)) continue;
+        user = await db.getUserByVirtualUsername(identifier) ?? null;
+        if (user) {
+          console.log(`[Postback][${provider}] User found by virtual username mapping → id=${user.id}`);
+          break;
+        }
+      }
     }
 
-    // Virtual-auth accounts in the existing production database may have a
-    // username like virtual_<baseUsername>_<timestamp>, while legacy providers
-    // send only the base username. Resolve this representation only for the
-    // providers that use that callback contract; do not alter other mappings.
-    if (!user && provider !== "timewall" && (provider === "taskwall" || provider === "gleamads") && /^[a-zA-Z0-9_]+$/.test(rawUserId)) {
-      user = await db.getUserByVirtualUsername(rawUserId) ?? null;
-      if (user) console.log(`[Postback][${provider}] User found by virtual username mapping → id=${user.id}`);
-    }
-
-    // 10c. If rawUserId looks like "virtual_NAME_timestamp", extract NAME and retry
-    if (!user && provider !== "timewall" && rawUserId.startsWith("virtual_")) {
-      const parts = rawUserId.split("_");
-      if (parts.length >= 2) {
-        const extracted = parts[1];
-        user = await db.getUserByUsername(extracted) ?? null;
-        if (user) console.log(`[Postback][${provider}] User found by extracting from openId prefix: "${extracted}" → id=${user.id}`);
+    // If an offerwall returns the full virtual identifier, extract the base
+    // username while preserving underscores inside the username.
+    if (!user && provider !== "timewall") {
+      for (const identifier of identifiers) {
+        const match = identifier.match(/^virtual_(.+?)(?:_\d+)?$/i);
+        if (!match) continue;
+        user = await db.getUserByUsername(match[1]) ?? null;
+        if (user) {
+          console.log(`[Postback][${provider}] User found by virtual identifier prefix: "${match[1]}" → id=${user.id}`);
+          break;
+        }
       }
     }
 
