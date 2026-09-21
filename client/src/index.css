@@ -408,5 +408,5 @@
 @keyframes toastOut { to { opacity: 0; transform: translate3d(16px, 0, 0) scale(.98); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
-  .live-activity-items { animation: none !important; transform: none !important; }
+  .live-activity-items { animation: liveActivityMarquee 78s linear infinite !important; animation-duration: 78s !important; animation-iteration-count: infinite !important; animation-play-state: running !important; }
 }
