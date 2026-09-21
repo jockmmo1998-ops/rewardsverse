@@ -16,10 +16,10 @@ export function AppLayout({ children }: { children?: ReactNode }) {
     <div className="app-shell flex min-h-screen w-full overflow-x-hidden">
       <div className="app-shell-background" aria-hidden="true" />
       <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 w-full max-w-full flex-1 flex-col">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
         {showDashboardTicker && <LiveActivityBar />}
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 w-full max-w-full flex-1 overflow-x-hidden">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}
