@@ -5,6 +5,7 @@ import { AppSidebar } from './AppSidebar';
 import { TopBar } from './TopBar';
 import { LiveActivityBar } from './LiveActivityBar';
 import { AppFooter } from './AppFooter';
+import { WithdrawalStatusToast } from './WithdrawalStatusToast';
 
 export function AppLayout({ children }: { children?: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -34,6 +35,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
         </main>
         <AppFooter />
       </div>
+      <WithdrawalStatusToast />
     </div>
   );
 }
