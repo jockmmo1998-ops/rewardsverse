@@ -1,7 +1,8 @@
 import { CheckCircle2, Clock3, X, XCircle } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
+import { playBellSound } from '@/utils/bellSound';
 
 const DISPLAY_WINDOW_MS = 10 * 60 * 1000;
 
@@ -18,6 +19,7 @@ function timestamp(value: unknown) {
 export function WithdrawalStatusToast() {
   const { user } = useAuth();
   const [dismissedId, setDismissedId] = useState<number | null>(null);
+  const previousStatus = useRef<{ id: number; status: string } | null>(null);
   const withdrawals = trpc.withdraw.getMyWithdrawals.useQuery(undefined, {
     enabled: Boolean(user),
     retry: false,
@@ -36,6 +38,20 @@ export function WithdrawalStatusToast() {
   const isSuccess = ['approved', 'paid', 'completed', 'success'].includes(status);
   const isRejected = ['rejected', 'failed', 'cancelled'].includes(status);
   const ageAnchor = isSuccess || isRejected ? timestamp(latest.updatedAt) || timestamp(latest.createdAt) : timestamp(latest.createdAt);
+
+  useEffect(() => {
+    if (!latest) return;
+    const current = { id: Number(latest.id), status };
+    const previous = previousStatus.current;
+    const becamePaid = previous?.id === current.id
+      && !['approved', 'paid', 'completed', 'success'].includes(previous.status)
+      && isSuccess;
+    if (becamePaid && localStorage.getItem('rewardsverse-reward-sound') !== 'off') {
+      void playBellSound();
+    }
+    previousStatus.current = current;
+  }, [isSuccess, latest, status]);
+
   if (!ageAnchor || Date.now() - ageAnchor > DISPLAY_WINDOW_MS) return null;
 
   const tone = isSuccess
