@@ -83,9 +83,9 @@ export function LoadingRows({ count = 4 }: { count?: number }) {
     <div className="space-y-3" aria-label="Loading">
       {Array.from({ length: count }).map((_, index) => (
         <div key={index} className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/20 p-3">
-          <div className="h-10 w-10 animate-pulse rounded-xl bg-muted" />
-          <div className="flex-1 space-y-2"><div className="h-3 w-1/3 animate-pulse rounded bg-muted" /><div className="h-2.5 w-1/4 animate-pulse rounded bg-muted" /></div>
-          <div className="h-3 w-14 animate-pulse rounded bg-muted" />
+          <div className="skeleton-shimmer h-10 w-10 rounded-xl" />
+          <div className="flex-1 space-y-2"><div className="skeleton-shimmer h-3 w-1/3 rounded" /><div className="skeleton-shimmer h-2.5 w-1/4 rounded" /></div>
+          <div className="skeleton-shimmer h-3 w-14 rounded" />
         </div>
       ))}
     </div>

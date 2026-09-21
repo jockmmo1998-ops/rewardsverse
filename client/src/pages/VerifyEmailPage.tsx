@@ -31,12 +31,12 @@ export default function VerifyEmailPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
       <div className="absolute right-4 top-4 sm:right-6 sm:top-6"><ThemeToggle /></div>
-      <section className="w-full max-w-md rounded-2xl border border-border/60 bg-card/90 p-8 text-center shadow-2xl">
+      <section className={`w-full max-w-md rounded-2xl border border-border/60 bg-card/90 p-8 text-center shadow-2xl ${state === "success" ? "verify-success-card" : ""}`}>
         <Link to="/home" className="inline-flex items-center gap-2 text-xl font-black tracking-[0.08em]">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white"><Gift className="h-5 w-5" /></span>
           REWARDSVERSE
         </Link>
-        <div className="mx-auto mt-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10">
+        <div className={`mx-auto mt-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ${state === "success" ? "verify-success-icon" : ""}`}>
           {state === "loading" && <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />}
           {state === "success" && <CheckCircle2 className="h-8 w-8 text-emerald-500" />}
           {state === "error" && <XCircle className="h-8 w-8 text-red-400" />}

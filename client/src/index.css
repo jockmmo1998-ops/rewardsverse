@@ -351,3 +351,32 @@
     animation: none !important;
   }
 }
+
+/* RewardsVerse motion system: short, transform/opacity-only interactions. */
+.offer-card .offer-cta svg { transition: transform .18s var(--ease-out); }
+.offer-card:hover .offer-cta svg, .group:hover .offer-cta svg { transform: translateX(3px); }
+.offer-card:hover .status-badge { animation: badgeLift .22s var(--ease-out) both; }
+.skeleton-shimmer { position: relative; overflow: hidden; background: color-mix(in srgb, var(--muted) 88%, var(--background)); }
+.skeleton-shimmer::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--foreground) 7%, transparent), transparent); animation: shimmer 1.6s ease-in-out infinite; }
+.live-activity-status svg { animation: livePulse 1.8s ease-in-out infinite; }
+.live-activity-item { transition: color .18s var(--ease-out); }
+.live-activity-item:first-child { animation: activityEnter .42s var(--ease-out) both; }
+.balance-panel { transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out); }
+.balance-value-flash { animation: rewardFlash .7s var(--ease-out) both; }
+.verify-success-icon { animation: verifyPop .52s var(--ease-out) both; }
+.verify-success-card { animation: successCardIn .42s var(--ease-out) both; }
+.toaster [data-sonner-toast] { animation: toastIn .24s var(--ease-out) both; }
+.toaster [data-sonner-toast][data-removed="true"] { animation: toastOut .18s var(--ease-out) both; }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes badgeLift { from { transform: translateY(2px); opacity: .7; } to { transform: translateY(0); opacity: 1; } }
+@keyframes livePulse { 0%, 100% { opacity: .62; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.08); } }
+@keyframes activityEnter { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes rewardFlash { 0% { transform: scale(1); color: var(--foreground); } 45% { transform: scale(1.045); color: var(--primary); } 100% { transform: scale(1); color: var(--foreground); } }
+@keyframes verifyPop { 0% { opacity: 0; transform: scale(.78); } 70% { transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes successCardIn { from { opacity: .2; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastIn { from { opacity: 0; transform: translate3d(16px, 8px, 0) scale(.97); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
+@keyframes toastOut { to { opacity: 0; transform: translate3d(16px, 0, 0) scale(.98); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  .live-activity-items { animation: none !important; transform: none !important; }
+}
