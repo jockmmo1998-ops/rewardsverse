@@ -1,5 +1,5 @@
 import { eq, desc, sql, and, gte } from "drizzle-orm";
-import type { MySql2Database } from "drizzle-orm/mysql2";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { randomBytes } from "crypto";
 import {
   InsertUser,
@@ -32,38 +32,34 @@ import { POSTBACK_SECRETS } from "./offerwall-config";
 
 // Lazy-initialized DB instance — never imported at module load time so the
 // server starts successfully even when DATABASE_URL is absent.
-let _db: MySql2Database<Record<string, never>> | null = null;
+let _db: PostgresJsDatabase<Record<string, never>> | null = null;
 let _pool: any = null;
 
-// Convert DATABASE_URL into explicit mysql2 options. Hosted MySQL providers
-// commonly require TLS and may close plaintext connections immediately.
+// Parse the Supabase PostgreSQL URL without hard-coding credentials.
 export function getDatabaseConnectionOptions(databaseUrl: string) {
   const url = new URL(databaseUrl);
-  // TiDB Cloud public endpoints require TLS; do not allow a stale
-  // DATABASE_SSL=false variable to silently downgrade the connection.
-  const useTls = true;
   return {
     host: url.hostname,
-    port: url.port ? Number(url.port) : 3306,
+    port: url.port ? Number(url.port) : 5432,
     user: decodeURIComponent(url.username),
     password: decodeURIComponent(url.password),
-    database: decodeURIComponent(url.pathname.replace(/^\//, "")),
-    connectTimeout: 20_000,
-    enableKeepAlive: true,
-    keepAliveInitialDelay: 10_000,
-    ...(useTls ? { ssl: { minVersion: "TLSv1.2", rejectUnauthorized: true } } : {}),
+    database: decodeURIComponent(url.pathname.replace(/^\//, "")) || "postgres",
+    ssl: url.hostname.endsWith("supabase.com") ? { rejectUnauthorized: false } : undefined,
+    max: 10,
+    idle_timeout: 20,
+    connect_timeout: 20,
   };
 }
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      // Dynamic import prevents mysql2 from being required at startup
-      const { drizzle } = await import("drizzle-orm/mysql2");
-      const mysql = await import("mysql2/promise");
-      const pool = mysql.default.createPool(getDatabaseConnectionOptions(process.env.DATABASE_URL));
-      _pool = pool;
-      _db = drizzle(pool) as MySql2Database<Record<string, never>>;
+      // Dynamic import keeps the PostgreSQL driver out of startup unless DATABASE_URL is configured.
+    const { drizzle } = await import("drizzle-orm/postgres-js");
+    const postgres = (await import("postgres")).default;
+    const sqlClient = postgres(process.env.DATABASE_URL, getDatabaseConnectionOptions(process.env.DATABASE_URL));
+    _pool = sqlClient;
+    _db = drizzle(sqlClient) as PostgresJsDatabase<Record<string, never>>;
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -147,7 +143,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     const safeLogValues = { ...values } as Record<string, unknown>;
     delete safeLogValues.password;
     console.log("[Database] upsertUser values:", JSON.stringify(safeLogValues));
-    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+    await db.insert(users).values(values).onConflictDoUpdate({ target: users.openId, set: updateSet });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -256,7 +252,7 @@ export async function addBalance(userId: number, amount: number) {
     .update(users)
     .set({
       balance: sql`balance + ${amount}`,
-      totalEarned: sql`totalEarned + ${amount}`,
+      totalEarned: sql`"totalEarned" + ${amount}`,
     })
     .where(eq(users.id, userId));
 }
@@ -295,7 +291,7 @@ export async function incrementOffers(userId: number) {
   if (!db) return; // non-critical
   await db
     .update(users)
-    .set({ offersCompleted: sql`offersCompleted + 1` })
+    .set({ offersCompleted: sql`"offersCompleted" + 1` })
     .where(eq(users.id, userId));
 }
 
@@ -313,7 +309,7 @@ export async function addRefEarnings(userId: number, amount: number) {
   if (!db) return;
   await db
     .update(users)
-    .set({ refEarnings: sql`refEarnings + ${amount}` })
+    .set({ refEarnings: sql`"refEarnings" + ${amount}` })
     .where(eq(users.id, userId));
 }
 
@@ -781,8 +777,8 @@ export async function resolvePendingOffer(id: number) {
 
     await tx.update(users).set({
       balance: sql`balance + ${amount}`,
-      totalEarned: sql`totalEarned + ${amount}`,
-      offersCompleted: sql`offersCompleted + 1`,
+      totalEarned: sql`"totalEarned" + ${amount}`,
+      offersCompleted: sql`"offersCompleted" + 1`,
     }).where(eq(users.id, offer.userId));
     await tx.insert(earnings).values({ userId: offer.userId, amount: amount.toFixed(2), type: "offer", source: `[${offer.provider}] ${offer.offerName || "Offer"}` });
     await tx.insert(walletTransactions).values({ userId: offer.userId, type: "credit", amount: amount.toFixed(2), description: `Earned $${amount.toFixed(2)} on ${offer.provider}${offer.offerName ? ` — ${offer.offerName}` : ""}`, source: offer.provider });

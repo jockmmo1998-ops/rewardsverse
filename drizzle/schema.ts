@@ -1,42 +1,40 @@
 import {
-  int,
-  mysqlEnum,
-  mysqlTable,
+  integer,
+  pgTable,
   text,
   timestamp,
   varchar,
-  decimal,
+  numeric,
   index,
-  tinyint,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 
 /**
  * Core user table backing auth flow.
  */
-export const users = mysqlTable(
+export const users = pgTable(
   "users",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
     openId: varchar("openId", { length: 64 }).notNull().unique(),
     name: text("name"),
     email: varchar("email", { length: 320 }),
     loginMethod: varchar("loginMethod", { length: 64 }),
-    role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-    accountStatus: mysqlEnum("accountStatus", ["active", "suspended"]).default("active").notNull(),
+    role: text("role").default("user").notNull(),
+    accountStatus: text("accountStatus").default("active").notNull(),
     suspensionReason: text("suspensionReason"),
     username: varchar("username", { length: 64 }).unique(),
     password: varchar("password", { length: 256 }),
     refCode: varchar("refCode", { length: 16 }),
     referredBy: varchar("referredBy", { length: 16 }),
-    balance: decimal("balance", { precision: 10, scale: 2 }).default("0.00"),
-    xp: int("xp").default(0),
-    streak: int("streak").default(0),
-    offersCompleted: int("offersCompleted").default(0),
-    totalEarned: decimal("totalEarned", { precision: 10, scale: 2 }).default("0.00"),
-    refEarnings: decimal("refEarnings", { precision: 10, scale: 2 }).default("0.00"),
+    balance: numeric("balance", { precision: 10, scale: 2 }).default("0.00"),
+    xp: integer("xp").default(0),
+    streak: integer("streak").default(0),
+    offersCompleted: integer("offersCompleted").default(0),
+    totalEarned: numeric("totalEarned", { precision: 10, scale: 2 }).default("0.00"),
+    refEarnings: numeric("refEarnings", { precision: 10, scale: 2 }).default("0.00"),
     lastDailyClaim: timestamp("lastDailyClaim"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull(),
     lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
   },
   (table) => ({
@@ -49,11 +47,11 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /** Immutable server-side record of sensitive administrator actions. */
-export const auditLogs = mysqlTable(
+export const auditLogs = pgTable(
   "audit_logs",
   {
-    id: int("id").autoincrement().primaryKey(),
-    adminUserId: int("adminUserId").notNull(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    adminUserId: integer("adminUserId").notNull(),
     action: varchar("action", { length: 64 }).notNull(),
     targetType: varchar("targetType", { length: 32 }),
     targetId: varchar("targetId", { length: 128 }),
@@ -71,10 +69,10 @@ export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
 /** Server-managed Postback credentials. The raw token is only returned to an
  * authenticated admin when generating/copying a URL; it is never committed. */
-export const postbackCredentials = mysqlTable(
+export const postbackCredentials = pgTable(
   "postback_credentials",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
     provider: varchar("provider", { length: 64 }).notNull().unique(),
     token: varchar("token", { length: 128 }).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -88,29 +86,20 @@ export type InsertPostbackCredential = typeof postbackCredentials.$inferInsert;
 /**
  * Withdrawal requests table.
  */
-export const withdrawals = mysqlTable(
+export const withdrawals = pgTable(
   "withdrawals",
   {
-    id: int("id").autoincrement().primaryKey(),
-    userId: int("userId").notNull(),
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-    cryptoType: mysqlEnum("cryptoType", [
-      "bitcoin",
-      "ethereum",
-      "usdt_trc20",
-      "usdt_erc20",
-      "solana",
-      "litecoin",
-      "dogecoin",
-      "binance",
-    ]).notNull(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    userId: integer("userId").notNull(),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+    cryptoType: text("cryptoType").notNull(),
     walletAddress: text("walletAddress").notNull(),
-    status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+    status: text("status").default("pending").notNull(),
     adminNote: text("adminNote"),
     approvedAt: timestamp("approvedAt"),
     rejectedAt: timestamp("rejectedAt"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
   (table) => ({
     userIdIdx: index("withdrawals_userId_idx").on(table.userId),
@@ -124,20 +113,13 @@ export type InsertWithdrawal = typeof withdrawals.$inferInsert;
 /**
  * Earnings history table.
  */
-export const earnings = mysqlTable(
+export const earnings = pgTable(
   "earnings",
   {
-    id: int("id").autoincrement().primaryKey(),
-    userId: int("userId").notNull(),
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-    type: mysqlEnum("type", [
-      "offer",
-      "daily_bonus",
-      "spin",
-      "ai_task",
-      "social_task",
-      "referral",
-    ]).notNull(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    userId: integer("userId").notNull(),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+    type: text("type").notNull(),
     source: text("source"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
@@ -153,14 +135,14 @@ export type InsertEarning = typeof earnings.$inferInsert;
 /**
  * Leaderboard cache for fast ranking.
  */
-export const leaderboard = mysqlTable(
+export const leaderboard = pgTable(
   "leaderboard",
   {
-    id: int("id").autoincrement().primaryKey(),
-    userId: int("userId").notNull(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    userId: integer("userId").notNull(),
     username: varchar("username", { length: 64 }).notNull(),
-    totalEarned: decimal("totalEarned", { precision: 10, scale: 2 }).default("0.00"),
-    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    totalEarned: numeric("totalEarned", { precision: 10, scale: 2 }).default("0.00"),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
   (table) => ({
     userIdIdx: index("leaderboard_userId_idx").on(table.userId),
@@ -173,16 +155,16 @@ export type InsertLeaderboard = typeof leaderboard.$inferInsert;
 /**
  * Postback log for tracking offer wall callbacks (idempotency).
  */
-export const postbacks = mysqlTable(
+export const postbacks = pgTable(
   "postbacks",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
     provider: varchar("provider", { length: 32 }).notNull(),
     externalId: varchar("externalId", { length: 128 }).notNull(),
-    userId: int("userId").notNull(),
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    userId: integer("userId").notNull(),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
     offerName: text("offerName"),
-    status: mysqlEnum("status", ["processed", "duplicate", "failed"]).default("processed").notNull(),
+    status: text("status").default("processed").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (table) => ({
@@ -198,15 +180,15 @@ export type InsertPostback = typeof postbacks.$inferInsert;
 /**
  * Activity log for real-time ticker.
  */
-export const activities = mysqlTable(
+export const activities = pgTable(
   "activities",
   {
-    id: int("id").autoincrement().primaryKey(),
-    userId: int("userId").notNull(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    userId: integer("userId").notNull(),
     username: varchar("username", { length: 64 }).notNull(),
-    type: mysqlEnum("type", ["offer_complete", "withdrawal", "daily_claim", "referral"]).notNull(),
+    type: text("type").notNull(),
     description: text("description").notNull(),
-    amount: decimal("amount", { precision: 10, scale: 2 }),
+    amount: numeric("amount", { precision: 10, scale: 2 }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (table) => ({
@@ -222,13 +204,13 @@ export type InsertActivity = typeof activities.$inferInsert;
 /**
  * Wallet transactions table for tracking balance changes.
  */
-export const walletTransactions = mysqlTable(
+export const walletTransactions = pgTable(
   "wallet_transactions",
   {
-    id: int("id").autoincrement().primaryKey(),
-    userId: int("userId").notNull(),
-    type: mysqlEnum("type", ["credit", "debit"]).notNull(),
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    userId: integer("userId").notNull(),
+    type: text("type").notNull(),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
     description: text("description").notNull(),
     source: varchar("source", { length: 64 }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -245,16 +227,16 @@ export type InsertWalletTransaction = typeof walletTransactions.$inferInsert;
 /**
  * Offer history table for tracking completed offers.
  */
-export const offerHistory = mysqlTable(
+export const offerHistory = pgTable(
   "offer_history",
   {
-    id: int("id").autoincrement().primaryKey(),
-    userId: int("userId").notNull(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    userId: integer("userId").notNull(),
     provider: varchar("provider", { length: 32 }).notNull(),
     offerName: text("offerName"),
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
     externalId: varchar("externalId", { length: 128 }),
-    status: mysqlEnum("status", ["completed", "pending", "failed"]).default("completed").notNull(),
+    status: text("status").default("completed").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (table) => ({
@@ -269,15 +251,15 @@ export type InsertOfferHistory = typeof offerHistory.$inferInsert;
 /**
  * Notifications table for user-facing notifications.
  */
-export const notifications = mysqlTable(
+export const notifications = pgTable(
   "notifications",
   {
-    id: int("id").autoincrement().primaryKey(),
-    userId: int("userId").notNull(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    userId: integer("userId").notNull(),
     title: varchar("title", { length: 128 }).notNull(),
     message: text("message").notNull(),
-    type: mysqlEnum("type", ["reward", "withdrawal", "system", "offer"]).default("system").notNull(),
-    isRead: tinyint("isRead").default(0),
+    type: text("type").default("system").notNull(),
+    isRead: integer("isRead").default(0),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (table) => ({
@@ -292,24 +274,24 @@ export type InsertNotification = typeof notifications.$inferInsert;
 /**
  * Detailed postback audit log — every request in full, for debugging.
  */
-export const postbackLogs = mysqlTable(
+export const postbackLogs = pgTable(
   "postback_logs",
   {
-    id: int("id").autoincrement().primaryKey(),
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
     provider: varchar("provider", { length: 64 }).notNull(),
     ip: varchar("ip", { length: 64 }),
     method: varchar("method", { length: 8 }).notNull().default("GET"),
     headers: text("headers"),
     queryParams: text("queryParams"),
     bodyParams: text("bodyParams"),
-    userId: int("userId").notNull().default(0),
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull().default("0.00"),
+    userId: integer("userId").notNull().default(0),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull().default("0.00"),
     transactionId: varchar("transactionId", { length: 256 }),
     offerName: text("offerName"),
-    status: mysqlEnum("status", ["processed", "duplicate", "failed"]).default("processed").notNull(),
+    status: text("status").default("processed").notNull(),
     result: text("result"),
     errorMessage: text("errorMessage"),
-    processingMs: int("processingMs"),
+    processingMs: integer("processingMs"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (table) => ({
