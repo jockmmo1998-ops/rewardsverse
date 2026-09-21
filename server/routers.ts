@@ -35,6 +35,8 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 
 // Offerwall URLs and postback secrets are loaded from the deployment environment.
 // Keeping provider credentials out of source prevents accidental exposure.
+const SUPABASE_PROJECT_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://glejepbcpjcilxyrxxcg.supabase.co";
+const SUPABASE_PUBLIC_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_kTKaL4ycqXhSIwGCx3ReNg_20dEKu1-";
 
 export const appRouter = router({
   system: systemRouter,
@@ -212,17 +214,12 @@ export const appRouter = router({
     linkVerifiedEmail: protectedProcedure
       .input(z.object({ accessToken: z.string().min(20).max(4096) }))
       .mutation(async ({ ctx, input }) => {
-        const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-        if (!supabaseUrl || !supabaseKey) {
-          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Email verification is not configured yet." });
-        }
-        const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
-          headers: { apikey: supabaseKey, Authorization: `Bearer ${input.accessToken}` },
+        const response = await fetch(`${SUPABASE_PROJECT_URL}/auth/v1/user`, {
+          headers: { apikey: SUPABASE_PUBLIC_KEY, Authorization: `Bearer ${input.accessToken}` },
         });
         if (!response.ok) throw new TRPCError({ code: "UNAUTHORIZED", message: "Email session expired. Please sign in again." });
-        const authUser = await response.json() as { email?: string; email_confirmed_at?: string | null };
-        if (!authUser.email || !authUser.email_confirmed_at) {
+        const authUser = await response.json() as { email?: string; email_confirmed_at?: string | null; confirmed_at?: string | null };
+        if (!authUser.email || !(authUser.email_confirmed_at || authUser.confirmed_at)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Please confirm your email before continuing." });
         }
         const user = await db.getUserByOpenId(ctx.user.openId);
