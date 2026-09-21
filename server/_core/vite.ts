@@ -51,6 +51,8 @@ const VALID_SPA_ROUTES = new Set([
   "/",
   "/login",
   "/register",
+  "/forgot-password",
+  "/reset-password",
   "/home",
   "/dashboard",
   "/offerwalls",
