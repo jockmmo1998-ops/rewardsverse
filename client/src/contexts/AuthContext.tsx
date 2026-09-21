@@ -15,9 +15,9 @@ type AuthContextType = {
   isAdmin: boolean;
   refreshProfile: () => Promise<unknown>;
   logout: () => Promise<void>;
-  register: (username: string, password: string, refCode?: string) => Promise<AuthResult>;
+  register: (username: string, password: string, email: string, refCode?: string) => Promise<AuthResult>;
   login: (username: string, password: string) => Promise<AuthResult>;
-  signUpWithUsername: (username: string, password: string, refCode?: string) => Promise<AuthResult>;
+  signUpWithUsername: (username: string, password: string, email: string, refCode?: string) => Promise<AuthResult>;
   signInWithUsername: (username: string, password: string) => Promise<AuthResult>;
 };
 
@@ -73,11 +73,12 @@ export function useAuth(): AuthContextType {
   }, [coreAuth.refresh, profileQuery.refetch]);
 
   const register = useCallback(
-    async (username: string, password: string, refCode?: string): Promise<AuthResult> => {
+    async (username: string, password: string, email: string, refCode?: string): Promise<AuthResult> => {
       try {
         const data = await registerMutation.mutateAsync({
           username,
           password,
+          email,
           refCode: refCode ?? "",
         });
         try {

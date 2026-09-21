@@ -31,6 +31,7 @@ import {
   Link2,
   ShieldCheck,
   Key,
+  Mail,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -56,6 +57,10 @@ export default function AdminPanel() {
   const withdrawalsQuery = trpc.admin.getWithdrawals.useQuery();
   const pendingOffersQuery = trpc.admin.getPendingOffers.useQuery();
   const usersQuery = trpc.admin.getUsers.useQuery();
+  const resendVerificationMutation = trpc.admin.resendUserVerificationEmail.useMutation({
+    onSuccess: (result) => toast.success(result.alreadyVerified ? "This email is already verified." : "Verification email sent."),
+    onError: (err) => toast.error(err.message),
+  });
 
   const approveMutation = trpc.admin.approveWithdrawal.useMutation({
     onSuccess: () => {
@@ -424,8 +429,20 @@ export default function AdminPanel() {
                         <p className="text-[10px] text-muted-foreground mt-0.5">
                           Balance: <span className="text-green-400 font-bold">${parseFloat(u.balance || "0").toFixed(2)}</span> | Offers: {u.offersCompleted || 0} | XP: {u.xp || 0}
                         </p>
+                        <p className="mt-1 truncate text-[10px] text-muted-foreground">{u.email || "No email"}</p>
                       </div>
-                      <div className="text-right shrink-0">
+                      <div className="flex shrink-0 items-center gap-2 text-right">
+                        {u.email && !u.emailVerifiedAt && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => resendVerificationMutation.mutate({ userId: u.id })}
+                            disabled={resendVerificationMutation.isPending}
+                            className="h-7 px-2 text-[10px] font-semibold border-amber-500/30 text-amber-300 hover:bg-amber-500/10"
+                          >
+                            <Mail className="mr-1 h-3 w-3" /> Resend
+                          </Button>
+                        )}
                         <p className="text-[10px] text-muted-foreground">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : ""}</p>
                       </div>
                     </div>

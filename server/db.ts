@@ -82,7 +82,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     const values: InsertUser = { openId: user.openId, username: user.username ?? user.openId.slice(0, 64), password: user.password ?? "$2b$10$7EqJtq98hPqEX7fNZaFWoOeYfL1v1s8t6R1f5l7y2jM0Q0mYwQ0eG", refCode: user.refCode ?? `RV${user.openId.slice(-14)}` };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod", "username", "refCode", "referredBy", "password"] as const;
+    const textFields = ["name", "email", "loginMethod", "username", "refCode", "referredBy", "password", "emailVerificationTokenHash"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
@@ -109,6 +109,14 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
+    }
+    if (user.emailVerificationExpiresAt !== undefined) {
+      values.emailVerificationExpiresAt = user.emailVerificationExpiresAt;
+      updateSet.emailVerificationExpiresAt = user.emailVerificationExpiresAt;
+    }
+    if (user.emailVerificationSentAt !== undefined) {
+      values.emailVerificationSentAt = user.emailVerificationSentAt;
+      updateSet.emailVerificationSentAt = user.emailVerificationSentAt;
     }
     if (user.role !== undefined) {
       values.role = user.role;
@@ -164,6 +172,13 @@ export async function getUserById(userId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getUserByEmailVerificationToken(tokenHash: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.emailVerificationTokenHash, tokenHash)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function getAdminUserDetail(userId: number) {
   const user = await getUserById(userId);
   if (!user) return undefined;
@@ -183,6 +198,13 @@ export async function getUserByUsername(username: string) {
     .from(users)
     .where(sql`LOWER(username) = LOWER(${username})`)
     .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(sql`LOWER(email) = LOWER(${email})`).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 

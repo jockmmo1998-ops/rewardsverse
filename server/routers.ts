@@ -9,6 +9,7 @@ import { ENV } from "./_core/env";
 import { notifyOwner } from "./_core/notification";
 import { sdk } from "./_core/sdk";
 import bcrypt from "bcryptjs";
+import { createEmailVerificationToken, hashEmailVerificationToken, sendVerificationEmail } from "./email";
 import {
   OFFER_WALL_URLS,
   OFFER_WALL_IDS,
@@ -59,17 +60,23 @@ export const appRouter = router({
           // and numbers only, with at least one of each.
           username: z.string().min(3).max(24).regex(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9]+$/),
           password: z.string().min(6).max(128),
-          email: z.string().email().max(320).optional(),
+          email: z.string().email().max(320),
           refCode: z.string().max(16).optional().default(""),
         })
       )
       .mutation(async ({ ctx, input }) => {
         const { username, password, email, refCode } = input;
         const openId = `virtual_${username}_${Date.now()}`;
+        const normalizedEmail = email.trim().toLowerCase();
 
         const existing = await db.getUserByUsername(username);
         if (existing) {
           throw new TRPCError({ code: "CONFLICT", message: "Username already taken" });
+        }
+
+        const existingEmail = await db.getUserByEmail(normalizedEmail);
+        if (existingEmail) {
+          throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
         }
 
         let referredBy: string | null = null;
@@ -85,10 +92,14 @@ export const appRouter = router({
           Math.floor(Math.random() * 9999).toString().padStart(4, "0");
 
         const hashedPassword = await hashPassword(password);
+        const verification = createEmailVerificationToken();
         await db.upsertUser({
           openId,
           username,
-          email: email?.toLowerCase(),
+          email: normalizedEmail,
+          emailVerificationTokenHash: verification.tokenHash,
+          emailVerificationExpiresAt: verification.expiresAt,
+          emailVerificationSentAt: new Date(),
           password: hashedPassword,
           refCode: userRefCode,
           referredBy: referredBy || undefined,
@@ -145,10 +156,19 @@ export const appRouter = router({
           await db.updateLeaderboard(newUser.id, newUser.username || username, 0.00);
         }
 
+        let emailSent = true;
+        try {
+          await sendVerificationEmail({ email: normalizedEmail, username, token: verification.token });
+        } catch (error) {
+          emailSent = false;
+          console.error("[Email] Verification email failed:", error);
+        }
+
         return {
           success: true,
           username,
           refCode: userRefCode,
+          emailSent,
           message: `Welcome to RewardsVerse, ${username}!`,
         };
       }),
@@ -209,6 +229,42 @@ export const appRouter = router({
       }
 
       return user as any;
+    }),
+
+    verifyEmail: publicProcedure
+      .input(z.object({ token: z.string().min(32).max(128) }))
+      .mutation(async ({ input }) => {
+        const user = await db.getUserByEmailVerificationToken(hashEmailVerificationToken(input.token));
+        if (!user || !user.email) throw new TRPCError({ code: "NOT_FOUND", message: "This verification link is invalid or expired." });
+        if (user.emailVerifiedAt) return { success: true, email: user.email };
+        if (!user.emailVerificationExpiresAt || new Date(user.emailVerificationExpiresAt).getTime() < Date.now()) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This verification link has expired. Please request a new one from your Profile." });
+        }
+        await db.updateUserProfile(user.id, {
+          emailVerifiedAt: new Date(),
+          emailVerificationTokenHash: null,
+          emailVerificationExpiresAt: null,
+        });
+        return { success: true, email: user.email };
+      }),
+
+    resendVerificationEmail: protectedProcedure.mutation(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user || !user.email) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Add an email address to your profile first." });
+      if (user.emailVerifiedAt) return { success: true, alreadyVerified: true };
+      const verification = createEmailVerificationToken();
+      await db.updateUserProfile(user.id, {
+        emailVerificationTokenHash: verification.tokenHash,
+        emailVerificationExpiresAt: verification.expiresAt,
+        emailVerificationSentAt: new Date(),
+      });
+      try {
+        await sendVerificationEmail({ email: user.email, username: user.username, token: verification.token });
+      } catch (error) {
+        console.error("[Email] Resend verification failed:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error instanceof Error ? error.message : "Unable to send verification email." });
+      }
+      return { success: true, alreadyVerified: false };
     }),
 
     linkVerifiedEmail: protectedProcedure
@@ -577,6 +633,27 @@ export const appRouter = router({
       return db.getAllUsers();
     }),
     getUserDetail: adminProcedure.input(z.object({ id: z.number().int().positive() })).query(({ input }) => db.getAdminUserDetail(input.id)),
+    resendUserVerificationEmail: adminProcedure
+      .input(z.object({ userId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const target = await db.getUserById(input.userId);
+        if (!target || !target.email) throw new TRPCError({ code: "NOT_FOUND", message: "User email not found." });
+        if (target.emailVerifiedAt) return { success: true, alreadyVerified: true };
+        const verification = createEmailVerificationToken();
+        await db.updateUserProfile(target.id, {
+          emailVerificationTokenHash: verification.tokenHash,
+          emailVerificationExpiresAt: verification.expiresAt,
+          emailVerificationSentAt: new Date(),
+        });
+        try {
+          await sendVerificationEmail({ email: target.email, username: target.username, token: verification.token });
+        } catch (error) {
+          console.error("[Email] Admin resend verification failed:", error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error instanceof Error ? error.message : "Unable to send verification email." });
+        }
+        await db.addAuditLog({ adminUserId: ctx.user.id, action: "verification_email_resent", targetType: "user", targetId: String(target.id), details: JSON.stringify({ email: target.email }) });
+        return { success: true, alreadyVerified: false };
+      }),
     getAuditLogs: adminProcedure.query(() => db.getAuditLogs()),
     setUserStatus: adminProcedure.input(z.object({ userId: z.number().int().positive(), status: z.enum(["active", "suspended"]), reason: z.string().max(500).optional() })).mutation(async ({ ctx, input }) => {
       const target = await db.getUserById(input.userId);

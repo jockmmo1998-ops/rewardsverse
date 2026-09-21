@@ -19,6 +19,7 @@ export default function Home() {
   const { user, loading, register, login, activities } = useAuth();
   const [, setLocation] = useLocation();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [refCode, setRefCode] = useState("");
@@ -31,9 +32,10 @@ export default function Home() {
 
   const handleRegister = async () => {
     if (!username.trim() || username.length < 3) return;
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return;
     if (!password.trim() || password.length < 6) return;
     setIsSubmitting(true);
-    try { await register(username.trim(), password.trim(), refCode.trim() || undefined); }
+    try { await register(username.trim(), password.trim(), email.trim().toLowerCase(), refCode.trim() || undefined); }
     finally { setIsSubmitting(false); }
   };
 
@@ -306,6 +308,19 @@ export default function Home() {
                         <TabsContent value="register" className="space-y-4 mt-0">
                           <div className="space-y-2">
                             <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-1.5 uppercase tracking-wider">
+                              Email address
+                            </label>
+                            <Input
+                              type="email"
+                              placeholder="you@example.com"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              className="bg-background/60 border-border/50 focus:border-green-500 focus:shadow-[0_0_12px_rgba(0,255,135,0.15)] h-12 transition-all"
+                            />
+                            <p className="text-[11px] text-muted-foreground ml-1">We’ll send a verification link here.</p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-1.5 uppercase tracking-wider">
                               <User className="w-3 h-3 text-green-400" /> Choose Username
                             </label>
                             <Input
@@ -349,7 +364,7 @@ export default function Home() {
                           </div>
                           <Button
                             onClick={handleRegister}
-                            disabled={isSubmitting || !username.trim() || username.length < 3 || !password.trim() || password.length < 6}
+                            disabled={isSubmitting || !/^\S+@\S+\.\S+$/.test(email.trim()) || !username.trim() || username.length < 3 || !password.trim() || password.length < 6}
                             className="w-full h-12 btn-cyber rounded-xl font-black tracking-widest uppercase text-sm"
                           >
                             {isSubmitting ? (

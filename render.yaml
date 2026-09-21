@@ -29,6 +29,10 @@ services:
         value: ""
       - key: PUBLIC_APP_URL
         value: https://rewardsverse.online
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        value: RewardsVerse <noreply@rewardsverse.online>
       - key: ADMIN_SECRET
         sync: false
       - key: GEMIWALL_OFFERWALL_URL

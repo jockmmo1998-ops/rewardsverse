@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Gift, LockKeyhole, Shuffle, UserRound } from "lucide-react";
+import { Eye, EyeOff, Gift, LockKeyhole, Mail, Shuffle, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string => {
@@ -15,6 +15,9 @@ const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string 
 
   if (normalized.includes("username already taken")) {
     return "This username is already taken. Please choose a different username.";
+  }
+  if (normalized.includes("email already registered")) {
+    return "This email is already registered. Try logging in instead.";
   }
   if (normalized.includes("user not found")) {
     return "Account not found.";
@@ -44,6 +47,7 @@ export default function AuthPage() {
   const isRegister = location.pathname === "/register";
 
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [refCode, setRefCode] = useState("");
@@ -84,6 +88,10 @@ export default function AuthPage() {
       setError("Click Random User to create a username with letters and numbers.");
       return;
     }
+    if (isRegister && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setError("Enter a valid email address.");
+      return;
+    }
     if (!isRegister && !/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
       setError("Username may only contain letters, numbers, and underscores.");
       return;
@@ -100,7 +108,7 @@ export default function AuthPage() {
     setSubmitting(true);
     try {
       const result = isRegister
-        ? await register(cleanUsername, password, refCode.trim() || undefined)
+        ? await register(cleanUsername, password, email.trim().toLowerCase(), refCode.trim() || undefined)
         : await login(cleanUsername, password);
 
       if (result.error) {
@@ -108,7 +116,7 @@ export default function AuthPage() {
         return;
       }
 
-      setNotice(isRegister ? "Registration successful. Opening your account…" : "Login successful.");
+      setNotice(isRegister ? "Account created. Check your email to verify your account." : "Login successful.");
       navigate("/dashboard", { replace: true });
     } finally {
       setSubmitting(false);
@@ -149,6 +157,25 @@ export default function AuthPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isRegister && (
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium">Email address</label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">We’ll send a verification link here.</p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium">Username</label>
               <div className={isRegister ? "flex flex-col gap-2 sm:flex-row" : "relative"}>

@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
 import PageMeta from '@/components/common/PageMeta';
-import { Zap, Eye, EyeOff, CheckCircle2, Shuffle } from 'lucide-react';
+import { Zap, Eye, EyeOff, CheckCircle2, Shuffle, Mail } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 const schema = z
   .object({
+    email: z.string().email('Enter a valid email address'),
     username: z
       .string()
       .min(3, 'Username must be at least 3 characters')
@@ -71,6 +72,7 @@ export default function RegisterPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
+      email: '',
       username: '',
       password: '',
       confirmPassword: '',
@@ -82,6 +84,7 @@ export default function RegisterPage() {
     const { error } = await signUpWithUsername(
       values.username,
       values.password,
+      values.email,
       values.referralCode || undefined
     );
     if (error) {
@@ -92,7 +95,7 @@ export default function RegisterPage() {
       }
       return;
     }
-    toast.success('Account created! Welcome to RewardsVerse.');
+    toast.success('Account created! Check your email to verify your account.');
     navigate('/dashboard');
   };
 
@@ -137,6 +140,24 @@ export default function RegisterPage() {
             <div className="bg-card border border-border rounded-xl p-6 shadow-card">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-medium text-muted-foreground">Email address</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Mail size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                            <Input type="email" placeholder="you@example.com" autoComplete="email" className="px-3 pl-9" {...field} />
+                          </div>
+                        </FormControl>
+                        <p className="text-[11px] text-muted-foreground">We’ll send a verification link to this address.</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="username"
