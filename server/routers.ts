@@ -242,7 +242,6 @@ export const appRouter = router({
         }
         await db.updateUserProfile(user.id, {
           emailVerifiedAt: new Date(),
-          emailVerificationTokenHash: null,
           emailVerificationExpiresAt: null,
         });
         return { success: true, email: user.email };
