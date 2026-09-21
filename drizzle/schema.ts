@@ -18,6 +18,7 @@ export const users = pgTable(
     openId: varchar("openId", { length: 64 }).notNull().unique(),
     name: text("name"),
     email: varchar("email", { length: 320 }),
+    emailVerifiedAt: timestamp("emailVerifiedAt"),
     loginMethod: varchar("loginMethod", { length: 64 }),
     role: text("role").default("user").notNull(),
     accountStatus: text("accountStatus").default("active").notNull(),

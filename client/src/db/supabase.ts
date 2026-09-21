@@ -2,9 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 
 
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || "https://glejepbcpjcilxyrxxcg.supabase.co";
 
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || "sb_publishable_kTKaL4ycqXhSIwGCx3ReNg_20dEKu1-";
 
 
 
@@ -81,7 +81,6 @@ export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
             
   : createUnavailableClient();
-
 
 
 

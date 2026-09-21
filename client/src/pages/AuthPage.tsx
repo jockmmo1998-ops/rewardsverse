@@ -236,6 +236,7 @@ export default function AuthPage() {
             >
               {submitting ? "Processing…" : isRegister ? "Create account" : "Log in"}
             </button>
+            {!isRegister && <div className="text-center"><Link to="/forgot-password" className="text-xs font-semibold text-emerald-400 hover:underline">Forgot password?</Link></div>}
           </form>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">

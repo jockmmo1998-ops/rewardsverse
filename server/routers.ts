@@ -57,11 +57,12 @@ export const appRouter = router({
           // and numbers only, with at least one of each.
           username: z.string().min(3).max(24).regex(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9]+$/),
           password: z.string().min(6).max(128),
+          email: z.string().email().max(320).optional(),
           refCode: z.string().max(16).optional().default(""),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const { username, password, refCode } = input;
+        const { username, password, email, refCode } = input;
         const openId = `virtual_${username}_${Date.now()}`;
 
         const existing = await db.getUserByUsername(username);
@@ -85,6 +86,7 @@ export const appRouter = router({
         await db.upsertUser({
           openId,
           username,
+          email: email?.toLowerCase(),
           password: hashedPassword,
           refCode: userRefCode,
           referredBy: referredBy || undefined,
@@ -187,7 +189,7 @@ export const appRouter = router({
 
         await db.updateUserProfile(user.id, { lastSignedIn: new Date() });
 
-        return { success: true, username: user.username };
+        return { success: true, username: user.username, email: user.email ?? null };
       }),
   }),
 
@@ -206,6 +208,31 @@ export const appRouter = router({
 
       return user as any;
     }),
+
+    linkVerifiedEmail: protectedProcedure
+      .input(z.object({ accessToken: z.string().min(20).max(4096) }))
+      .mutation(async ({ ctx, input }) => {
+        const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+        if (!supabaseUrl || !supabaseKey) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Email verification is not configured yet." });
+        }
+        const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${input.accessToken}` },
+        });
+        if (!response.ok) throw new TRPCError({ code: "UNAUTHORIZED", message: "Email session expired. Please sign in again." });
+        const authUser = await response.json() as { email?: string; email_confirmed_at?: string | null };
+        if (!authUser.email || !authUser.email_confirmed_at) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Please confirm your email before continuing." });
+        }
+        const user = await db.getUserByOpenId(ctx.user.openId);
+        if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.updateUserProfile(user.id, {
+          email: authUser.email.toLowerCase(),
+          emailVerifiedAt: new Date(),
+        });
+        return { success: true, email: authUser.email.toLowerCase() };
+      }),
 
     // Return provider readiness for the signed-in user. The client uses this
     // to avoid opening an unconfigured wall and to keep the provider list
@@ -388,6 +415,9 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const user = await db.getUserByOpenId(ctx.user.openId);
         if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+        if (!user.emailVerifiedAt) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Please verify your email before withdrawing." });
+        }
 
         const amount = Number(input.amount.toFixed(2));
         const walletAddress = input.walletAddress.trim();
