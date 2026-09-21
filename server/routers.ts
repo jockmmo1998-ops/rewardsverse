@@ -441,7 +441,7 @@ export const appRouter = router({
             status: "pending",
           });
         } catch (error) {
-          await db.addBalance(user.id, amount);
+          await db.refundBalance(user.id, amount);
           throw error;
         }
 

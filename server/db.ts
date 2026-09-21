@@ -257,6 +257,12 @@ export async function addBalance(userId: number, amount: number) {
     .where(eq(users.id, userId));
 }
 
+export async function refundBalance(userId: number, amount: number) {
+  const db = await getDb();
+  if (!db) throw new Error("[DB] Database not available — cannot refund withdrawal balance");
+  await db.update(users).set({ balance: sql`balance + ${amount}` }).where(eq(users.id, userId));
+}
+
 export async function deductBalance(userId: number, amount: number) {
   const db = await getDb();
   if (!db) throw new Error("[DB] DATABASE_URL not configured or DB connection failed — cannot deduct balance");
@@ -274,7 +280,7 @@ export async function deductBalanceIfSufficient(userId: number, amount: number):
     .update(users)
     .set({ balance: sql`balance - ${amount}` })
     .where(and(eq(users.id, userId), sql`balance >= ${amount}`));
-  return Number((result as any)[0]?.affectedRows ?? 0) === 1;
+  return Number((result as any).count ?? (result as any)[0]?.affectedRows ?? 0) === 1;
 }
 
 export async function addXP(userId: number, amount: number) {
@@ -324,36 +330,16 @@ export async function setLastDailyClaim(userId: number) {
 export async function createWithdrawal(data: InsertWithdrawal) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  // Use a minimal insert for legacy production tables. Drizzle's typed
-  // insert includes every schema field, including optional approval columns
-  // that may not exist in an older withdrawals table.
-  let result;
-  try {
-    if (!_pool) throw new Error("Database connection pool not available");
-    const [users] = await _pool.execute(
-      "SELECT username FROM users WHERE id = ? LIMIT 1",
-      [data.userId],
-    );
-    const username = (users as Array<{ username?: string }>)[0]?.username || `user_${data.userId}`;
-    const [header] = await _pool.execute(
-      "INSERT INTO withdrawals (userId, username, method, accountInfo, amount, cryptoType, walletAddress, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [data.userId, username, data.cryptoType, data.walletAddress, data.amount, data.cryptoType, data.walletAddress, data.status],
-    );
-    result = [header];
-  } catch (error) {
-    const dbError = error as { code?: string; errno?: number; sqlState?: string; sqlMessage?: string; message?: string; cause?: unknown };
-    const cause = dbError.cause as { code?: string; errno?: number; sqlState?: string; sqlMessage?: string; message?: string } | undefined;
-    console.error("[Withdrawal] Insert failed", {
-      code: dbError.code || cause?.code,
-      errno: dbError.errno || cause?.errno,
-      sqlState: dbError.sqlState || cause?.sqlState,
-      message: dbError.sqlMessage || dbError.message,
-      cause: cause?.sqlMessage || cause?.message,
-    });
-    throw error;
-  }
-  const header = (result as any)[0] as { insertId?: number };
-  return { insertId: Number(header?.insertId ?? 0) };
+  const rows = await db.insert(withdrawals).values({
+    userId: data.userId,
+    amount: data.amount,
+    cryptoType: data.cryptoType,
+    walletAddress: data.walletAddress,
+    status: data.status ?? "pending",
+  }).returning({ id: withdrawals.id });
+  const id = Number(rows[0]?.id || 0);
+  if (!id) throw new Error("Withdrawal request was not created");
+  return { insertId: id };
 }
 
 export async function getWithdrawalById(id: number) {
@@ -425,7 +411,7 @@ export async function updateWithdrawalStatus(id: number, status: "approved" | "r
   if (status === "approved") set.approvedAt = new Date();
   if (status === "rejected") set.rejectedAt = new Date();
   const result = await db.update(withdrawals).set(set).where(and(eq(withdrawals.id, id), eq(withdrawals.status, "pending")));
-  return Number((result as any)[0]?.affectedRows ?? 0) === 1;
+  return Number((result as any).count ?? (result as any)[0]?.affectedRows ?? 0) === 1;
 }
 
 /** Resolve a pending withdrawal once, refunding rejected requests in the same transaction. */
@@ -446,7 +432,7 @@ export async function resolveWithdrawalStatus(id: number, status: "approved" | "
       await tx.update(users).set({ balance: sql`balance + ${Number(withdrawal.amount)}` }).where(eq(users.id, withdrawal.userId));
     }
     const result = await tx.update(withdrawals).set(set).where(and(eq(withdrawals.id, id), eq(withdrawals.status, "pending")));
-    if (Number((result as any)[0]?.affectedRows ?? 0) !== 1) return null;
+    if (Number((result as any).count ?? (result as any)[0]?.affectedRows ?? 0) !== 1) return null;
     return withdrawal;
   });
 }
