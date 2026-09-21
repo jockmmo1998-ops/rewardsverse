@@ -62,7 +62,7 @@ const trpcClient = trpc.createClient({
 createRoot(document.getElementById("root")!).render(
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="dark" switchable>
+        <ThemeProvider defaultTheme="light" switchable>
           <App />
         </ThemeProvider>
       </QueryClientProvider>
