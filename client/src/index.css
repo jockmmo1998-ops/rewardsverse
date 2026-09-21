@@ -198,17 +198,15 @@
 .live-activity-inner { display: flex; min-height: 38px; align-items: center; gap: 1rem; padding: 0 1.5rem; }
 .live-activity-status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .42rem; color: var(--primary); font-size: .62rem; font-weight: 800; letter-spacing: .13em; }
 .live-activity-track { width: 100%; min-width: 0; flex: 1; overflow: hidden; }
-.live-activity-items { display: flex; width: max-content; min-width: max-content; align-items: center; white-space: nowrap; will-change: transform; animation: liveMarquee 55s linear infinite; }
-.live-activity-group { display: flex; flex: 0 0 auto; align-items: center; gap: 2.2rem; padding-right: 2.2rem; }
+.live-activity-items { display: flex; width: max-content; min-width: max-content; align-items: center; white-space: nowrap; will-change: transform; animation: liveMarquee 78s linear infinite; }
+.live-activity-group { display: flex; flex: 0 0 auto; align-items: center; gap: .55rem; padding-right: .55rem; }
 .live-activity-item { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .42rem; white-space: nowrap; font-size: .68rem; }
-.live-activity-current { min-width: 0; flex: 1; overflow: hidden; }
-.live-activity-button { width: min(100%, 360px); border: 0; border-radius: .6rem; background: transparent; padding: .22rem .5rem; text-align: left; transition: background .18s var(--ease-out), transform .18s var(--ease-out); }
+.live-activity-button { min-width: 142px; border: 0; border-radius: .6rem; background: transparent; padding: .22rem .5rem; text-align: left; transition: background .18s var(--ease-out), transform .18s var(--ease-out); }
 .live-activity-button:hover { background: #f0fdf4; transform: translateY(-1px); }
 .live-activity-copy { display: inline-flex; min-width: 0; flex-direction: column; gap: .08rem; line-height: 1.05; }
 .live-activity-user { overflow: hidden; color: var(--foreground); font-size: .69rem; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
 .live-activity-summary { overflow: hidden; color: var(--muted-foreground); font-size: .59rem; text-overflow: ellipsis; white-space: nowrap; }
 .live-activity-summary span { color: var(--primary); padding: 0 .16rem; }
-.live-activity-hint { margin-left: auto; color: var(--primary); font-size: .56rem; font-weight: 700; opacity: .8; }
 .live-activity-detail { position: absolute; left: 5.5rem; top: calc(100% + .5rem); z-index: 80; width: min(360px, calc(100vw - 2rem)); border: 1px solid #d7e9dc; border-radius: .85rem; background: rgba(255,255,255,.98); padding: .85rem; box-shadow: 0 16px 34px rgba(15,23,42,.14); }
 .live-activity-detail-icon { display: inline-flex; height: 2rem; width: 2rem; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: .65rem; background: #ecfdf3; color: #15803d; }
 .dark .live-activity-bar { border-color: #1d3539; background: #09171b; }
