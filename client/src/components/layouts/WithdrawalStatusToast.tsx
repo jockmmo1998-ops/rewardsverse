@@ -33,8 +33,6 @@ export function WithdrawalStatusToast() {
     return [...rows].sort((a, b) => timestamp(b.createdAt) - timestamp(a.createdAt))[0] ?? null;
   }, [withdrawals.data]);
 
-  if (!latest || latest.id === dismissedId) return null;
-
   const status = String(latest?.status || 'pending').toLowerCase();
   const isSuccess = ['approved', 'paid', 'completed', 'success'].includes(status);
   const isRejected = ['rejected', 'failed', 'cancelled'].includes(status);
