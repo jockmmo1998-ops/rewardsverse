@@ -4,8 +4,6 @@ import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
 import { playBellSound } from '@/utils/bellSound';
 
-const DISPLAY_WINDOW_MS = 10 * 60 * 1000;
-
 function money(value: unknown) {
   const amount = Number(value || 0);
   return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : '$0.00';
@@ -19,7 +17,6 @@ function timestamp(value: unknown) {
 export function WithdrawalStatusToast() {
   const { user } = useAuth();
   const [dismissedId, setDismissedId] = useState<number | null>(null);
-  const [now, setNow] = useState(() => Date.now());
   const previousStatus = useRef<{ id: number; status: string } | null>(null);
   const withdrawals = trpc.withdraw.getMyWithdrawals.useQuery(undefined, {
     enabled: Boolean(user),
@@ -36,13 +33,6 @@ export function WithdrawalStatusToast() {
   const status = String(latest?.status || 'pending').toLowerCase();
   const isSuccess = ['approved', 'paid', 'completed', 'success'].includes(status);
   const isRejected = ['rejected', 'failed', 'cancelled'].includes(status);
-  const ageAnchor = isSuccess || isRejected ? timestamp(latest?.updatedAt) || timestamp(latest?.createdAt) : timestamp(latest?.createdAt);
-
-  useEffect(() => {
-    if (!latest || latest.id === dismissedId) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [dismissedId, latest]);
 
   useEffect(() => {
     if (!latest) return;
@@ -57,7 +47,7 @@ export function WithdrawalStatusToast() {
     previousStatus.current = current;
   }, [isSuccess, latest, status]);
 
-  if (!latest || latest.id === dismissedId || !ageAnchor || now - ageAnchor > DISPLAY_WINDOW_MS) return null;
+  if (!latest || latest.id === dismissedId) return null;
 
   const tone = isSuccess
     ? { border: 'border-emerald-200', icon: 'bg-emerald-100 text-emerald-700', title: 'Withdrawal successful', text: 'Your payment has been sent.' }
@@ -82,7 +72,7 @@ export function WithdrawalStatusToast() {
             <span className="truncate text-slate-500 dark:text-slate-300">{money(latest.amount)} · {String(latest.cryptoType || 'payout')}</span>
             <span className={isSuccess ? 'font-bold text-emerald-700 dark:text-emerald-300' : isRejected ? 'font-bold text-red-600 dark:text-red-300' : 'font-bold text-amber-700 dark:text-amber-300'}>{isSuccess ? 'PAID' : isRejected ? 'REVIEW' : 'PENDING'}</span>
           </div>
-          {!isSuccess && !isRejected && <p className="mt-1 text-[10px] text-amber-700 dark:text-amber-300">Visible for 10 minutes while your request is reviewed.</p>}
+          {!isSuccess && !isRejected && <p className="mt-1 text-[10px] text-amber-700 dark:text-amber-300">Your request is waiting for payment review.</p>}
         </div>
       </div>
     </aside>

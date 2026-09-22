@@ -45,7 +45,7 @@ export default function WithdrawPage() {
   const withdrawMutation = trpc.withdraw.create.useMutation({
     onSuccess: () => {
       toast.success('Withdrawal request submitted.', {
-        description: 'Your request is pending review. The status box will stay visible for 10 minutes.',
+        description: 'Your request is pending review. You can follow the update from the status notice and notification bell.',
         duration: 7000,
       });
       setAddress('');
@@ -53,6 +53,7 @@ export default function WithdrawPage() {
       setConfirmOpen(false);
       void refreshProfile();
       void withdrawalsQuery.refetch();
+      void utils.withdraw.getMyWithdrawals.invalidate();
       void utils.notifications.getAll.invalidate();
       void utils.notifications.getUnread.invalidate();
     },
