@@ -19,7 +19,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
         {showDashboardTicker && <LiveActivityBar />}
         <main className="min-w-0 w-full max-w-full flex-1 overflow-x-hidden">
-          <div key={location.pathname} className="min-h-full">
+          <div key={location.pathname} className="route-stage min-h-full">
             {children}
           </div>
         </main>
