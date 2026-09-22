@@ -30,6 +30,7 @@ function statusLabel(status: string) {
 export default function WithdrawPage() {
   const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('litecoin');
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
@@ -43,12 +44,17 @@ export default function WithdrawPage() {
   const withdrawalsQuery = trpc.withdraw.getMyWithdrawals.useQuery(undefined, { enabled: Boolean(profile?.id), retry: false });
   const withdrawMutation = trpc.withdraw.create.useMutation({
     onSuccess: () => {
-      toast.success('Withdrawal request submitted for review.');
+      toast.success('Withdrawal request submitted.', {
+        description: 'Your request is pending review. The status box will stay visible for 10 minutes.',
+        duration: 7000,
+      });
       setAddress('');
       setAmount('');
       setConfirmOpen(false);
-      refreshProfile();
-      withdrawalsQuery.refetch();
+      void refreshProfile();
+      void withdrawalsQuery.refetch();
+      void utils.notifications.getAll.invalidate();
+      void utils.notifications.getUnread.invalidate();
     },
     onError: (error) => toast.error(error.message || 'Unable to submit withdrawal.'),
   });

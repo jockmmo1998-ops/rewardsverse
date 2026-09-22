@@ -1,6 +1,5 @@
 import { ReactNode, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
 import { AppSidebar } from './AppSidebar';
 import { TopBar } from './TopBar';
 import { LiveActivityBar } from './LiveActivityBar';
@@ -20,18 +19,9 @@ export function AppLayout({ children }: { children?: ReactNode }) {
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
         {showDashboardTicker && <LiveActivityBar />}
         <main className="min-w-0 w-full max-w-full flex-1 overflow-x-hidden">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: .2, ease: [0.23, 1, 0.32, 1] }}
-              className="min-h-full"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <div key={location.pathname} className="min-h-full">
+            {children}
+          </div>
         </main>
         <AppFooter />
       </div>
