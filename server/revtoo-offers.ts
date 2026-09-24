@@ -39,6 +39,7 @@ type CacheEntry = {
 };
 
 const cache = new Map<string, CacheEntry>();
+const inFlightRequests = new Map<string, Promise<FeaturedOffer[]>>();
 
 export class RevtooOffersError extends Error {
   readonly httpStatus?: number;
@@ -101,11 +102,33 @@ export async function getRevtooFeaturedOffers(userId: string, limit = 24): Promi
   }
 
   const cached = cache.get(normalizedUserId);
-  if (cached && cached.expiresAt > Date.now()) return cached.offers;
+  if (cached && cached.expiresAt > Date.now()) {
+    console.log(`[FeaturedOffers] provider=Revtoo cache=hit offersReturned=${cached.offers.length}`);
+    return cached.offers;
+  }
 
+  const inFlight = inFlightRequests.get(normalizedUserId);
+  if (inFlight) {
+    console.log("[FeaturedOffers] provider=Revtoo request=coalesced");
+    return inFlight;
+  }
+
+  const request = fetchRevtooFeaturedOffers(normalizedUserId, limit, apiKey);
+  inFlightRequests.set(normalizedUserId, request);
+  try {
+    return await request;
+  } finally {
+    if (inFlightRequests.get(normalizedUserId) === request) {
+      inFlightRequests.delete(normalizedUserId);
+    }
+  }
+}
+
+async function fetchRevtooFeaturedOffers(userId: string, limit: number, apiKey: string): Promise<FeaturedOffer[]> {
+  const startedAt = Date.now();
   const url = new URL(REVTOO_OFFERS_ENDPOINT);
   url.searchParams.set("api_key", apiKey);
-  url.searchParams.set("user_id", normalizedUserId);
+  url.searchParams.set("user_id", userId);
   url.searchParams.set("limit", String(Math.max(1, Math.min(limit, 100))));
   url.searchParams.set("page", "1");
 
@@ -117,6 +140,7 @@ export async function getRevtooFeaturedOffers(userId: string, limit = 24): Promi
       signal: AbortSignal.timeout(15_000),
     });
   } catch (error) {
+    console.warn(`[FeaturedOffers] provider=Revtoo request=failed durationMs=${Date.now() - startedAt}`);
     throw new RevtooOffersError(`Revtoo Offers API network error: ${error instanceof Error ? error.message : String(error)}`);
   }
 
@@ -124,12 +148,14 @@ export async function getRevtooFeaturedOffers(userId: string, limit = 24): Promi
   try {
     payload = await response.json() as RevtooResponse;
   } catch {
+    console.warn(`[FeaturedOffers] provider=Revtoo request=invalid-json httpStatus=${response.status} durationMs=${Date.now() - startedAt}`);
     throw new RevtooOffersError(`Revtoo Offers API returned non-JSON content (HTTP ${response.status}).`, { httpStatus: response.status });
   }
 
   if (!response.ok || payload.success === false) {
     const providerCode = payload.status;
     const providerMessage = payload.message || response.statusText || "Unknown Revtoo API error";
+    console.warn(`[FeaturedOffers] provider=Revtoo request=failed httpStatus=${response.status} providerCode=${providerCode ?? "unknown"} durationMs=${Date.now() - startedAt}`);
     throw new RevtooOffersError(`Revtoo Offers API error (HTTP ${response.status}, code ${providerCode ?? "unknown"}): ${providerMessage}`, {
       httpStatus: response.status,
       providerCode,
@@ -140,7 +166,7 @@ export async function getRevtooFeaturedOffers(userId: string, limit = 24): Promi
     .map(normalizeOffer)
     .filter((offer): offer is FeaturedOffer => Boolean(offer)));
 
-  cache.set(normalizedUserId, { expiresAt: Date.now() + CACHE_TTL_MS, offers });
-  console.log(`[FeaturedOffers] provider=Revtoo request=successful offersReturned=${offers.length}`);
+  cache.set(userId, { expiresAt: Date.now() + CACHE_TTL_MS, offers });
+  console.log(`[FeaturedOffers] provider=Revtoo request=successful durationMs=${Date.now() - startedAt} offersReturned=${offers.length}`);
   return offers;
 }

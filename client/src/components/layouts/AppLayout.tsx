@@ -1,5 +1,7 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { trpc } from '@/lib/trpc';
 import { AppSidebar } from './AppSidebar';
 import { TopBar } from './TopBar';
 import { LiveActivityBar } from './LiveActivityBar';
@@ -9,7 +11,20 @@ import { WithdrawalStatusToast } from './WithdrawalStatusToast';
 export function AppLayout({ children }: { children?: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const showDashboardTicker = location.pathname === '/home' || location.pathname === '/dashboard';
+  const { user } = useAuth();
+  const utils = trpc.useUtils();
+  const isOfferLanding = location.pathname === '/home' || location.pathname === '/dashboard';
+  const isSignedIn = Boolean(user);
+  const showDashboardTicker = isOfferLanding;
+
+  useEffect(() => {
+    if (!isOfferLanding || !isSignedIn) return;
+    void utils.user.getFeaturedOffers.prefetch(undefined, {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: false,
+    });
+  }, [isOfferLanding, isSignedIn, utils]);
 
   return (
     <div className="app-shell flex min-h-screen w-full overflow-x-hidden">

@@ -413,6 +413,97 @@
 .dark .toaster [data-sonner-toast] [data-title] { color: #e8f3ed !important; }
 .dark .toaster [data-sonner-toast] [data-description] { color: #91aaa0 !important; }
 .dark .toaster [data-sonner-toast] [data-close-button] { border-color: #25444a !important; background: #11272b !important; color: #8af0ba !important; }
+
+/* Featured Offers: live-marketplace polish, scoped to this section only. */
+.featured-primary .offer-card {
+  min-height: 300px;
+  border-color: var(--border);
+  background: var(--card);
+  transition: transform 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth), background-color 180ms var(--ease-smooth);
+  will-change: auto;
+}
+.featured-primary .offer-card:hover,
+.featured-primary .offer-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 48%, var(--border));
+  background: var(--card);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .13), 0 3px 12px rgba(22, 163, 74, .08);
+}
+.featured-primary .offer-card-featured {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--border));
+  background-image: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 58%);
+}
+.featured-primary .offer-card-featured:hover,
+.featured-primary .offer-card-featured:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 54%, var(--border));
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .13), 0 4px 16px color-mix(in srgb, var(--primary) 13%, transparent);
+}
+.featured-offer-logo {
+  isolation: isolate;
+  background-image: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--primary) 11%, transparent), transparent 72%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .14);
+  transition: transform 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), background-color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth);
+}
+.featured-offer-logo::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 72%);
+  content: '';
+  opacity: .18;
+  pointer-events: none;
+  transition: opacity 180ms var(--ease-smooth);
+}
+.featured-primary .offer-card:hover .featured-offer-logo,
+.featured-primary .offer-card:focus-visible .featured-offer-logo {
+  transform: scale(1.02);
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--border));
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .17);
+}
+.featured-primary .offer-card:hover .featured-offer-logo::before,
+.featured-primary .offer-card:focus-visible .featured-offer-logo::before { opacity: .42; }
+.featured-primary .offer-card:hover .featured-offer-reward,
+.featured-primary .offer-card:focus-visible .featured-offer-reward { color: var(--accent); }
+.featured-offer-reward { transition: color 180ms var(--ease-smooth); }
+.featured-offer-enter { animation: featuredOfferEnter 260ms var(--ease-out) both; }
+.featured-offer-skeleton { animation: none; }
+.featured-live-dot {
+  display: inline-block;
+  width: .48rem;
+  height: .48rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
+  animation: featuredLivePulse 2.4s ease-in-out infinite;
+}
+.featured-live-dot.featured-live-dot-offline {
+  background: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 12%, transparent);
+  animation: none;
+}
+.featured-activity-bar {
+  display: flex;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: .6rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 13%, var(--border));
+  border-radius: .65rem;
+  background: color-mix(in srgb, var(--primary) 4%, var(--card));
+  padding: .45rem .7rem;
+  color: var(--muted-foreground);
+  font-size: .7rem;
+  line-height: 1rem;
+}
+.featured-activity-label { color: var(--foreground); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.featured-activity-separator { width: 1px; height: .8rem; background: var(--border); }
+@keyframes featuredLivePulse { 0%, 100% { opacity: .78; transform: scale(.94); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes featuredOfferEnter { from { opacity: .72; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .featured-live-dot, .featured-offer-enter { animation: none !important; }
+}
+
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 @keyframes badgeLift { from { transform: translateY(2px); opacity: .7; } to { transform: translateY(0); opacity: 1; } }
 @keyframes livePulse { 0%, 100% { opacity: .62; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.08); } }
