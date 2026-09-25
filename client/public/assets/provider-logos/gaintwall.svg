@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Gaintwall">
+  <defs>
+    <linearGradient id="gwBg" x1="8" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F43F5E"/>
+      <stop offset=".55" stop-color="#E11D48"/>
+      <stop offset="1" stop-color="#BE123C"/>
+    </linearGradient>
+  </defs>
+  <!-- App tile -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#gwBg)"/>
+  <!-- Bold G monogram -->
+  <path fill="#FFFFFF" d="M44.2 28.2h-8.6v5.2h5.4c-.55 3.35-3.45 5.55-7.05 5.55-4.55 0-7.85-3.45-7.85-8.05s3.3-8.05 7.85-8.05c2.35 0 4.35.95 5.75 2.5l3.85-3.85C40.7 18.2 37.3 16.6 33.1 16.6c-8.15 0-14.1 6.05-14.1 14.3s5.95 14.3 14.1 14.3c7.45 0 12.95-5.15 13.55-12.15.1-.95.15-1.85.15-2.85v-2z"/>
+  <!-- Wall notch accent -->
+  <rect x="40.5" y="40.8" width="9.2" height="3.2" rx="1.6" fill="#FBBF24"/>
+</svg>
