@@ -18,6 +18,7 @@ const ProfilePage      = lazy(() => import('./pages/ProfilePage'));
 const SettingsPage     = lazy(() => import('./pages/SettingsPage'));
 const SupportPage      = lazy(() => import('./pages/SupportPage'));
 const AdminPage        = lazy(() => import('./pages/AdminPage'));
+const AdexiumPreviewPage = lazy(() => import('./pages/AdexiumPreviewPage'));
 const AdminAccessPage  = lazy(() => import('./pages/AdminAccessPage'));
 const LegalPage        = lazy(() => import('./pages/LegalPage'));
 
@@ -55,6 +56,7 @@ export const routes: RouteConfig[] = [
   { name: 'Settings', path: '/settings', element: withLayout(SettingsPage) },
   { name: 'Support', path: '/support', element: withLayout(SupportPage), public: true },
   { name: 'Admin', path: '/admin', element: withLayout(AdminPage) },
+  { name: 'AdexiumPreview', path: '/admin/adexium', element: withLayout(AdexiumPreviewPage) },
   { name: 'AdminAccess', path: '/admin/login', element: withLayout(AdminAccessPage) },
   { name: 'Privacy', path: '/privacy', element: withLayout(LegalPage), public: true },
   { name: 'Terms', path: '/terms', element: withLayout(LegalPage), public: true },
