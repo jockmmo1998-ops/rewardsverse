@@ -15,7 +15,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
   const utils = trpc.useUtils();
   const isOfferLanding = location.pathname === '/home' || location.pathname === '/dashboard';
   const isSignedIn = Boolean(user);
-  const showDashboardTicker = isOfferLanding;
+  const showLiveTicker = isSignedIn;
 
   useEffect(() => {
     if (!isOfferLanding || !isSignedIn) return;
@@ -32,7 +32,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
       <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 w-full max-w-full flex-1 flex-col">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
-        {showDashboardTicker && <LiveActivityBar />}
+        {showLiveTicker && <LiveActivityBar />}
         <main className="min-w-0 w-full max-w-full flex-1 overflow-x-hidden">
           <div key={location.pathname} className="route-stage min-h-full">
             {children}
