@@ -31,7 +31,7 @@ function money(value: unknown) {
   return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : '$0.00';
 }
 
-export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
+export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () => void; sidebarOpen?: boolean }) {
   const location = useLocation();
   const { user, profile, logout, refreshProfile } = useAuth();
   const [openMenu, setOpenMenu] = useState<'notifications' | 'profile' | null>(null);
@@ -117,7 +117,7 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <header className="hud-topbar">
       <div className="flex min-w-0 items-center gap-3">
-        <button onClick={onMenuClick} className="focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open navigation"><Menu className="h-5 w-5" /></button>
+        <button onClick={onMenuClick} className="focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={sidebarOpen}><Menu className="h-5 w-5" /></button>
         <div className="flex min-w-0 items-center gap-2.5"><span className="hud-status-dot" /><span className="truncate font-display text-sm font-semibold text-foreground">{pageLabel}</span></div>
       </div>
       <div ref={menuRef} className="relative flex items-center gap-1.5 sm:gap-3">

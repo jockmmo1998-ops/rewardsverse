@@ -26,12 +26,28 @@ export function AppLayout({ children }: { children?: ReactNode }) {
     });
   }, [isOfferLanding, isSignedIn, utils]);
 
+  useEffect(() => {
+    if (!sidebarOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false);
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [sidebarOpen]);
+
   return (
-    <div className="app-shell flex min-h-screen w-full overflow-x-hidden">
+    <div className="app-shell flex min-h-screen w-full overflow-x-clip lg:grid lg:grid-cols-[272px_minmax(0,1fr)]">
       <div className="app-shell-background" aria-hidden="true" />
       <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 w-full max-w-full flex-1 flex-col">
-        <TopBar onMenuClick={() => setSidebarOpen(true)} />
+        <TopBar onMenuClick={() => setSidebarOpen(true)} sidebarOpen={sidebarOpen} />
         {showLiveTicker && <LiveActivityBar />}
         <main className="min-w-0 w-full max-w-full flex-1 overflow-x-hidden">
           <div key={location.pathname} className="route-stage min-h-full">
