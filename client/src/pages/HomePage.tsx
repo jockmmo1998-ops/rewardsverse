@@ -75,10 +75,7 @@ export default function HomePage() {
       return !query || searchText.includes(query);
     });
     if (activeFilter === 'highest') return [...offers].sort((left, right) => offerSortValue(right) - offerSortValue(left));
-    if (activeFilter === 'featured') {
-      const marked = offers.filter((offer: any) => Boolean(offer.featured));
-      return marked.length ? marked : offers;
-    }
+    if (activeFilter === 'featured') return offers;
     return offers.filter((offer: any) => categoryMatch(offer, activeFilter));
   }, [activeFilter, allOffers, search]);
 
