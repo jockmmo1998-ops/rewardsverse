@@ -1,4 +1,4 @@
-import { ArrowRight, Award, CheckCircle2, Clock3, Gift, Search, ShieldCheck, Sparkles, Tag, Timer, WalletCards, Zap } from 'lucide-react';
+import { Activity, ArrowRight, Award, CheckCircle2, Clock3, Gift, Search, ShieldCheck, Sparkles, Tag, Timer, WalletCards, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { trpc } from '@/lib/trpc';
@@ -89,6 +89,11 @@ export default function HomePage() {
   const pendingRewards = Number(summary.data?.pendingRewards || 0);
   const pendingWithdrawalTotal = (withdrawals.data ?? []).filter((item: any) => item.status === 'pending').reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
   const startEarningPath = user ? '/offerwalls' : '/register';
+  const weeklyTarget = 10;
+  const weeklyEarnings = Number(summary.data?.weeklyEarnings || 0);
+  const weeklyProgress = Math.min(100, Math.round((weeklyEarnings / weeklyTarget) * 100));
+  const weeklyDays = summary.data?.weeklyEarningsByDay ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => ({ label, amount: 0 }));
+  const weeklyMax = Math.max(0, ...weeklyDays.map((day) => Number(day.amount) || 0));
 
   return (
     <div className="dashboard-page dashboard-layout-grid mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
@@ -115,6 +120,25 @@ export default function HomePage() {
         <div className="featured-activity-bar mt-5" role="status"><span className={`featured-live-dot ${featured.isError && !allOffers.length ? 'featured-live-dot-offline' : ''}`} aria-hidden="true" /><span className="featured-activity-label">{featured.isError && !allOffers.length ? 'Offline' : featured.isLoading && !allOffers.length ? 'Updating' : 'Live now'}</span><span className="featured-activity-separator" aria-hidden="true" /><span>{featured.isError && !allOffers.length ? 'Live catalog unavailable' : featured.isLoading && !allOffers.length ? 'Checking the live catalog' : `${allOffers.length} ${allOffers.length === 1 ? 'offer' : 'offers'} available`}</span></div>
         <div className="mt-4">{featured.isLoading && !allOffers.length ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6 featured-offer-grid" aria-label="Loading featured offers">{Array.from({ length: 8 }, (_, index) => <FeaturedOfferSkeleton key={index} />)}</div> : featured.isError && !allOffers.length ? <EmptyState title="Unable to load offers" description="The live provider feed is temporarily unavailable. Try again shortly or open the earn center." icon={Zap} action={<button type="button" onClick={() => featured.refetch()} className="text-sm font-semibold text-primary">Retry <ArrowRight className="ml-1 inline h-4 w-4" /></button>} /> : filteredOffers.length ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6 featured-offer-grid">{filteredOffers.slice(0, 12).map((offer: any, index: number) => <a href={offer.clickUrl} target="_blank" rel="noreferrer" key={`${offer.provider}-${offer.id || index}`} className={`offer-card group featured-offer-enter ${offer.featured ? 'offer-card-featured' : ''}`}><div className="flex items-start justify-between gap-3"><div className="featured-offer-logo relative flex h-[50px] w-[50px] shrink-0 items-center justify-center overflow-hidden rounded-[13px] border border-border bg-secondary p-2 shadow-sm"><span className="relative z-10 text-sm font-bold text-primary">{String(offer.offerName || offer.provider || 'O').slice(0, 1).toUpperCase()}</span>{offer.imageUrl ? <img src={offer.imageUrl} alt="" loading="lazy" decoding="async" width="30" height="30" className="absolute z-10 h-[30px] w-[30px] object-contain" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}</div><span className="status-badge status-success">{offer.featured ? 'Featured' : 'Available'}</span></div><div className="mt-5"><div className="flex flex-wrap items-center gap-2"><span className="offer-category">{offer.category || 'Offer'}</span><span className="text-[10px] uppercase tracking-[.14em] text-muted-foreground">{offer.provider}</span></div><h3 className="mt-2 line-clamp-2 font-display text-base font-semibold text-foreground transition group-hover:text-primary">{offer.offerName}</h3><p className="mt-2 line-clamp-2 min-h-10 text-xs leading-5 text-muted-foreground">{offer.description || 'Open the provider offer to see the current requirements and completion details.'}</p></div><div className="mt-auto flex items-end justify-between gap-3 border-t border-border/70 pt-4"><div><p className="text-[10px] uppercase tracking-[.14em] text-muted-foreground">Reward</p><strong className="featured-offer-reward mt-1 block font-display text-xl text-emerald-300">{rewardLabel(offer.reward ?? offer.payout)}</strong></div><span className="offer-cta">Start offer <ArrowRight className="h-3.5 w-3.5" /></span></div></a>)}</div> : <EmptyState title="No matching offers" description="Try another filter or search term. New provider offers will appear here when available." icon={Search} action={<Link to="/offerwalls" className="text-sm font-semibold text-primary">Open earn center <ArrowRight className="ml-1 inline h-4 w-4" /></Link>} />}</div>
         <div className="mt-6 flex justify-end"><Link to="/offerwalls" className="focus-ring inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80">View all offers <ArrowRight className="h-4 w-4" /></Link></div>
+      </section>
+
+      <section className="weekly-progress-panel" aria-labelledby="weekly-progress-title">
+        <div className="weekly-progress-copy">
+          <div className="flex items-center gap-2"><span className="weekly-activity-icon"><Activity className="h-4 w-4" /></span><p className="rv-eyebrow">Your weekly progress</p></div>
+          <h2 id="weekly-progress-title" className="mt-3 font-display text-xl font-semibold tracking-[-.04em] text-foreground">Small steps add up.</h2>
+          <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">See your verified rewards grow throughout the week.</p>
+          <div className="weekly-progress-row mt-5 flex items-center justify-between gap-3 text-xs"><span>Weekly goal&nbsp; <b>{money(weeklyEarnings)}</b> of {money(weeklyTarget)}</span><strong>{weeklyProgress}%</strong></div>
+          <div className="weekly-progress-track mt-2" role="progressbar" aria-label="Weekly earnings goal" aria-valuemin={0} aria-valuemax={weeklyTarget} aria-valuenow={Math.min(weeklyEarnings, weeklyTarget)}><span style={{ width: `${weeklyProgress}%` }} /></div>
+          <div className="weekly-meta mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px]"><span>Verified earnings this week</span><span>Rewards this week <b>{money(weeklyEarnings)}</b></span></div>
+        </div>
+        <div className="weekly-chart-card" role="group" aria-label="Verified earnings by day this week">
+          <div className="mb-4 flex items-center justify-between"><span className="text-xs font-semibold text-foreground">Activity this week</span><span className="text-[10px] text-muted-foreground">Mon – Sun</span></div>
+          <div className="weekly-chart">{weeklyDays.map((day: { label: string; amount: number }) => {
+            const amount = Number(day.amount) || 0;
+            const height = weeklyMax > 0 ? Math.max(amount > 0 ? 10 : 3, (amount / weeklyMax) * 100) : 3;
+            return <div role="img" className="weekly-chart-bar" key={day.label} aria-label={`${day.label}: ${money(amount)}`} title={`${day.label}: ${money(amount)}`}><i style={{ height: `${height}%` }} /><span>{day.label}</span></div>;
+          })}</div>
+        </div>
       </section>
 
       <section className="trust-strip" aria-label="Why RewardsVerse"><div className="trust-strip-heading"><p className="rv-eyebrow">Built for clarity</p><h2 className="mt-2 font-display text-xl font-semibold text-foreground">Why RewardsVerse</h2></div>{trustItems.map(({ title, text, icon: Icon }) => <div key={title} className="trust-item"><span className="trust-icon"><Icon className="h-4 w-4" /></span><div><h3 className="text-sm font-semibold text-foreground">{title}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p></div></div>)}</section>
