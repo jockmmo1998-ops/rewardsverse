@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, CircleDollarSign, Radio, WalletCards, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import { UserAvatar } from '@/components/AvatarSystem';
 
 function maskUsername(value: unknown) {
   const username = String(value || 'member').trim();
@@ -77,6 +78,7 @@ export function LiveActivityBar() {
       aria-hidden={duplicate}
       aria-label={`View full activity for ${maskUsername(item.username)}`}
     >
+      <UserAvatar userId={item.userId} avatarId={item.avatarId} alt="" className="h-6 w-6 shrink-0 rounded-full border border-primary/20" />
       <Activity className={`h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />
       <span className="live-activity-copy">
         <span className="live-activity-user">{maskUsername(item.username)}</span>
@@ -110,7 +112,7 @@ export function LiveActivityBar() {
             <div className="live-activity-detail-icon"><WalletCards className="h-4 w-4" /></div>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold uppercase tracking-[.14em] text-emerald-700">User activity summary</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">{maskUsername(selectedUser.username)}</p>
+              <div className="mt-1 flex items-center gap-2"><UserAvatar userId={selectedUser.userId} avatarId={selectedUser.avatarId} alt="" className="h-7 w-7 rounded-full border border-primary/20" /><p className="text-sm font-semibold text-foreground">{maskUsername(selectedUser.username)}</p></div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-lg bg-emerald-50 px-2.5 py-2"><span className="block text-[10px] text-muted-foreground">Offers completed</span><strong className="text-emerald-700">{selectedItems.filter((item) => item.type !== 'withdrawal').length}</strong></div>
                 <div className="rounded-lg bg-amber-50 px-2.5 py-2"><span className="block text-[10px] text-muted-foreground">Withdrawals</span><strong className="text-amber-700">{selectedItems.filter((item) => item.type === 'withdrawal').length}</strong></div>
@@ -133,4 +135,3 @@ export function LiveActivityBar() {
     </section>
   );
 }
-

@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSSE } from '@/hooks/useSSE';
 import { playBellSound, unlockBellSound } from '@/utils/bellSound';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { UserAvatar } from '@/components/AvatarSystem';
 
 const labels: Record<string, string> = {
   '/home': 'Dashboard', '/dashboard': 'Dashboard', '/offerwalls': 'Earn rewards', '/leaderboard': 'Leaderboard', '/achievements': 'Achievements',
@@ -82,7 +83,6 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
   });
   const markRead = trpc.notifications.markRead.useMutation({ onSuccess: refreshNotifications });
   const markAllRead = trpc.notifications.markAllRead.useMutation({ onSuccess: refreshNotifications });
-  const avatarUrl = (profile as any)?.avatar || (user as any)?.avatarUrl || (user as any)?.avatar || (user as any)?.imageUrl;
   const initials = useMemo(() => getInitials(user), [user]);
 
   useEffect(() => {
@@ -130,7 +130,7 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
         </button>
         <Link to="/withdraw" className="balance-pill focus-ring hidden items-center gap-2 sm:flex" aria-label="View balance and withdraw"><span>{profile ? money(profile.balance) : '—'}</span><WalletCards className="h-4 w-4 text-primary" /></Link>
         <button type="button" onClick={() => toggleMenu('profile')} className={cn('focus-ring flex items-center gap-2 rounded-xl border border-transparent p-1.5 pr-1.5 transition hover:border-border hover:bg-muted', openMenu === 'profile' && 'border-primary/20 bg-primary/[.08]')} aria-label="Open profile menu" aria-expanded={openMenu === 'profile'}>
-          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-primary/30 bg-primary/10 text-[10px] font-bold text-primary shadow-sm">{avatarUrl ? <img src={avatarUrl} alt="Selected robot avatar" className="h-full w-full object-cover" /> : initials}</span>
+          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-primary/30 bg-primary/10 text-[10px] font-bold text-primary shadow-sm">{user ? <UserAvatar userId={(profile as any)?.id || (user as any)?.id} avatarId={(profile as any)?.avatarId || (user as any)?.avatarId} alt={`${displayName} avatar`} className="h-full w-full" /> : initials}</span>
           <span className="hidden max-w-[110px] truncate text-left text-xs font-semibold text-foreground xl:block">{displayName}</span>
           <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground xl:block" />
         </button>

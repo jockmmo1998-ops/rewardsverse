@@ -18,6 +18,7 @@ export const users = pgTable(
     openId: varchar("openId", { length: 64 }).notNull().unique(),
     name: text("name"),
     avatar: text("avatar"),
+    avatarId: integer("avatar_id"),
     email: varchar("email", { length: 320 }),
     emailVerifiedAt: timestamp("emailVerifiedAt"),
     emailVerificationTokenHash: varchar("emailVerificationTokenHash", { length: 64 }),

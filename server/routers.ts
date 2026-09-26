@@ -39,6 +39,15 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 const SUPABASE_PROJECT_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://glejepbcpjcilxyrxxcg.supabase.co";
 const SUPABASE_PUBLIC_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_kTKaL4ycqXhSIwGCx3ReNg_20dEKu1-";
 
+const AVATAR_MIN = 1;
+const AVATAR_MAX = 10;
+function resolveAvatarId(user: { id?: number | null; avatarId?: number | null }) {
+  const stored = Number(user.avatarId);
+  if (Number.isInteger(stored) && stored >= AVATAR_MIN && stored <= AVATAR_MAX) return stored;
+  const stableId = Math.abs(Number(user.id || 0));
+  return (stableId % AVATAR_MAX) + AVATAR_MIN;
+}
+
 export const appRouter = router({
   system: systemRouter,
 
@@ -62,10 +71,11 @@ export const appRouter = router({
           password: z.string().min(6).max(128),
           email: z.string().email().max(320),
           refCode: z.string().max(16).optional().default(""),
+          avatarId: z.number().int().min(AVATAR_MIN).max(AVATAR_MAX).default(1),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const { username, password, email, refCode } = input;
+        const { username, password, email, refCode, avatarId } = input;
         const openId = `virtual_${username}_${Date.now()}`;
         const normalizedEmail = email.trim().toLowerCase();
 
@@ -105,6 +115,7 @@ export const appRouter = router({
           referredBy: referredBy || undefined,
           role: "user",
           name: username,
+          avatarId,
           loginMethod: "virtual",
           balance: "0.00",
           xp: 0,
@@ -228,12 +239,16 @@ export const appRouter = router({
         user = await db.getUserByOpenId(ctx.user.openId);
       }
 
-      return user as any;
+      if (!user) return null;
+      const avatarId = resolveAvatarId(user);
+      if (user.avatarId !== avatarId) void db.updateUserProfile(user.id, { avatarId });
+      return { ...user, avatarId, avatarUrl: `/assets/avatars/avatar-${String(avatarId).padStart(2, "0")}.png` } as any;
     }),
     updateProfile: protectedProcedure
       .input(z.object({
         username: z.string().trim().min(3).max(64).optional(),
         avatar: z.string().max(20000).regex(/^data:image\/svg\+xml,/).optional(),
+        avatarId: z.number().int().min(AVATAR_MIN).max(AVATAR_MAX).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const user = await db.getUserByOpenId(ctx.user.openId);
