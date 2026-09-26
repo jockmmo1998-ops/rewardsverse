@@ -45,18 +45,18 @@ export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; on
   return (
     <>
       {open && <button aria-label="Close navigation" onClick={onClose} className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden" />}
-      <aside className={cn('hud-sidebar fixed inset-y-0 left-0 z-50 flex w-[272px] flex-col px-4 py-5 transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0', open ? 'translate-x-0' : '-translate-x-full')}>
+      <aside id="primary-navigation" aria-label="Primary navigation" className={cn('hud-sidebar fixed inset-y-0 left-0 z-50 flex h-[100dvh] max-h-[100dvh] w-[272px] flex-col px-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] transition-transform duration-200 lg:sticky lg:top-0 lg:bottom-auto lg:z-10 lg:h-[100dvh] lg:max-h-[100dvh] lg:translate-x-0', open ? 'translate-x-0' : '-translate-x-full')}>
         <div className="flex items-center justify-between px-2">
           <Link to="/home" onClick={onClose} className="focus-ring flex items-center gap-3" aria-label="RewardsVerse" title="RewardsVerse"><BrandMark compact /></Link>
           <button onClick={onClose} className="focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Close navigation"><X className="h-4 w-4" /></button>
         </div>
-        <div className="mt-10 flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pr-1">
+        <div className="mt-7 flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto overscroll-contain pr-1 lg:mt-9">
           <NavSection title="Command center" items={primaryItems} />
           <NavSection title="Your rewards" items={rewardItems} />
           <NavSection title="Account" items={accountItems} />
           {profile?.is_admin && <NavSection title="Admin" items={[{ label: 'Admin console', path: '/admin', icon: ShieldCheck }]} />}
         </div>
-        <div className="mt-5 space-y-3 border-t border-primary/15 pt-4">
+        <div className="mt-4 shrink-0 space-y-3 border-t border-primary/15 pt-4 lg:mt-5">
           <Link to="/support" onClick={onClose} className="focus-ring flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-sm text-muted-foreground transition hover:border-border hover:bg-muted hover:text-foreground"><Gift className="h-[17px] w-[17px]" /> Support</Link>
           <button onClick={handleLogout} className="focus-ring flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-sm text-muted-foreground transition hover:border-red-400/20 hover:bg-red-400/[.06] hover:text-red-300"><LogOut className="h-[17px] w-[17px]" /> Disconnect</button>
         </div>
