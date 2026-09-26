@@ -355,6 +355,34 @@ export const appRouter = router({
       };
     }),
 
+    getWeeklyProgress: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserByOpenId(ctx.user.openId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      const earnings = await db.getEarningsByUserId(user.id);
+      const now = new Date();
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - 6);
+      const days = Array.from({ length: 7 }, (_, index) => {
+        const day = new Date(start);
+        day.setDate(start.getDate() + index);
+        return { label: day.toLocaleDateString("en-US", { weekday: "short" }), date: day, amount: 0 };
+      });
+      for (const earning of earnings as any[]) {
+        const createdAt = earning.createdAt ? new Date(earning.createdAt) : null;
+        if (!createdAt || createdAt < start) continue;
+        const index = Math.floor((new Date(createdAt.getFullYear(), createdAt.getMonth(), createdAt.getDate()).getTime() - start.getTime()) / 86400000);
+        if (index >= 0 && index < days.length) days[index].amount += Number(earning.amount || 0);
+      }
+      const total = days.reduce((sum, day) => sum + day.amount, 0);
+      return {
+        days: days.map((day) => ({ label: day.label, amount: Number(day.amount.toFixed(2)) })),
+        total: Number(total.toFixed(2)),
+        goal: 10,
+        streak: Number((user as any).streak || 0),
+      };
+    }),
+
     claimDaily: protectedProcedure.mutation(async ({ ctx }) => {
       const user = await db.getUserByOpenId(ctx.user.openId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
