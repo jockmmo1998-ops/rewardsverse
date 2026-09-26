@@ -341,15 +341,34 @@ export const appRouter = router({
       ]);
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
+      const startOfWeek = new Date();
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - ((startOfWeek.getDay() + 6) % 7));
+      const nextWeek = new Date(startOfWeek);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      const weeklyEarningsByDay = Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(startOfWeek);
+        date.setDate(date.getDate() + index);
+        return { label: new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(date), amount: 0 };
+      });
       const todayEarnings = earnings.reduce((sum, earning: any) => {
         const createdAt = earning.createdAt ? new Date(earning.createdAt) : null;
         return createdAt && createdAt >= startOfDay ? sum + Number(earning.amount || 0) : sum;
       }, 0);
+      for (const earning of earnings) {
+        const createdAt = earning.createdAt ? new Date(earning.createdAt) : null;
+        if (!createdAt || createdAt < startOfWeek || createdAt >= nextWeek) continue;
+        const dayIndex = (createdAt.getDay() + 6) % 7;
+        weeklyEarningsByDay[dayIndex].amount += Number(earning.amount || 0);
+      }
+      const weeklyEarnings = weeklyEarningsByDay.reduce((sum, day) => sum + day.amount, 0);
       const pendingRewards = offerHistory
         .filter((offer: any) => offer.status === "pending")
         .reduce((sum, offer: any) => sum + Number(offer.amount || 0), 0);
       return {
         todayEarnings: Number(todayEarnings.toFixed(2)),
+        weeklyEarnings: Number(weeklyEarnings.toFixed(2)),
+        weeklyEarningsByDay: weeklyEarningsByDay.map((day) => ({ ...day, amount: Number(day.amount.toFixed(2)) })),
         pendingRewards: Number(pendingRewards.toFixed(2)),
         totalEarned: Number(user.totalEarned || 0),
       };
