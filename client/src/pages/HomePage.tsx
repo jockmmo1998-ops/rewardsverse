@@ -15,13 +15,6 @@ const offerFilters = [
   { label: 'Easy Tasks', value: 'tasks', icon: Zap },
 ];
 
-const trustItems = [
-  { title: 'Verified providers', text: 'Offers connect to configured provider systems.', icon: ShieldCheck },
-  { title: 'Fast rewards', text: 'Balance updates after verified callbacks arrive.', icon: Zap },
-  { title: 'Secure platform', text: 'Account and payout actions stay server-validated.', icon: CheckCircle2 },
-  { title: 'Clear payouts', text: 'Supported methods and minimums are shown before submission.', icon: WalletCards },
-];
-
 function money(value: unknown) {
   const amount = Number(value || 0);
   return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : '$0.00';
@@ -63,12 +56,18 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const featured = trpc.user.getFeaturedOffers.useQuery(undefined, { staleTime: 60_000, gcTime: 5 * 60_000, placeholderData: (previousData) => previousData, refetchOnWindowFocus: false, retry: false });
   const summary = trpc.user.getDashboardSummary.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
+  const weeklyQuery = trpc.user.getWeeklyProgress.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
   const withdrawals = trpc.withdraw.getMyWithdrawals.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
   const leaderboardQuery = trpc.user.getLeaderboard.useQuery(undefined, { staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
 
   const allOffers = featured.data ?? [];
   const leaderboard = (leaderboardQuery.data ?? []).slice(0, 5) as any[];
   const trendingOffers = allOffers.slice(0, 5);
+  const weeklyDays = weeklyQuery.data?.days ?? [];
+  const weeklyTotal = Number(weeklyQuery.data?.total ?? 0);
+  const weeklyGoal = Number(weeklyQuery.data?.goal ?? 10);
+  const weeklyPercent = Math.min(100, Math.round((weeklyTotal / Math.max(weeklyGoal, 1)) * 100));
+  const weeklyMax = Math.max(...weeklyDays.map((day: any) => Number(day.amount || 0)), 0.01);
   const filteredOffers = useMemo(() => {
     const query = search.trim().toLowerCase();
     let offers = allOffers.filter((offer: any) => {
@@ -117,7 +116,10 @@ export default function HomePage() {
         <div className="mt-6 flex justify-end"><Link to="/offerwalls" className="focus-ring inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80">View all offers <ArrowRight className="h-4 w-4" /></Link></div>
       </section>
 
-      <section className="trust-strip" aria-label="Why RewardsVerse"><div className="trust-strip-heading"><p className="rv-eyebrow">Built for clarity</p><h2 className="mt-2 font-display text-xl font-semibold text-foreground">Why RewardsVerse</h2></div>{trustItems.map(({ title, text, icon: Icon }) => <div key={title} className="trust-item"><span className="trust-icon"><Icon className="h-4 w-4" /></span><div><h3 className="text-sm font-semibold text-foreground">{title}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p></div></div>)}</section>
+      <section className="weekly-progress-panel" aria-label="Your weekly progress">
+        <div className="weekly-progress-copy"><p className="rv-eyebrow"><span className="section-dot" /> Your weekly progress</p><h2>Small steps add up.</h2><p>Keep your rhythm with a few minutes of surveys, apps or games each day.</p><div className="weekly-progress-row"><span>Weekly goal <b>{money(weeklyTotal)}</b> of {money(weeklyGoal)}</span><strong>{weeklyPercent}%</strong></div><div className="weekly-progress-track"><span style={{ width: `${weeklyPercent}%` }} /></div><div className="weekly-progress-meta"><span>ϟ &nbsp;{weeklyQuery.data?.streak ?? 0}-day activity streak</span><span>Rewards this week <b>{money(weeklyTotal)}</b></span></div></div>
+        <div className="weekly-chart-card"><div className="weekly-chart-heading"><span>Activity this week</span><small>This week⌄</small></div><div className="weekly-chart" aria-label="Real earnings by day this week">{weeklyDays.map((day: any) => <div className="weekly-chart-bar" key={day.label}><i style={{ height: `${Math.max(8, Math.round((Number(day.amount || 0) / weeklyMax) * 100))}%` }} /><span>{day.label}</span></div>)}</div></div>
+      </section>
       </div>
       <aside className="dashboard-side-rail" aria-label="Dashboard insights">
         <section className="dashboard-side-panel"><div className="dashboard-side-heading"><div><h2><i className="section-dot" /> Top earners</h2><p>Latest users with the highest rewards</p></div><span className="side-select">This week</span></div><div className="dashboard-earner-list">{leaderboard.length ? leaderboard.map((entry: any, index: number) => <div className="dashboard-earner" key={entry.id ?? `${entry.username}-${index}`}><span className={`dashboard-rank rank-${index + 1}`}>{index + 1}</span><span className="dashboard-mini-avatar" aria-hidden="true">{String(entry.username || 'M').slice(0, 1).toUpperCase()}</span><div className="dashboard-earner-copy"><strong>{entry.username || 'Member'}</strong><span>{index + 1} place</span></div><b>{money(entry.totalEarned)}</b></div>) : <p className="dashboard-empty">No leaderboard data yet.</p>}</div><p className="dashboard-side-note">Figures update from verified rewards.</p></section>
