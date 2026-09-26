@@ -57,8 +57,8 @@ export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; on
           {profile?.is_admin && <NavSection title="Admin" items={[{ label: 'Admin console', path: '/admin', icon: ShieldCheck }]} />}
         </div>
         <div className="mt-4 shrink-0 space-y-3 border-t border-primary/15 pt-4 lg:mt-5">
-          <Link to="/support" onClick={onClose} className="focus-ring flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-sm text-muted-foreground transition hover:border-border hover:bg-muted hover:text-foreground"><Gift className="h-[17px] w-[17px]" /> Support</Link>
-          <button onClick={handleLogout} className="focus-ring flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-sm text-muted-foreground transition hover:border-red-400/20 hover:bg-red-400/[.06] hover:text-red-300"><LogOut className="h-[17px] w-[17px]" /> Disconnect</button>
+          <Link to="/support" onClick={onClose} className="hud-nav-link nav-link-idle focus-ring group w-full"><span className="flex min-w-0 items-center gap-3"><Gift className="h-[17px] w-[17px]" /> <span>Support</span></span></Link>
+          <button onClick={handleLogout} className="hud-nav-link nav-link-idle focus-ring group w-full text-left hover:border-red-400/20 hover:bg-red-400/[.06] hover:text-red-300"><span className="flex min-w-0 items-center gap-3"><LogOut className="h-[17px] w-[17px]" /> <span>Disconnect</span></span></button>
         </div>
       </aside>
     </>

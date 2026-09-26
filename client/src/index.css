@@ -725,3 +725,13 @@
 .avatar-tile-image{background:radial-gradient(circle at 50% 28%,rgba(122,242,173,.28),rgba(23,55,48,.96) 68%,#101a1c 100%);padding:4px}.avatar-tile-image img{filter:brightness(1.14) saturate(1.16) contrast(1.08);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.24)}
 .dark .live-activity-bar{border-bottom-color:rgba(55,84,80,.3);background:rgba(10,19,23,.92)}
 @media(max-width:650px){.live-activity-inner{gap:8px;padding:0 9px}.live-activity-status{min-width:96px;font-size:8px}.live-activity-item{min-width:128px}}
+
+/* Final shell normalization: all authenticated routes use the same menu column and link rhythm. */
+@media (min-width:1024px){.app-shell-dashboard{grid-template-columns:272px minmax(0,1fr)!important}.app-shell-dashboard .hud-sidebar{width:272px!important}}
+.hud-nav-link,.hud-nav-link:active{transform:none!important;min-height:40px}
+.hud-nav-link:active{transition:none!important}
+.live-activity-bar{background:#11191c!important;border-bottom-color:#26373a!important}
+.live-activity-status{background:#1b292b!important;border-color:#3c5a55!important;color:#b0e8c5!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.live-activity-item{background:#172326!important;border-color:#34494a!important;color:#c7d5d1!important}
+.live-activity-button:hover{background:#223235!important}
+.app-shell-dashboard .live-activity-bar{background:#11191c!important;border-bottom-color:#26373a!important}.app-shell-dashboard .live-activity-status{background:#1b292b!important;border-color:#3c5a55!important}
