@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Gift, LockKeyhole, Mail, Shuffle, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AvatarPicker, avatarDefinition } from "@/components/AvatarSystem";
 
 const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string => {
   const message = error?.message ?? "";
@@ -52,6 +53,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [refCode, setRefCode] = useState("");
+  const [avatarId, setAvatarId] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -109,7 +111,7 @@ export default function AuthPage() {
     setSubmitting(true);
     try {
       const result = isRegister
-        ? await register(cleanUsername, password, email.trim().toLowerCase(), refCode.trim() || undefined)
+        ? await register(cleanUsername, password, email.trim().toLowerCase(), refCode.trim() || undefined, avatarId)
         : await login(cleanUsername, password);
 
       if (result.error) {
@@ -253,6 +255,14 @@ export default function AuthPage() {
                   />
                 </div>
               </>
+            )}
+
+            {isRegister && (
+              <div className="space-y-3 rounded-xl border border-border/60 bg-background/40 p-4">
+                <div><p className="text-sm font-semibold">Choose your avatar</p><p className="mt-1 text-[11px] text-muted-foreground">Pick your RewardsVerse avatar. You can change it later from your profile.</p></div>
+                <AvatarPicker value={avatarId} onChange={setAvatarId} />
+                <p className="text-[11px] text-primary">Selected: <span className="font-semibold">{avatarDefinition(avatarId).name}</span></p>
+              </div>
             )}
 
             {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}

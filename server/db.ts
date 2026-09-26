@@ -96,7 +96,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     textFields.forEach(assignNullable);
 
     // Handle numeric and decimal fields
-    const numericFields = ["balance", "xp", "streak", "offersCompleted", "totalEarned", "refEarnings"];
+    const numericFields = ["balance", "xp", "streak", "offersCompleted", "totalEarned", "refEarnings", "avatarId"];
 
     numericFields.forEach((field) => {
       const value = (user as Record<string, any>)[field];
@@ -484,8 +484,16 @@ export async function getLeaderboard() {
   const db = await getDb();
   if (!db) return [];
   return db
-    .select()
+    .select({
+      id: leaderboard.id,
+      userId: leaderboard.userId,
+      username: leaderboard.username,
+      totalEarned: leaderboard.totalEarned,
+      updatedAt: leaderboard.updatedAt,
+      avatarId: users.avatarId,
+    })
     .from(leaderboard)
+    .leftJoin(users, eq(leaderboard.userId, users.id))
     .orderBy(desc(leaderboard.totalEarned));
 }
 
@@ -527,8 +535,18 @@ export async function getRecentActivities(limit: number = 50) {
   const db = await getDb();
   if (!db) return [];
   return db
-    .select()
+    .select({
+      id: activities.id,
+      userId: activities.userId,
+      username: activities.username,
+      type: activities.type,
+      description: activities.description,
+      amount: activities.amount,
+      createdAt: activities.createdAt,
+      avatarId: users.avatarId,
+    })
     .from(activities)
+    .leftJoin(users, eq(activities.userId, users.id))
     .orderBy(desc(activities.createdAt))
     .limit(limit);
 }
