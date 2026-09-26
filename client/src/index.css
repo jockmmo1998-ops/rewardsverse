@@ -735,3 +735,16 @@
 .live-activity-item{background:#172326!important;border-color:#34494a!important;color:#c7d5d1!important}
 .live-activity-button:hover{background:#223235!important}
 .app-shell-dashboard .live-activity-bar{background:#11191c!important;border-bottom-color:#26373a!important}.app-shell-dashboard .live-activity-status{background:#1b292b!important;border-color:#3c5a55!important}
+
+/* Avatar-specific support colors: each character gets its own contrast-safe backdrop. */
+.rv-avatar-tone-1,.avatar-tile-image.rv-avatar-tone-1{background:linear-gradient(145deg,#2d765d 0%,#163e36 52%,#102521 100%)}
+.rv-avatar-tone-2,.avatar-tile-image.rv-avatar-tone-2{background:linear-gradient(145deg,#7052a4 0%,#3c285f 54%,#241b3c 100%)}
+.rv-avatar-tone-3,.avatar-tile-image.rv-avatar-tone-3{background:linear-gradient(145deg,#277f91 0%,#164c5d 52%,#102b3b 100%)}
+.rv-avatar-tone-4,.avatar-tile-image.rv-avatar-tone-4{background:linear-gradient(145deg,#aa8136 0%,#62491f 54%,#382b18 100%)}
+.rv-avatar-tone-5,.avatar-tile-image.rv-avatar-tone-5{background:linear-gradient(145deg,#3f78b8 0%,#244b78 52%,#162e50 100%)}
+.rv-avatar-tone-6,.avatar-tile-image.rv-avatar-tone-6{background:linear-gradient(145deg,#b96770 0%,#713c4d 54%,#442634 100%)}
+.rv-avatar-tone-7,.avatar-tile-image.rv-avatar-tone-7{background:linear-gradient(145deg,#4c9a58 0%,#28613e 54%,#193d2d 100%)}
+.rv-avatar-tone-8,.avatar-tile-image.rv-avatar-tone-8{background:linear-gradient(145deg,#6596a0 0%,#3f626f 54%,#263e4b 100%)}
+.rv-avatar-tone-9,.avatar-tile-image.rv-avatar-tone-9{background:linear-gradient(145deg,#c27842 0%,#774328 54%,#48281f 100%)}
+.rv-avatar-tone-10,.avatar-tile-image.rv-avatar-tone-10{background:linear-gradient(145deg,#3f745e 0%,#244238 54%,#152723 100%)}
+.avatar-tile-image{padding:5px}.avatar-tile-image img{mix-blend-mode:normal}
