@@ -454,6 +454,13 @@
 .dark .toaster [data-sonner-toast] [data-title] { color: #e8f3ed !important; }
 .dark .toaster [data-sonner-toast] [data-description] { color: #91aaa0 !important; }
 .dark .toaster [data-sonner-toast] [data-close-button] { border-color: #25444a !important; background: #11272b !important; color: #8af0ba !important; }
+.dark .toaster [data-sonner-toast] { border-color:#2b4945!important; border-left:3px solid #55d98d!important; border-radius:12px!important; background:#111b1e!important; color:#edf8f1!important; box-shadow:0 18px 42px rgba(0,0,0,.48),0 0 0 1px rgba(85,217,141,.06)!important; }
+.dark .toaster [data-sonner-toast][data-type="success"] { border-left-color:#55d98d!important; }
+.dark .toaster [data-sonner-toast][data-type="warning"] { border-left-color:#ffbf3f!important; }
+.dark .toaster [data-sonner-toast] [data-title] { color:#f1fbf4!important; font-size:13px; font-weight:800; }
+.dark .toaster [data-sonner-toast] [data-description] { color:#9bb5aa!important; font-size:12px; }
+.dark .toaster [data-sonner-toast] [data-close-button] { border-color:#31534d!important; background:#172a2b!important; color:#a6eac1!important; }
+.withdrawal-status-toast{border-color:#3c5a46!important;background:#111b1e!important;color:#edf8f1!important}.withdrawal-status-toast .withdrawal-status-kicker{color:#9bb5aa!important}.withdrawal-status-toast .withdrawal-status-subtitle{color:#728c82!important}
 
 /* Featured Offers: live-marketplace polish, scoped to this section only. */
 .featured-primary .offer-card {
