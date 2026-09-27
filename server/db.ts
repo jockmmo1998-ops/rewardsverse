@@ -544,6 +544,10 @@ export async function getRecentActivities(limit: number = 50) {
       amount: activities.amount,
       createdAt: activities.createdAt,
       avatarId: users.avatarId,
+      registeredAt: users.createdAt,
+      xp: users.xp,
+      offersCompleted: users.offersCompleted,
+      totalEarned: users.totalEarned,
     })
     .from(activities)
     .leftJoin(users, eq(activities.userId, users.id))

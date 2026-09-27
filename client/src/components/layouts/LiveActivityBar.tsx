@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Activity, CircleDollarSign, Radio, WalletCards, X } from 'lucide-react';
+import { Activity, ArrowDownToLine, CalendarDays, CircleDollarSign, Radio, Trophy, WalletCards, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { UserAvatar } from '@/components/AvatarSystem';
 
@@ -13,6 +13,36 @@ function maskUsername(value: unknown) {
 function formatAmount(value: unknown) {
   const amount = Number(value || 0);
   return Number.isFinite(amount) && amount > 0 ? `$${amount.toFixed(2)}` : null;
+}
+
+function dateLabel(value: unknown) {
+  if (!value) return '—';
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function timeLabel(value: unknown) {
+  if (!value) return 'Recently';
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? 'Recently' : date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function levelForXp(value: unknown) {
+  const xp = Number(value || 0);
+  if (xp >= 1000) return { level: 10, name: 'Legend' };
+  if (xp >= 500) return { level: 8, name: 'Elite' };
+  if (xp >= 300) return { level: 6, name: 'Pro' };
+  if (xp >= 150) return { level: 4, name: 'Skilled' };
+  if (xp >= 50) return { level: 2, name: 'Starter' };
+  return { level: 1, name: 'Newbie' };
+}
+
+function activityLabel(type: unknown) {
+  if (type === 'withdrawal') return 'Withdrew funds';
+  if (type === 'offer_complete' || type === 'reward') return 'Completed offer';
+  if (type === 'daily_claim') return 'Daily bonus';
+  if (type === 'referral') return 'Referral reward';
+  return 'Account activity';
 }
 
 function activityTone(type: unknown) {
@@ -57,13 +87,7 @@ export function LiveActivityBar() {
   }, [items]);
   const selectedItems = selectedUserKey ? groupedUsers.get(selectedUserKey) ?? [] : [];
   const selectedUser = selectedItems[0];
-  const earnedTotal = selectedItems
-    .filter((item) => item.type !== 'withdrawal')
-    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const withdrawnTotal = selectedItems
-    .filter((item) => item.type === 'withdrawal')
-    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
-
+  const selectedLevel = levelForXp(selectedUser?.xp);
   useEffect(() => {
     if (selectedUserKey && !groupedUsers.has(selectedUserKey)) setSelectedUserKey(null);
   }, [groupedUsers, selectedUserKey]);
@@ -79,11 +103,11 @@ export function LiveActivityBar() {
       aria-label={`View full activity for ${maskUsername(item.username)}`}
     >
       <UserAvatar userId={item.userId} avatarId={item.avatarId} alt="" className="h-6 w-6 shrink-0 rounded-full border border-primary/20" />
-      <Activity className={`h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />
+      {item.type === 'withdrawal' ? <ArrowDownToLine className="h-3.5 w-3.5 shrink-0 text-amber-300" /> : <Activity className={`h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />}
       <span className="live-activity-copy">
         <span className="live-activity-user">{maskUsername(item.username)}</span>
         <span className="live-activity-summary">
-          {formatAmount(item.amount) || 'Verified'} <span>·</span> {item.type === 'withdrawal' ? 'withdrew' : 'completed offer'}
+          {formatAmount(item.amount) || 'Verified'} <span>·</span> {item.type === 'withdrawal' ? 'WITHDREW' : 'completed offer'}
         </span>
       </span>
     </button>
@@ -109,21 +133,21 @@ export function LiveActivityBar() {
       {selectedUser && (
         <div className="live-activity-detail" role="dialog" aria-label="User activity details">
           <div className="flex items-start gap-3">
-            <div className="live-activity-detail-icon"><WalletCards className="h-4 w-4" /></div>
+            <div className={`live-activity-detail-icon ${selectedUser.type === 'withdrawal' ? 'withdrawal' : ''}`}>{selectedUser.type === 'withdrawal' ? <ArrowDownToLine className="h-4 w-4" /> : <WalletCards className="h-4 w-4" />}</div>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-bold uppercase tracking-[.14em] text-emerald-700">User activity summary</p>
+              <p className={`text-[11px] font-bold uppercase tracking-[.14em] ${selectedUser.type === 'withdrawal' ? 'text-amber-300' : 'text-primary'}`}>{selectedUser.type === 'withdrawal' ? 'Withdrawal activity' : 'User activity summary'}</p>
               <div className="mt-1 flex items-center gap-2"><UserAvatar userId={selectedUser.userId} avatarId={selectedUser.avatarId} alt="" className="h-7 w-7 rounded-full border border-primary/20" /><p className="text-sm font-semibold text-foreground">{maskUsername(selectedUser.username)}</p></div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg bg-emerald-50 px-2.5 py-2"><span className="block text-[10px] text-muted-foreground">Offers completed</span><strong className="text-emerald-700">{selectedItems.filter((item) => item.type !== 'withdrawal').length}</strong></div>
-                <div className="rounded-lg bg-amber-50 px-2.5 py-2"><span className="block text-[10px] text-muted-foreground">Withdrawals</span><strong className="text-amber-700">{selectedItems.filter((item) => item.type === 'withdrawal').length}</strong></div>
-                <div className="rounded-lg bg-emerald-50 px-2.5 py-2"><span className="block text-[10px] text-muted-foreground">Earned</span><strong className="text-emerald-700">${earnedTotal.toFixed(2)}</strong></div>
-                <div className="rounded-lg bg-amber-50 px-2.5 py-2"><span className="block text-[10px] text-muted-foreground">Withdrawn</span><strong className="text-amber-700">${withdrawnTotal.toFixed(2)}</strong></div>
+                <div className="live-detail-stat"><span><CalendarDays className="inline h-3 w-3" /> Registered</span><strong>{dateLabel(selectedUser.registeredAt)}</strong></div>
+                <div className="live-detail-stat"><span><Trophy className="inline h-3 w-3" /> Level</span><strong>{selectedLevel.level} · {selectedLevel.name}</strong></div>
+                <div className="live-detail-stat"><span>Offers completed</span><strong>{selectedUser.offersCompleted ?? selectedItems.filter((item) => item.type !== 'withdrawal').length}</strong></div>
+                <div className="live-detail-stat"><span>Latest action</span><strong>{timeLabel(selectedUser.createdAt)}</strong></div>
               </div>
               <div className="mt-3 space-y-2 border-t border-border/70 pt-3">
                 {selectedItems.slice(0, 8).map((item) => (
                   <div key={item.id} className="flex items-start gap-2 text-xs">
-                    <Activity className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />
-                    <span className="min-w-0 break-words text-muted-foreground">{compactActivityDescription(item.description)}{formatAmount(item.amount) && <strong className="ml-1 text-foreground">{formatAmount(item.amount)}</strong>}</span>
+                    {item.type === 'withdrawal' ? <ArrowDownToLine className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" /> : <Activity className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />}
+                    <span className={`min-w-0 break-words ${item.type === 'withdrawal' ? 'text-amber-100' : 'text-muted-foreground'}`}><strong className="mr-1 text-foreground">{activityLabel(item.type)}</strong>{compactActivityDescription(item.description)}{formatAmount(item.amount) && <strong className="ml-1 text-foreground">{formatAmount(item.amount)}</strong>}<span className="ml-1 text-[10px] text-muted-foreground/70">· {timeLabel(item.createdAt)}</span></span>
                   </div>
                 ))}
               </div>
