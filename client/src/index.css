@@ -755,3 +755,14 @@
 .live-detail-stat span{color:#8fa9a1;font-size:10px}.live-detail-stat span svg{margin-right:3px;color:#86d6aa}.live-detail-stat strong{overflow:hidden;color:#e4eee9;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
 .live-activity-detail{max-height:min(420px,calc(100vh - 6rem));overflow:auto}
 .dark .live-detail-stat{border-color:#2b4443;background:#172326}.dark .live-activity-detail-icon.withdrawal{background:rgba(245,158,11,.16);color:#f6c76b}
+
+/* Make live cards reliably clickable: hovering pauses the ticker instead of chasing moving targets. */
+.live-activity-track:hover .live-activity-items,.app-shell-dashboard .live-activity-track:hover .live-activity-items{animation-play-state:paused!important}
+.live-activity-button{cursor:pointer;pointer-events:auto}.live-activity-withdrawal{border-color:rgba(245,158,11,.72)!important;background:linear-gradient(90deg,rgba(111,71,19,.62),rgba(55,39,22,.82))!important;box-shadow:inset 3px 0 0 #f2b84b,0 0 0 1px rgba(245,158,11,.12)}.live-activity-withdrawal .live-activity-user{color:#ffe4a3!important}.live-activity-withdrawal .live-activity-summary{color:#f4c978!important;font-weight:800;letter-spacing:.02em}
+.live-activity-detail{z-index:120;border-color:#3f6258!important;background:#111b1e!important;box-shadow:0 20px 48px rgba(0,0,0,.55)!important}
+@media(max-width:650px){.live-activity-detail{left:.5rem;right:.5rem;width:auto}}
+
+/* Dashboard-only interaction fix: keep marquee moving, but place its clickable layer above the page content. */
+.live-activity-track:hover .live-activity-items,.app-shell-dashboard .live-activity-track:hover .live-activity-items{animation-play-state:running!important}
+.app-shell-dashboard .live-activity-bar{position:relative;z-index:50;isolation:isolate}.app-shell-dashboard .live-activity-track,.app-shell-dashboard .live-activity-items,.app-shell-dashboard .live-activity-button{pointer-events:auto!important}
+.live-activity-withdrawal{border:1px solid rgba(245,158,11,.9)!important;background:linear-gradient(90deg,#6d4714,#3e2b17)!important;box-shadow:inset 4px 0 0 #ffbf3f,0 0 0 1px rgba(245,158,11,.24),0 4px 12px rgba(245,158,11,.12)!important}.live-activity-withdrawal .live-activity-user{color:#fff0bd!important}.live-activity-withdrawal .live-activity-summary{color:#ffd166!important;font-weight:900;letter-spacing:.03em}
