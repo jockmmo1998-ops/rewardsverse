@@ -96,8 +96,8 @@ export function LiveActivityBar() {
     <button
       key={`${item.id}-${duplicate ? 'copy' : 'primary'}`}
       type="button"
-      className="live-activity-item live-activity-button"
-      onClick={() => setSelectedUserKey(userKey(item))}
+      className={`live-activity-item live-activity-button ${item.type === 'withdrawal' ? 'live-activity-withdrawal' : ''}`}
+      onClick={(event) => { event.stopPropagation(); setSelectedUserKey(userKey(item)); }}
       tabIndex={duplicate ? -1 : 0}
       aria-hidden={duplicate}
       aria-label={`View full activity for ${maskUsername(item.username)}`}
@@ -107,7 +107,7 @@ export function LiveActivityBar() {
       <span className="live-activity-copy">
         <span className="live-activity-user">{maskUsername(item.username)}</span>
         <span className="live-activity-summary">
-          {formatAmount(item.amount) || 'Verified'} <span>·</span> {item.type === 'withdrawal' ? 'WITHDREW' : 'completed offer'}
+          {formatAmount(item.amount) || 'Verified'} <span>·</span> {item.type === 'withdrawal' ? 'WITHDRAWAL' : 'completed offer'}
         </span>
       </span>
     </button>
