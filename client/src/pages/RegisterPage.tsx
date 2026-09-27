@@ -10,7 +10,6 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { toast } from 'sonner';
 import PageMeta from '@/components/common/PageMeta';
 import { Zap, Eye, EyeOff, CheckCircle2, Shuffle, Mail } from 'lucide-react';
-import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 const schema = z
   .object({
@@ -117,7 +116,6 @@ export default function RegisterPage() {
             </div>
             <span className="font-semibold tracking-tight">RewardsVerse</span>
           </Link>
-          <ThemeToggle />
         </header>
 
         <div className="flex-1 flex items-center justify-center px-4 py-12">

@@ -2,7 +2,6 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Gift, LockKeyhole, Mail, Shuffle, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { AvatarPicker, avatarDefinition } from "@/components/AvatarSystem";
 
 const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string => {
@@ -128,7 +127,6 @@ export default function AuthPage() {
 
   return (
     <main className="rewards-auth-page relative min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
-      <div className="absolute right-4 top-4 sm:right-6 sm:top-6"><ThemeToggle /></div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/home" className="inline-flex items-center gap-2 text-2xl font-black tracking-tight">

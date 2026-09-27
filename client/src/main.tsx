@@ -8,6 +8,8 @@ import App from "./App";
 import "./index.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
+document.documentElement.classList.add("dark");
+
 const queryClient = new QueryClient();
 
 queryClient.getQueryCache().subscribe(event => {
@@ -62,7 +64,7 @@ const trpcClient = trpc.createClient({
 createRoot(document.getElementById("root")!).render(
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="light" switchable>
+        <ThemeProvider defaultTheme="dark" switchable={false}>
           <App />
         </ThemeProvider>
       </QueryClientProvider>

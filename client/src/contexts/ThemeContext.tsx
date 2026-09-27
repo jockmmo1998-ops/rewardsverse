@@ -18,15 +18,11 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light",
+  defaultTheme = "dark",
   switchable = false,
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (switchable) {
-      const stored = localStorage.getItem("theme");
-      return (stored as Theme) || defaultTheme;
-    }
-    return defaultTheme;
+    return "dark";
   });
 
   useEffect(() => {
@@ -37,9 +33,7 @@ export function ThemeProvider({
       root.classList.remove("dark");
     }
 
-    if (switchable) {
-      localStorage.setItem("theme", theme);
-    }
+    localStorage.removeItem("theme");
   }, [theme, switchable]);
 
   const toggleTheme = switchable

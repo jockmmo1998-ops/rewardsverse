@@ -10,7 +10,6 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { toast } from 'sonner';
 import PageMeta from '@/components/common/PageMeta';
 import { Zap, Eye, EyeOff } from 'lucide-react';
-import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 const schema = z.object({
   username: z.string().min(2, 'Username must be at least 2 characters').max(32),
@@ -51,7 +50,6 @@ export default function LoginPage() {
             </div>
             <span className="font-semibold tracking-tight">RewardsVerse</span>
           </Link>
-          <ThemeToggle />
         </header>
 
         {/* Form area */}
