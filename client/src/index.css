@@ -213,7 +213,7 @@
 .live-activity-item { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .42rem; white-space: nowrap; font-size: .68rem; }
 .live-activity-button { min-width: 142px; border: 0; border-radius: .6rem; background: transparent; padding: .22rem .5rem; text-align: left; transition: background-color .24s var(--ease-smooth), transform .24s var(--ease-smooth); }
 .live-activity-button:hover { background: #f0fdf4; transform: translateY(-1px); }
-.live-activity-track:hover .live-activity-items { animation-play-state: paused !important; }
+.live-activity-track:hover .live-activity-items { animation-play-state: running !important; }
 .live-activity-copy { display: inline-flex; min-width: 0; flex-direction: column; gap: .08rem; line-height: 1.05; }
 .live-activity-user { overflow: hidden; color: var(--foreground); font-size: .69rem; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
 .live-activity-summary { overflow: hidden; color: var(--foreground); font-size: .59rem; text-overflow: ellipsis; white-space: nowrap; }
@@ -766,13 +766,13 @@
 .dark .live-detail-stat{border-color:#2b4443;background:#172326}.dark .live-activity-detail-icon.withdrawal{background:rgba(245,158,11,.16);color:#f6c76b}
 
 /* Make live cards reliably clickable: hovering pauses the ticker instead of chasing moving targets. */
-.live-activity-track:hover .live-activity-items,.app-shell-dashboard .live-activity-track:hover .live-activity-items{animation-play-state:paused!important}
-.live-activity-button{cursor:pointer;pointer-events:auto}.live-activity-withdrawal{border-color:transparent!important;background:transparent!important;box-shadow:none!important}.live-activity-withdrawal .live-activity-user{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-summary{color:var(--foreground)!important;font-weight:650;letter-spacing:normal}.live-activity-withdrawal .live-activity-amount{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-withdrawal-label{color:#d99b2b!important}
+.live-activity-track:hover .live-activity-items,.app-shell-dashboard .live-activity-track:hover .live-activity-items{animation-play-state:running!important}
+.live-activity-button{cursor:pointer;pointer-events:auto}.live-activity-withdrawal{border:0!important;box-shadow:none!important}.live-activity-withdrawal .live-activity-user{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-summary{color:var(--foreground)!important;font-weight:650;letter-spacing:normal}.live-activity-withdrawal .live-activity-amount{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-withdrawal-label{color:#d99b2b!important}
 .live-activity-detail{z-index:120;border-color:#3f6258!important;background:#111b1e!important;box-shadow:0 20px 48px rgba(0,0,0,.55)!important}
 @media(max-width:650px){.live-activity-detail{left:.5rem;right:.5rem;width:auto}}
 
 /* Dashboard-only interaction fix: keep marquee moving, but place its clickable layer above the page content. */
-.live-activity-track:hover .live-activity-items,.app-shell-dashboard .live-activity-track:hover .live-activity-items{animation-play-state:paused!important}
+.live-activity-track:hover .live-activity-items,.app-shell-dashboard .live-activity-track:hover .live-activity-items{animation-play-state:running!important}
 .app-shell-dashboard .live-activity-bar{position:relative;z-index:50;isolation:isolate}.app-shell-dashboard .live-activity-track,.app-shell-dashboard .live-activity-items,.app-shell-dashboard .live-activity-button{pointer-events:auto!important}
-.live-activity-withdrawal{border:0!important;background:transparent!important;box-shadow:none!important}.live-activity-withdrawal .live-activity-user{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-summary{color:var(--foreground)!important;font-weight:650;letter-spacing:normal}.live-activity-withdrawal .live-activity-amount{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-withdrawal-label{color:#f0b94b!important}
+.live-activity-withdrawal{border:0!important;box-shadow:none!important}.live-activity-withdrawal .live-activity-user{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-summary{color:var(--foreground)!important;font-weight:650;letter-spacing:normal}.live-activity-withdrawal .live-activity-amount{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-withdrawal-label{color:#f0b94b!important}
 .live-activity-summary,.app-shell-dashboard .live-activity-summary{color:var(--foreground)!important}.live-activity-summary .live-activity-amount,.app-shell-dashboard .live-activity-summary .live-activity-amount{color:var(--foreground)!important}.live-activity-summary .live-activity-withdrawal-label,.app-shell-dashboard .live-activity-summary .live-activity-withdrawal-label{color:#f0b94b!important}
