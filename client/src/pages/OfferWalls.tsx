@@ -46,9 +46,9 @@ export const OFFER_WALLS: OfferWall[] = [
   { id: 'pocketsfull', name: 'PocketFull', desc: 'Rewarded surveys worldwide', reward: '$0.10–$5.00', logo: "/assets/provider-logos/pocketsfull.ico", tag: 'SURVEYS', category: 'Tasks', rating: 4.7, surface: '#ffffff', border: "#9829EF", logoSurface: "#ffffff", accent: "#FC4504", brandColor: "#9829EF", track: "#382249", gradient: "linear-gradient(90deg, #9829EF, #FC4504)", badgeSurface: "#352140" },
 ];
 
-// OfferMintX starts offer links in a new browsing context. Keeping it outside the
-// embedded iframe avoids sandboxed-popup restrictions on provider redirects.
-export const NEW_TAB_WALL_IDS = new Set(['admaxflow', 'gaintwall', 'offermintx', 'timewall', 'pocketsfull']);
+// These providers still require a direct browser navigation. The other providers,
+// including AdMaxFlow, Gaintwall and OfferMintX, stay inside the dedicated page.
+export const NEW_TAB_WALL_IDS = new Set(['timewall', 'pocketsfull']);
 export const OPINION_UNIVERSE_WALL_ID = 'opinionuniverse';
 export const OPINION_UNIVERSE_URL = 'https://opinionuniverse.com/offerwall?pubId=4078&appId=ID_95cdecb90aad77eaa007a2a89e6661d9';
 
