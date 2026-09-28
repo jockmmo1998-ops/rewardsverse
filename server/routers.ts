@@ -65,24 +65,16 @@ export const appRouter = router({
     register: publicProcedure
       .input(
         z.object({
-          // New accounts must use the required Random User format: letters
-          // and numbers only, with at least one of each.
-          username: z.string().min(3).max(24).regex(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9]+$/),
           password: z.string().min(6).max(128),
           email: z.string().email().max(320),
           refCode: z.string().max(16).optional().default(""),
-          avatarId: z.number().int().min(AVATAR_MIN).max(AVATAR_MAX).default(1),
+          termsAccepted: z.literal(true),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const { username, password, email, refCode, avatarId } = input;
-        const openId = `virtual_${username}_${Date.now()}`;
+        const { password, email, refCode } = input;
+        const openId = `virtual_member_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
         const normalizedEmail = email.trim().toLowerCase();
-
-        const existing = await db.getUserByUsername(username);
-        if (existing) {
-          throw new TRPCError({ code: "CONFLICT", message: "Username already taken" });
-        }
 
         const existingEmail = await db.getUserByEmail(normalizedEmail);
         if (existingEmail) {
@@ -97,15 +89,13 @@ export const appRouter = router({
           }
         }
 
-        const userRefCode =
-          username.substring(0, 4).toUpperCase() +
-          Math.floor(Math.random() * 9999).toString().padStart(4, "0");
+        const userRefCode = `RV${Date.now().toString(36).slice(-8).toUpperCase()}${Math.floor(Math.random() * 100).toString().padStart(2, "0")}`;
 
         const hashedPassword = await hashPassword(password);
         const verification = createEmailVerificationToken();
         await db.upsertUser({
           openId,
-          username,
+          username: null,
           email: normalizedEmail,
           emailVerificationTokenHash: verification.tokenHash,
           emailVerificationExpiresAt: verification.expiresAt,
@@ -114,8 +104,8 @@ export const appRouter = router({
           refCode: userRefCode,
           referredBy: referredBy || undefined,
           role: "user",
-          name: username,
-          avatarId,
+          name: null,
+          avatarId: null,
           loginMethod: "virtual",
           balance: "0.00",
           xp: 0,
@@ -128,7 +118,7 @@ export const appRouter = router({
 
         // Create session token
         const sessionToken = await sdk.createSessionToken(openId, {
-          name: username,
+          name: "Member",
           expiresInMs: 30 * 24 * 60 * 60 * 1000,
         });
         const cookieOptions = getSessionCookieOptions(ctx.req);
@@ -148,13 +138,13 @@ export const appRouter = router({
               userId: referrer.id,
               amount: "0.10",
               type: "referral",
-              source: `Referral: ${username}`,
+              source: "Referral signup",
             });
             await db.addActivity({
               userId: referrer.id,
               username: referrer.username || "User",
               type: "referral",
-              description: `earned $0.10 from referral ${username}`,
+              description: "earned $0.10 from referral signup",
               amount: "0.10",
             });
           }
@@ -164,12 +154,12 @@ export const appRouter = router({
         const newUser = await db.getUserByOpenId(openId);
         if (newUser) {
           // Activity logging removed for signup bonus
-          await db.updateLeaderboard(newUser.id, newUser.username || username, 0.00);
+          if (newUser.username) await db.updateLeaderboard(newUser.id, newUser.username, 0.00);
         }
 
         let emailSent = true;
         try {
-          await sendVerificationEmail({ email: normalizedEmail, username, token: verification.token });
+          await sendVerificationEmail({ email: normalizedEmail, username: "Member", token: verification.token });
         } catch (error) {
           emailSent = false;
           console.error("[Email] Verification email failed:", error);
@@ -177,10 +167,11 @@ export const appRouter = router({
 
         return {
           success: true,
-          username,
+          username: null,
           refCode: userRefCode,
+          needsOnboarding: true,
           emailSent,
-          message: `Welcome to RewardsVerse, ${username}!`,
+          message: "Welcome to RewardsVerse. Complete your profile to continue.",
         };
       }),
 
@@ -255,13 +246,17 @@ export const appRouter = router({
     }),
     updateProfile: protectedProcedure
       .input(z.object({
-        username: z.string().trim().min(3).max(64).optional(),
+        username: z.string().trim().min(3).max(64).regex(/^[a-zA-Z][a-zA-Z0-9_]{2,63}$/).optional(),
         avatar: z.string().max(20000).regex(/^data:image\/svg\+xml,/).optional(),
         avatarId: z.number().int().min(AVATAR_MIN).max(AVATAR_MAX).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const user = await db.getUserByOpenId(ctx.user.openId);
         if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+        if (input.username && input.username !== user.username) {
+          const existing = await db.getUserByUsername(input.username);
+          if (existing && existing.id !== user.id) throw new TRPCError({ code: "CONFLICT", message: "Username already taken" });
+        }
         await db.updateUserProfile(user.id, input);
         return { success: true };
       }),

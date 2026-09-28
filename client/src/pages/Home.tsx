@@ -35,7 +35,7 @@ export default function Home() {
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) return;
     if (!password.trim() || password.length < 6) return;
     setIsSubmitting(true);
-    try { await register(username.trim(), password.trim(), email.trim().toLowerCase(), refCode.trim() || undefined); }
+    try { await register(password.trim(), email.trim().toLowerCase(), refCode.trim() || undefined, true); }
     finally { setIsSubmitting(false); }
   };
 

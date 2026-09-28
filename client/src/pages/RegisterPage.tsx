@@ -81,10 +81,10 @@ export default function RegisterPage() {
 
   const onSubmit = async (values: FormValues) => {
     const { error } = await signUpWithUsername(
-      values.username,
       values.password,
       values.email,
-      values.referralCode || undefined
+      values.referralCode || undefined,
+      true
     );
     if (error) {
       if (error.message.includes('already registered') || error.message.includes('duplicate')) {
@@ -95,7 +95,7 @@ export default function RegisterPage() {
       return;
     }
     toast.success('Account created! Check your email to verify your account.');
-    navigate('/dashboard');
+    navigate('/onboarding');
   };
 
   const perks = [

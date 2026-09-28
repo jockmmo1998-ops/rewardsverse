@@ -26,9 +26,10 @@ function matchPublicRoute(path: string, patterns: string[]) {
 }
 
 export function RouteGuard({ children }: RouteGuardProps) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const needsOnboarding = Boolean(user && profile && (!profile.username || !profile.avatarId));
 
   useEffect(() => {
     if (loading) return;
@@ -37,8 +38,18 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
     if (!user && !isPublic) {
       navigate('/login', { state: { from: location.pathname }, replace: true });
+      return;
     }
-  }, [user, loading, location.pathname, navigate]);
+
+    if (user && needsOnboarding && location.pathname !== '/onboarding') {
+      navigate('/onboarding', { replace: true });
+      return;
+    }
+
+    if (user && !needsOnboarding && location.pathname === '/onboarding') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, profile, loading, location.pathname, navigate, needsOnboarding]);
 
   if (loading) {
     return (
