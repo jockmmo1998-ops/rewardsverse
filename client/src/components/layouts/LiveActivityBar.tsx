@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { Activity, ArrowDownToLine, CalendarDays, CircleDollarSign, Radio, Trophy, WalletCards, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { UserAvatar } from '@/components/AvatarSystem';
@@ -39,7 +39,7 @@ function levelForXp(value: unknown) {
 
 function activityLabel(type: unknown) {
   if (type === 'withdrawal') return 'Withdrew funds';
-  if (type === 'offer_complete' || type === 'reward') return 'Completed offer';
+  if (type === 'offer_complete' || type === 'reward') return 'Offer';
   if (type === 'daily_claim') return 'Daily bonus';
   if (type === 'referral') return 'Referral reward';
   return 'Account activity';
@@ -63,6 +63,20 @@ function compactActivityDescription(value: unknown) {
     ? `${offerName.slice(0, maxOfferNameLength - 1).trimEnd()}…`
     : offerName;
   return `${prefix}${compactName}`;
+}
+
+function shortOfferName(item: any) {
+  if (item.type === 'withdrawal') return 'WITHDRAW';
+  const description = String(item.description || '').trim();
+  const separatorIndex = description.indexOf(' — ');
+  const offerName = separatorIndex >= 0
+    ? description.slice(separatorIndex + 3).trim()
+    : description.replace(/^earned\s+\$?[\d.,]+\s+on\s+/i, '').trim();
+  if (!offerName) return 'New offer';
+  const maxLength = 27;
+  return offerName.length > maxLength
+    ? `${offerName.slice(0, maxLength - 1).trimEnd()}…`
+    : offerName;
 }
 
 function userKey(item: any) {
@@ -94,12 +108,18 @@ export function LiveActivityBar() {
     if (selectedUserKey && !groupedUsers.has(selectedUserKey)) setSelectedUserKey(null);
   }, [groupedUsers, selectedUserKey]);
 
+  const inspectItem = (event: SyntheticEvent, item: any) => {
+    event.stopPropagation();
+    setSelectedUserKey(userKey(item));
+  };
+
   const renderItem = (item: any, duplicate = false) => (
     <button
       key={`${item.id}-${duplicate ? 'copy' : 'primary'}`}
       type="button"
       className={`live-activity-item live-activity-button ${item.type === 'withdrawal' ? 'live-activity-withdrawal' : ''}`}
-      onClick={(event) => { event.stopPropagation(); setSelectedUserKey(userKey(item)); }}
+      onPointerDown={(event) => inspectItem(event, item)}
+      onClick={(event) => inspectItem(event, item)}
       tabIndex={duplicate ? -1 : 0}
       aria-hidden={duplicate}
       aria-label={`View full activity for ${maskUsername(item.username)}`}
@@ -109,7 +129,7 @@ export function LiveActivityBar() {
       <span className="live-activity-copy">
         <span className="live-activity-user">{maskUsername(item.username)}</span>
         <span className="live-activity-summary">
-          <span className="live-activity-amount">{formatAmount(item.amount) || 'Verified'}</span> <span>·</span> <span className={item.type === 'withdrawal' ? 'live-activity-withdrawal-label' : undefined}>{item.type === 'withdrawal' ? 'WITHDRAW' : 'completed offer'}</span>
+          <span className="live-activity-amount">{formatAmount(item.amount) || 'Verified'}</span> <span>·</span> <span className={item.type === 'withdrawal' ? 'live-activity-withdrawal-label' : 'live-activity-offer-name'}>{shortOfferName(item)}</span>
         </span>
       </span>
     </button>
@@ -149,7 +169,7 @@ export function LiveActivityBar() {
                 {selectedItems.slice(0, 8).map((item) => (
                   <div key={item.id} className="flex items-start gap-2 text-xs">
                     {item.type === 'withdrawal' ? <ArrowDownToLine className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" /> : <Activity className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />}
-                    <span className={`min-w-0 break-words ${item.type === 'withdrawal' ? 'text-amber-100' : 'text-muted-foreground'}`}><strong className="mr-1 text-foreground">{activityLabel(item.type)}</strong>{compactActivityDescription(item.description)}{formatAmount(item.amount) && <strong className="ml-1 text-foreground">{formatAmount(item.amount)}</strong>}<span className="ml-1 text-[10px] text-muted-foreground/70">· {timeLabel(item.createdAt)}</span></span>
+                    <span className={`min-w-0 break-words ${item.type === 'withdrawal' ? 'text-amber-100' : 'text-muted-foreground'}`}><strong className="mr-1 text-foreground">{activityLabel(item.type)}</strong>{item.type === 'offer_complete' || item.type === 'reward' ? shortOfferName(item) : compactActivityDescription(item.description)}{formatAmount(item.amount) && <strong className="ml-1 text-foreground">{formatAmount(item.amount)}</strong>}<span className="ml-1 text-[10px] text-muted-foreground/70">· {timeLabel(item.createdAt)}</span></span>
                   </div>
                 ))}
               </div>
