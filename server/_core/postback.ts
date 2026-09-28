@@ -995,6 +995,20 @@ async function handlePostback(req: Request, res: Response) {
     diagnostics.rewardValidation = Number.isFinite(reward) && reward >= 0 ? "PASS" : "FAIL";
     diagnostics.receivedReward = rawAmount;
 
+    if (user.accountStatus === "suspended") {
+      diagnostics.balanceCredit = "SKIPPED (SUSPENDED_USER)";
+      diagnostics.ledger = "SKIPPED (SUSPENDED_USER)";
+      return respond(200, {
+        success: false,
+        message: "User account is suspended — reward was not credited",
+        suspended: true,
+        detectedUser: rawUserId,
+        transactionId: txid,
+        offerId,
+        offerName,
+      }, "failed", user.id, rawAmount, txid, offerName, "suspended_user", eventKey);
+    }
+
     if (sandboxRequested) {
       diagnostics.balanceCredit = "PASS (SANDBOX_NO_CREDIT)";
       diagnostics.ledger = "PASS (SANDBOX_NO_CREDIT)";

@@ -310,6 +310,12 @@ class SDKServer {
       throw ForbiddenError("User not found");
     }
 
+    if (user.accountStatus === "suspended") {
+      throw ForbiddenError(user.suspensionReason
+        ? `This account is suspended: ${user.suspensionReason}`
+        : "This account is suspended. Contact support for assistance.");
+    }
+
     await db.upsertUser({
       openId: user.openId,
       lastSignedIn: signedInAt,

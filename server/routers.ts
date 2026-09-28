@@ -207,6 +207,15 @@ export const appRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect password" });
         }
 
+        if (user.accountStatus === "suspended") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: user.suspensionReason
+              ? `This account is suspended: ${user.suspensionReason}`
+              : "This account is suspended. Contact support for assistance.",
+          });
+        }
+
         // Create session token
         const sessionToken = await sdk.createSessionToken(user.openId, {
           name: user.username || user.name || "",
