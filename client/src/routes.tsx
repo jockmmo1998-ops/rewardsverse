@@ -5,6 +5,7 @@ import { AppLayout } from './components/layouts/AppLayout';
 const HomePage         = lazy(() => import('./pages/HomePage'));
 const AuthPage         = lazy(() => import('./pages/AuthPage'));
 const OnboardingPage   = lazy(() => import('./pages/OnboardingPage'));
+const OfferWallPage    = lazy(() => import('./pages/OfferWallFullPage'));
 const PasswordRecoveryPage = lazy(() => import('./pages/PasswordRecoveryPage'));
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
 const DashboardPage    = lazy(() => import('./pages/DashboardPage'));
@@ -41,6 +42,7 @@ export const routes: RouteConfig[] = [
   { name: 'Login', path: '/login', element: <AuthPage />, public: true },
   { name: 'Register', path: '/register', element: <AuthPage />, public: true },
   { name: 'Onboarding', path: '/onboarding', element: withLayout(OnboardingPage) },
+  { name: 'OfferwallPage', path: '/offerwalls/:wallId', element: <Suspense fallback={<PageFallback />}><OfferWallPage /></Suspense> },
   { name: 'ForgotPassword', path: '/forgot-password', element: <PasswordRecoveryPage />, public: true },
   { name: 'ResetPassword', path: '/reset-password', element: <PasswordRecoveryPage />, public: true },
   { name: 'VerifyEmail', path: '/verify-email', element: <VerifyEmailPage />, public: true },
