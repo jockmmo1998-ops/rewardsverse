@@ -16,7 +16,7 @@ type AuthContextType = {
   refreshProfile: () => Promise<unknown>;
   logout: () => Promise<void>;
   register: (password: string, email: string, refCode: string | undefined, termsAccepted: boolean) => Promise<AuthResult>;
-  login: (username: string, password: string) => Promise<AuthResult>;
+  login: (email: string, password: string) => Promise<AuthResult>;
   signUpWithUsername: (password: string, email: string, refCode: string | undefined, termsAccepted: boolean) => Promise<AuthResult>;
   signInWithUsername: (username: string, password: string) => Promise<AuthResult>;
 };
@@ -97,11 +97,11 @@ export function useAuth(): AuthContextType {
   );
 
   const login = useCallback(
-    async (username: string, password: string): Promise<AuthResult> => {
+    async (email: string, password: string): Promise<AuthResult> => {
       try {
-        const data = await loginMutation.mutateAsync({ username, password });
+        const data = await loginMutation.mutateAsync({ username: email.trim().toLowerCase(), password });
         try {
-          sessionStorage.setItem("rewardsverse-username", String((data as any)?.username || username));
+          sessionStorage.setItem("rewardsverse-username", String((data as any)?.username || email));
         } catch {}
         await refreshProfile();
         return { error: null, data };

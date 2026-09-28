@@ -178,12 +178,16 @@ export const appRouter = router({
     login: publicProcedure
       .input(
         z.object({
-          username: z.string().min(3).max(30),
+          username: z.string().min(3).max(320),
           password: z.string().min(6).max(128),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const user = await db.getUserByUsername(input.username);
+        // New accounts sign in with the email used during registration. Keep
+        // the username fallback so existing accounts are not locked out.
+        const user = (input.username.includes("@")
+          ? await db.getUserByEmail(input.username.trim().toLowerCase())
+          : undefined) ?? await db.getUserByUsername(input.username);
         if (!user) {
           throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
         }
