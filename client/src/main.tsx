@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import "./index.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { apiUrl } from "@/lib/apiBase";
 
 document.documentElement.classList.add("dark");
 
@@ -38,7 +39,7 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: apiUrl("/api/trpc"),
       transformer: superjson,
       headers() {
         // Preview auto-login fallback: when the browser blocks iframe cookies

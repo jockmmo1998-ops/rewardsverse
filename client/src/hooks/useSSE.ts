@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiUrl } from "@/lib/apiBase";
 
 export interface PostbackEvent {
   type: "postback";
@@ -62,10 +63,10 @@ export function useSSE(options: UseSSEOptions = {}) {
       return;
     }
 
-    const sseUrl = `/api/sse/subscribe?userId=${user.id}`;
+    const sseUrl = apiUrl(`/api/sse/subscribe?userId=${encodeURIComponent(user.id)}`);
 
     try {
-      const eventSource = new EventSource(sseUrl);
+      const eventSource = new EventSource(sseUrl, { withCredentials: true });
 
       eventSource.addEventListener("open", () => {
         console.log("[SSE] Connection opened");

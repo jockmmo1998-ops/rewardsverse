@@ -4,6 +4,7 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { randomUUID } from "node:crypto";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -11,6 +12,13 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
+  app.get("/api/oauth/state", (req: Request, res: Response) => {
+    const nonce = randomUUID();
+    const cookieOptions = getSessionCookieOptions(req);
+    res.cookie(OAUTH_STATE_COOKIE, nonce, { ...cookieOptions, maxAge: 10 * 60 * 1000 });
+    res.json({ nonce });
+  });
+
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
@@ -29,7 +37,7 @@ export function registerOAuthRoutes(app: Express) {
       res.status(403).json({ error: "invalid oauth state" });
       return;
     }
-    res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
+    res.clearCookie(OAUTH_STATE_COOKIE, { ...getSessionCookieOptions(req), maxAge: 0 });
 
     try {
       const tokenResponse = await sdk.exchangeCodeForToken(code, state);
@@ -56,7 +64,8 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      res.redirect(302, "/");
+      const frontendOrigin = process.env.PUBLIC_APP_URL?.replace(/\/$/, "") || "/";
+      res.redirect(302, frontendOrigin);
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
       res.status(500).json({ error: "OAuth callback failed" });

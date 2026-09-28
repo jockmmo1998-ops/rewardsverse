@@ -39,9 +39,9 @@ export function getSessionCookieOptions(
   //       ? hostname
   //       : undefined;
 
-  // RewardsVerse serves the app and /api/trpc from the same site. Lax is
-  // accepted by modern browsers without the SameSite=None + Secure rejection
-  // that can silently discard the login cookie behind a proxy.
+  // The frontend and API remain same-site subdomains in production. Lax keeps
+  // the session cookie protected from cross-site requests without requiring
+  // SameSite=None, while credentials are explicitly enabled by the client.
   return {
     httpOnly: true,
     path: "/",

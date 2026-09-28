@@ -66,6 +66,27 @@ async function startServer() {
   // correctly reports HTTPS when issuing the Secure session cookie.
   app.set("trust proxy", 1);
   const server = createServer(app);
+  const configuredFrontendOrigin = process.env.PUBLIC_APP_URL?.replace(/\/$/, "");
+  const allowedOrigins = new Set(
+    [configuredFrontendOrigin, "http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
+      .filter((origin): origin is string => Boolean(origin))
+  );
+  const getCorsOrigin = (req: express.Request) => {
+    const origin = req.get("origin");
+    return origin && allowedOrigins.has(origin) ? origin : undefined;
+  };
+  app.use((req, res, next) => {
+    const origin = getCorsOrigin(req);
+    if (origin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      res.setHeader("Vary", "Origin");
+    }
+    if (req.method === "OPTIONS") return res.sendStatus(origin ? 204 : 403);
+    next();
+  });
   // Cấu hình body parser với giới hạn lớn hơn cho file upload
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -90,7 +111,12 @@ async function startServer() {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    const origin = getCorsOrigin(req);
+    if (origin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Vary", "Origin");
+    }
 
     // Gửi tin nhắn kết nối ban đầu
     res.write(`data: ${JSON.stringify({ type: "connected", message: "SSE connection established" })}\n\n`);
