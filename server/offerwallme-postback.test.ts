@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { selectOfferwallMeReward } from "./_core/postback";
+import { convertOfferwallMePointsToUsd, selectOfferwallMeReward } from "./_core/postback";
 
 const liveCallback = {
   subId: "Yuki9168",
@@ -13,15 +13,17 @@ const liveCallback = {
 };
 
 describe("Offerwall.me reward parsing", () => {
-  it("uses the configured user-facing reward_value instead of provider gross reward", () => {
-    expect(selectOfferwallMeReward(liveCallback)).toBe("500");
+  it("uses the actual reward value when both Offerwall.me fields are present", () => {
+    expect(selectOfferwallMeReward(liveCallback)).toBe("1593.8");
+    expect(Number(selectOfferwallMeReward(liveCallback))).toBe(1593.8);
+    expect(convertOfferwallMePointsToUsd(Number(selectOfferwallMeReward(liveCallback)))).toBeCloseTo(1.5938, 4);
   });
 
-  it("falls back to reward for legacy callbacks without reward_value", () => {
-    expect(selectOfferwallMeReward({ reward: "12.50", payout: "0.025" })).toBe("12.50");
+  it("falls back to reward_value when reward is missing", () => {
+    expect(selectOfferwallMeReward({ reward_value: "12.50", payout: "0.025" })).toBe("12.50");
   });
 
-  it("ignores non-numeric reward_value and uses numeric reward fallback", () => {
-    expect(selectOfferwallMeReward({ reward_value: "{reward_value}", reward: "25" })).toBe("25");
+  it("ignores non-numeric reward and uses numeric reward_value fallback", () => {
+    expect(selectOfferwallMeReward({ reward: "{reward}", reward_value: "25" })).toBe("25");
   });
 });

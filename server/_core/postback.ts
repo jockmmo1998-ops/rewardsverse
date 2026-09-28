@@ -67,6 +67,7 @@ const REWARD_FIELDS = [
 
 // The provider amount is the gross/original reward. Credit the configured provider share to the user.
 const USER_PAYOUT_SHARE = 0.5;
+const OFFERWALLME_POINTS_PER_USD = 1000;
 const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
 /** AdMaxFlow Placement points per USD. This Placement is fixed at 400 = $1. */
@@ -215,16 +216,19 @@ function pickSignedNumeric(params: Record<string, any>, fields: string[]): strin
 }
 
 /**
- * Offerwall.me sends two different reward concepts in the same callback:
- * `reward` is the provider-side gross calculation, while `reward_value` is
- * the user-facing Points value configured for the completed offer.  The
- * latter must drive the wallet credit; using `reward` can turn a 500-point
- * offer into a 1,593.80-point credit (as seen in the live callback).
- *
- * Keep `reward` as a fallback for older callbacks that predate reward_value.
+ * Offerwall.me sends both `reward` and `reward_value` in some callbacks.
+ * For the live contract, `reward` is the offer value credited by Offerwall.me;
+ * `reward_value` can be a smaller internal/configured value (the observed
+ * payload had reward=1593.8 and reward_value=500). Prefer the actual reward so
+ * the user does not receive $250 for a 1,593.80-point offer. Keep reward_value
+ * as a fallback for older/incomplete callbacks.
  */
 export function selectOfferwallMeReward(params: Record<string, any>): string {
-  return pickNumeric(params, ["reward_value", "reward"]);
+  return pickNumeric(params, ["reward", "reward_value"]);
+}
+
+export function convertOfferwallMePointsToUsd(points: number): number {
+  return Number.isFinite(points) ? points / OFFERWALLME_POINTS_PER_USD : NaN;
 }
 
 function redactForLog(value: unknown): string {
@@ -831,6 +835,10 @@ async function handlePostback(req: Request, res: Response) {
           const conversion = placement ? calculateTimewallCredit(rawAmount, placement) : null;
           return conversion?.creditUsd ?? NaN;
         })()
+      // Offerwall.me's `reward` is Points, while the wallet is denominated in
+      // USD at 1,000 Points = $1. Do not apply the generic 50% share.
+      : provider === "offerwallme"
+      ? convertOfferwallMePointsToUsd(providerReward)
       : provider === "admaxflow"
       ? providerReward * ADMAXFLOW_USER_SHARE
       : provider === "pocketsfull"
