@@ -42,10 +42,12 @@ export function useAuth(): AuthContextType {
     // Keep the balance responsive even when the user is on a page that is
     // not currently holding an SSE subscription (provider callbacks are
     // still processed immediately on the server).
-    refetchInterval: 5000,
+    refetchInterval: 15000,
     refetchIntervalInBackground: false,
   });
   const activitiesQuery = trpc.user.getActivities.useQuery(undefined, {
+    enabled: Boolean(coreAuth.user),
+    staleTime: 15_000,
     retry: false,
     refetchOnWindowFocus: false,
     refetchInterval: 15000,

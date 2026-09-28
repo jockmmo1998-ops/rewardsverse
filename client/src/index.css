@@ -176,8 +176,8 @@
 }
 .dark .app-shell-background { background: var(--background); opacity: 1; }
 .rewards-auth-page { isolation: isolate; overflow: hidden; }
-.rewards-auth-page::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.2), rgba(255,255,255,.2)), url('/rewardsverse-dashboard-bg-v2.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
-.dark .rewards-auth-page::before { background-image: linear-gradient(rgba(24,24,27,.78), rgba(24,24,27,.78)), url('/rewardsverse-dashboard-bg-v2.png'); }
+.rewards-auth-page::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.2), rgba(255,255,255,.2)), url('/rewardsverse-dashboard-bg-v2.webp'); background-size: cover; background-position: center; background-repeat: no-repeat; }
+.dark .rewards-auth-page::before { background-image: linear-gradient(rgba(24,24,27,.78), rgba(24,24,27,.78)), url('/rewardsverse-dashboard-bg-v2.webp'); }
   .hud-sidebar { background: var(--sidebar-background); border-right: 1px solid var(--sidebar-border); box-shadow: 12px 0 30px rgba(15,23,42,.05); }
 .hud-topbar { position: sticky; top: 0; z-index: 30; display: flex; height: 64px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.94); padding: 0 1.5rem; backdrop-filter: blur(14px); }
 .hud-topbar::after { content: ''; position: absolute; bottom: -1px; left: 1.5rem; height: 2px; width: 56px; background: var(--primary); }

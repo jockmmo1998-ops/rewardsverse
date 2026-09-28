@@ -21,8 +21,9 @@ export function WithdrawalStatusToast() {
   const withdrawals = trpc.withdraw.getMyWithdrawals.useQuery(undefined, {
     enabled: Boolean(user),
     retry: false,
-    refetchInterval: 10_000,
-    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
   });
 
   const latest = useMemo(() => {

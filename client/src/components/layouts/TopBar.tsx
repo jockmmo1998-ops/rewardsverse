@@ -41,15 +41,15 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
     enabled: Boolean(user),
     retry: false,
     refetchOnWindowFocus: true,
-    refetchInterval: 15000,
-    refetchIntervalInBackground: true,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
   });
   const unread = trpc.notifications.getUnread.useQuery(undefined, {
     enabled: Boolean(user),
     retry: false,
     refetchOnWindowFocus: true,
-    refetchInterval: 15000,
-    refetchIntervalInBackground: true,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
   });
   const refreshNotifications = useCallback(() => {
     void notifications.refetch();

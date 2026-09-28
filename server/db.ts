@@ -475,7 +475,8 @@ export async function getEarningsByUserId(userId: number) {
     .select()
     .from(earnings)
     .where(eq(earnings.userId, userId))
-    .orderBy(desc(earnings.createdAt));
+    .orderBy(desc(earnings.createdAt))
+    .limit(500);
 }
 
 // ===== LEADERBOARD =====
@@ -494,7 +495,8 @@ export async function getLeaderboard() {
     })
     .from(leaderboard)
     .leftJoin(users, eq(leaderboard.userId, users.id))
-    .orderBy(desc(leaderboard.totalEarned));
+    .orderBy(desc(leaderboard.totalEarned))
+    .limit(100);
 }
 
 export async function updateLeaderboard(userId: number, username: string, totalEarned: number) {
@@ -755,7 +757,8 @@ export async function getOfferHistoryByUserId(userId: number) {
     .select()
     .from(offerHistory)
     .where(eq(offerHistory.userId, userId))
-    .orderBy(desc(offerHistory.createdAt));
+    .orderBy(desc(offerHistory.createdAt))
+    .limit(500);
 }
 
 export async function getPendingOfferHistory(limit = 200) {

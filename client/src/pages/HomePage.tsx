@@ -58,7 +58,7 @@ export default function HomePage() {
   const featured = trpc.user.getFeaturedOffers.useQuery(undefined, { staleTime: 60_000, gcTime: 5 * 60_000, placeholderData: (previousData) => previousData, refetchOnWindowFocus: false, retry: false });
   const summary = trpc.user.getDashboardSummary.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
   const weeklyQuery = trpc.user.getWeeklyProgress.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
-  const withdrawals = trpc.withdraw.getMyWithdrawals.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
+  const withdrawals = trpc.withdraw.getMyWithdrawals.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, refetchInterval: 30_000, refetchIntervalInBackground: false, retry: false });
   const leaderboardQuery = trpc.user.getLeaderboard.useQuery(undefined, { staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
 
   const allOffers = featured.data ?? [];

@@ -107,10 +107,10 @@ export function LiveActivityBar() {
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
   const { user } = useAuth();
   const activities = trpc.user.getActivities.useQuery(undefined, {
-    staleTime: 5_000,
+    staleTime: 15_000,
     refetchInterval: 15_000,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     retry: false,
   });
   const currentUserId = String(user?.id ?? user?.userId ?? '');
