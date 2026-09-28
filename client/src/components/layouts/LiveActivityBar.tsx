@@ -117,6 +117,21 @@ export function LiveActivityBar() {
     }
   }, [groupedUsers, selectedUserKey]);
 
+  useEffect(() => {
+    const handleNativeClick = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      const button = target?.closest<HTMLElement>('[data-live-user-key]');
+      const key = button?.dataset.liveUserKey;
+      if (!key) return;
+      const item = items.find((candidate) => userKey(candidate) === key);
+      if (!item) return;
+      setSelectedUserKey(key);
+      setSelectedActivity(item);
+    };
+    document.addEventListener('click', handleNativeClick, true);
+    return () => document.removeEventListener('click', handleNativeClick, true);
+  }, [items]);
+
   const inspectItem = (event: SyntheticEvent, item: any) => {
     event.stopPropagation();
     setSelectedUserKey(userKey(item));
