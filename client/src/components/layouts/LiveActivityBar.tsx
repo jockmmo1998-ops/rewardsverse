@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { Activity, ArrowDownToLine, CalendarDays, CircleDollarSign, Radio, Trophy, WalletCards, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { UserAvatar } from '@/components/AvatarSystem';
+import { useAuth } from '@/contexts/AuthContext';
 
 function maskUsername(value: unknown) {
   const username = String(value || 'member').trim();
@@ -91,6 +93,7 @@ function userKey(item: any) {
 export function LiveActivityBar() {
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
+  const { user } = useAuth();
   const activities = trpc.user.getActivities.useQuery(undefined, {
     staleTime: 5_000,
     refetchInterval: 15_000,
@@ -98,7 +101,15 @@ export function LiveActivityBar() {
     refetchOnWindowFocus: true,
     retry: false,
   });
-  const items = (activities.data ?? []).slice(0, 30) as any[];
+  const currentUserId = String(user?.id ?? user?.userId ?? '');
+  const currentUsername = String(user?.username ?? '').toLowerCase();
+  const items = (activities.data ?? [])
+    .filter((item: any) => {
+      const itemUserId = String(item.userId ?? '');
+      const itemUsername = String(item.username ?? '').toLowerCase();
+      return (!currentUserId || itemUserId !== currentUserId) && (!currentUsername || itemUsername !== currentUsername);
+    })
+    .slice(0, 30) as any[];
   const groupedUsers = useMemo(() => {
     const groups = new Map<string, any[]>();
     items.forEach((item) => {
@@ -188,8 +199,8 @@ export function LiveActivityBar() {
           <span className="text-xs text-muted-foreground"><CircleDollarSign className="mr-1.5 inline h-3.5 w-3.5" />No recent verified activity</span>
         )}
       </div>
-      {selectedUser && (
-        <div className="live-activity-detail" role="dialog" aria-label="User activity details">
+      {selectedUser && createPortal(
+        <div className="live-activity-detail live-activity-detail-portal" role="dialog" aria-label="User activity details">
           <div className="flex items-start gap-3">
             <div className={`live-activity-detail-icon ${selectedUser.type === 'withdrawal' ? 'withdrawal' : ''}`}>{selectedUser.type === 'withdrawal' ? <ArrowDownToLine className="h-4 w-4" /> : <WalletCards className="h-4 w-4" />}</div>
             <div className="min-w-0 flex-1">
@@ -212,7 +223,8 @@ export function LiveActivityBar() {
             </div>
             <button type="button" onClick={() => { setSelectedUserKey(null); setSelectedActivity(null); }} className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Close activity details"><X className="h-4 w-4" /></button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </section>
   );
