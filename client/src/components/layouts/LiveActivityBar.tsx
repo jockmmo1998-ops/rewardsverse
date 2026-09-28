@@ -69,11 +69,16 @@ function shortOfferName(item: any) {
   if (item.type === 'withdrawal') return 'WITHDRAW';
   const description = String(item.description || '').trim();
   const separatorIndex = description.indexOf(' — ');
-  const offerName = separatorIndex >= 0
+  const rawOfferName = separatorIndex >= 0
     ? description.slice(separatorIndex + 3).trim()
     : description.replace(/^earned\s+\$?[\d.,]+\s+on\s+/i, '').trim();
+  const offerName = rawOfferName
+    .replace(/^order\s+your\s+/i, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!offerName) return 'New offer';
-  const maxLength = 27;
+  const maxLength = 20;
   return offerName.length > maxLength
     ? `${offerName.slice(0, maxLength - 1).trimEnd()}…`
     : offerName;
@@ -85,6 +90,7 @@ function userKey(item: any) {
 
 export function LiveActivityBar() {
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
   const activities = trpc.user.getActivities.useQuery(undefined, {
     staleTime: 5_000,
     refetchInterval: 15_000,
@@ -102,15 +108,19 @@ export function LiveActivityBar() {
     return groups;
   }, [items]);
   const selectedItems = selectedUserKey ? groupedUsers.get(selectedUserKey) ?? [] : [];
-  const selectedUser = selectedItems[0];
+  const selectedUser = selectedActivity ?? selectedItems[0];
   const selectedLevel = levelForXp(selectedUser?.xp);
   useEffect(() => {
-    if (selectedUserKey && !groupedUsers.has(selectedUserKey)) setSelectedUserKey(null);
+    if (selectedUserKey && !groupedUsers.has(selectedUserKey)) {
+      setSelectedUserKey(null);
+      setSelectedActivity(null);
+    }
   }, [groupedUsers, selectedUserKey]);
 
   const inspectItem = (event: SyntheticEvent, item: any) => {
     event.stopPropagation();
     setSelectedUserKey(userKey(item));
+    setSelectedActivity(item);
   };
 
   const renderItem = (item: any, duplicate = false) => (
@@ -119,6 +129,7 @@ export function LiveActivityBar() {
       type="button"
       className={`live-activity-item live-activity-button ${item.type === 'withdrawal' ? 'live-activity-withdrawal' : ''}`}
       onPointerDown={(event) => inspectItem(event, item)}
+      onMouseDown={(event) => inspectItem(event, item)}
       onClick={(event) => inspectItem(event, item)}
       tabIndex={duplicate ? -1 : 0}
       aria-hidden={duplicate}
@@ -174,7 +185,7 @@ export function LiveActivityBar() {
                 ))}
               </div>
             </div>
-            <button type="button" onClick={() => setSelectedUserKey(null)} className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Close activity details"><X className="h-4 w-4" /></button>
+            <button type="button" onClick={() => { setSelectedUserKey(null); setSelectedActivity(null); }} className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Close activity details"><X className="h-4 w-4" /></button>
           </div>
         </div>
       )}
