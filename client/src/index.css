@@ -761,6 +761,7 @@
 /* Compact click-to-inspect user panel for the live ticker. */
 .live-activity-detail-icon.withdrawal{background:rgba(245,158,11,.16);color:#f6c76b}
 .live-detail-stat{display:flex;min-height:42px;flex-direction:column;justify-content:center;gap:3px;border:1px solid #2b4443;border-radius:.65rem;background:#172326;padding:.45rem .55rem}
+.live-detail-card{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;border:1px solid rgba(52,211,153,.28);border-radius:.7rem;background:rgba(16,185,129,.08);padding:.65rem .7rem}.live-detail-card-withdrawal{border-color:rgba(245,158,11,.42);background:rgba(245,158,11,.07)}
 .live-detail-stat span{color:#8fa9a1;font-size:10px}.live-detail-stat span svg{margin-right:3px;color:#86d6aa}.live-detail-stat strong{overflow:hidden;color:#e4eee9;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
 .live-activity-detail{max-height:min(420px,calc(100vh - 6rem));overflow:auto}
 .live-activity-detail-portal{position:fixed!important;top:76px!important;left:50%!important;z-index:2147483647!important;width:min(460px,calc(100vw - 2rem));max-height:calc(100vh - 100px);transform:translateX(-50%)!important}

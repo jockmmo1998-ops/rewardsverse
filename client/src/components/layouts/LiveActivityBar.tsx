@@ -86,6 +86,18 @@ function shortOfferName(item: any) {
     : offerName;
 }
 
+function providerName(item: any) {
+  const description = String(item.description || '');
+  const match = description.match(/\bon\s+(.+?)(?:\s+—|$)/i);
+  return match?.[1]?.trim() || 'Verified provider';
+}
+
+function withdrawalMethod(item: any) {
+  const description = String(item.description || '');
+  const match = description.match(/\bvia\s+(.+)$/i);
+  return match?.[1]?.trim() || 'Payout method';
+}
+
 function userKey(item: any) {
   return String(item.userId ?? item.username ?? 'member');
 }
@@ -213,12 +225,17 @@ export function LiveActivityBar() {
                 <div className="live-detail-stat"><span>Latest action</span><strong>{timeLabel(selectedUser.createdAt)}</strong></div>
               </div>
               <div className="mt-3 space-y-2 border-t border-border/70 pt-3">
-                {selectedItems.slice(0, 8).map((item) => (
-                  <div key={item.id} className="flex items-start gap-2 text-xs">
-                    {item.type === 'withdrawal' ? <ArrowDownToLine className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" /> : <Activity className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />}
-                    <span className={`min-w-0 break-words ${item.type === 'withdrawal' ? 'text-amber-100' : 'text-muted-foreground'}`}><strong className="mr-1 text-foreground">{activityLabel(item.type)}</strong>{item.type === 'offer_complete' || item.type === 'reward' ? shortOfferName(item) : compactActivityDescription(item.description)}{formatAmount(item.amount) && <strong className="ml-1 text-foreground">{formatAmount(item.amount)}</strong>}<span className="ml-1 text-[10px] text-muted-foreground/70">· {timeLabel(item.createdAt)}</span></span>
+                {selectedItems.filter((item) => item.type === 'offer_complete' || item.type === 'reward').slice(0, 6).map((item) => (
+                  <div key={item.id} className="live-detail-card">
+                    <div className="flex min-w-0 items-start gap-2"><Activity className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-emerald-300">Offer completed</p><p className="mt-1 break-words text-xs font-semibold text-foreground">{shortOfferName(item)}</p><p className="mt-1 text-[10px] text-muted-foreground">Offer wall: <strong className="text-foreground">{providerName(item)}</strong> · {timeLabel(item.createdAt)}</p></div></div><strong className="shrink-0 text-xs text-emerald-300">+{formatAmount(item.amount) || 'Verified'}</strong>
                   </div>
                 ))}
+                {selectedItems.filter((item) => item.type === 'withdrawal').slice(0, 6).map((item) => (
+                  <div key={item.id} className="live-detail-card live-detail-card-withdrawal">
+                    <div className="flex min-w-0 items-start gap-2"><ArrowDownToLine className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" /><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-amber-300">Withdrawal</p><p className="mt-1 text-xs font-semibold text-foreground">{withdrawalMethod(item)}</p><p className="mt-1 text-[10px] text-muted-foreground">{timeLabel(item.createdAt)}</p></div></div><strong className="shrink-0 text-xs text-amber-300">-{formatAmount(item.amount) || '—'}</strong>
+                  </div>
+                ))}
+                {!selectedItems.some((item) => item.type === 'offer_complete' || item.type === 'reward' || item.type === 'withdrawal') && <p className="text-xs text-muted-foreground">No completed offer or withdrawal activity recorded.</p>}
               </div>
             </div>
             <button type="button" onClick={() => { setSelectedUserKey(null); setSelectedActivity(null); }} className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Close activity details"><X className="h-4 w-4" /></button>
