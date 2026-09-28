@@ -216,7 +216,9 @@
 .live-activity-track:hover .live-activity-items { animation-play-state: running !important; }
 .live-activity-copy { display: inline-flex; min-width: 0; flex-direction: column; gap: .08rem; line-height: 1.05; }
 .live-activity-user { overflow: hidden; color: var(--foreground); font-size: .69rem; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
-.live-activity-summary { overflow: hidden; color: var(--muted-foreground); font-size: .59rem; text-overflow: ellipsis; white-space: nowrap; }
+.live-activity-summary { overflow: hidden; color: var(--foreground); font-size: .59rem; text-overflow: ellipsis; white-space: nowrap; }
+.live-activity-amount { color: var(--foreground); font-weight: 650; }
+.live-activity-withdrawal-label { color: #d99b2b; font-weight: 850; letter-spacing: .03em; }
 .live-activity-summary span { color: var(--primary); padding: 0 .16rem; }
 .live-activity-detail { position: absolute; left: 5.5rem; top: calc(100% + .5rem); z-index: 80; width: min(360px, calc(100vw - 2rem)); border: 1px solid #d7e9dc; border-radius: .85rem; background: rgba(255,255,255,.98); padding: .85rem; box-shadow: 0 16px 34px rgba(15,23,42,.14); }
 .live-activity-detail-icon { display: inline-flex; height: 2rem; width: 2rem; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: .65rem; background: #ecfdf3; color: #15803d; }
@@ -765,11 +767,12 @@
 
 /* Make live cards reliably clickable: hovering pauses the ticker instead of chasing moving targets. */
 .live-activity-track:hover .live-activity-items,.app-shell-dashboard .live-activity-track:hover .live-activity-items{animation-play-state:paused!important}
-.live-activity-button{cursor:pointer;pointer-events:auto}.live-activity-withdrawal{border-color:rgba(245,158,11,.72)!important;background:linear-gradient(90deg,rgba(111,71,19,.62),rgba(55,39,22,.82))!important;box-shadow:inset 3px 0 0 #f2b84b,0 0 0 1px rgba(245,158,11,.12)}.live-activity-withdrawal .live-activity-user{color:#ffe4a3!important}.live-activity-withdrawal .live-activity-summary{color:#f4c978!important;font-weight:800;letter-spacing:.02em}
+.live-activity-button{cursor:pointer;pointer-events:auto}.live-activity-withdrawal{border-color:transparent!important;background:transparent!important;box-shadow:none!important}.live-activity-withdrawal .live-activity-user{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-summary{color:var(--foreground)!important;font-weight:650;letter-spacing:normal}.live-activity-withdrawal .live-activity-amount{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-withdrawal-label{color:#d99b2b!important}
 .live-activity-detail{z-index:120;border-color:#3f6258!important;background:#111b1e!important;box-shadow:0 20px 48px rgba(0,0,0,.55)!important}
 @media(max-width:650px){.live-activity-detail{left:.5rem;right:.5rem;width:auto}}
 
 /* Dashboard-only interaction fix: keep marquee moving, but place its clickable layer above the page content. */
 .live-activity-track:hover .live-activity-items,.app-shell-dashboard .live-activity-track:hover .live-activity-items{animation-play-state:running!important}
 .app-shell-dashboard .live-activity-bar{position:relative;z-index:50;isolation:isolate}.app-shell-dashboard .live-activity-track,.app-shell-dashboard .live-activity-items,.app-shell-dashboard .live-activity-button{pointer-events:auto!important}
-.live-activity-withdrawal{border:1px solid rgba(245,158,11,.9)!important;background:linear-gradient(90deg,#6d4714,#3e2b17)!important;box-shadow:inset 4px 0 0 #ffbf3f,0 0 0 1px rgba(245,158,11,.24),0 4px 12px rgba(245,158,11,.12)!important}.live-activity-withdrawal .live-activity-user{color:#fff0bd!important}.live-activity-withdrawal .live-activity-summary{color:#ffd166!important;font-weight:900;letter-spacing:.03em}
+.live-activity-withdrawal{border:0!important;background:transparent!important;box-shadow:none!important}.live-activity-withdrawal .live-activity-user{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-summary{color:var(--foreground)!important;font-weight:650;letter-spacing:normal}.live-activity-withdrawal .live-activity-amount{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-withdrawal-label{color:#f0b94b!important}
+.live-activity-summary,.app-shell-dashboard .live-activity-summary{color:var(--foreground)!important}.live-activity-summary .live-activity-amount,.app-shell-dashboard .live-activity-summary .live-activity-amount{color:var(--foreground)!important}.live-activity-summary .live-activity-withdrawal-label,.app-shell-dashboard .live-activity-summary .live-activity-withdrawal-label{color:#f0b94b!important}

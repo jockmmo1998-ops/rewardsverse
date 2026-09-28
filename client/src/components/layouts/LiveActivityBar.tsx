@@ -72,8 +72,10 @@ function userKey(item: any) {
 export function LiveActivityBar() {
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null);
   const activities = trpc.user.getActivities.useQuery(undefined, {
-    staleTime: 10_000,
-    refetchInterval: 30_000,
+    staleTime: 5_000,
+    refetchInterval: 15_000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     retry: false,
   });
   const items = (activities.data ?? []).slice(0, 30) as any[];
@@ -107,7 +109,7 @@ export function LiveActivityBar() {
       <span className="live-activity-copy">
         <span className="live-activity-user">{maskUsername(item.username)}</span>
         <span className="live-activity-summary">
-          {formatAmount(item.amount) || 'Verified'} <span>·</span> {item.type === 'withdrawal' ? 'WITHDRAWAL' : 'completed offer'}
+          <span className="live-activity-amount">{formatAmount(item.amount) || 'Verified'}</span> <span>·</span> <span className={item.type === 'withdrawal' ? 'live-activity-withdrawal-label' : undefined}>{item.type === 'withdrawal' ? 'WITHDRAW' : 'completed offer'}</span>
         </span>
       </span>
     </button>
