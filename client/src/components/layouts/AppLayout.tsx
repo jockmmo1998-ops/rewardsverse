@@ -15,10 +15,10 @@ export function AppLayout({ children }: { children?: ReactNode }) {
   const utils = trpc.useUtils();
   const isOfferLanding = location.pathname === '/home' || location.pathname === '/dashboard';
   const isSignedIn = Boolean(user);
-  // Both Earn Rewards and Dashboard use the same public activity feed. Keep
-  // the live bar mounted on both routes (including logged-out visitors) so
-  // navigation cannot make Dashboard appear to have no activity.
-  const showLiveTicker = isOfferLanding;
+  // Keep one shared activity feed visible throughout the signed-in menu. The
+  // public Earn Rewards/Dashboard landing routes also keep it visible so
+  // navigation never changes the activity experience.
+  const showLiveTicker = isSignedIn || isOfferLanding;
 
   useEffect(() => {
     if (!isOfferLanding || !isSignedIn) return;
