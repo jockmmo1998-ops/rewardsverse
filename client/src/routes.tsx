@@ -40,7 +40,7 @@ export const routes: RouteConfig[] = [
   { name: 'Root', path: '/', element: <Navigate to="/home" replace />, public: true },
   { name: 'Login', path: '/login', element: <AuthPage />, public: true },
   { name: 'Register', path: '/register', element: <AuthPage />, public: true },
-  { name: 'Onboarding', path: '/onboarding', element: <OnboardingPage /> },
+  { name: 'Onboarding', path: '/onboarding', element: withLayout(OnboardingPage) },
   { name: 'ForgotPassword', path: '/forgot-password', element: <PasswordRecoveryPage />, public: true },
   { name: 'ResetPassword', path: '/reset-password', element: <PasswordRecoveryPage />, public: true },
   { name: 'VerifyEmail', path: '/verify-email', element: <VerifyEmailPage />, public: true },
