@@ -123,6 +123,15 @@ export function LiveActivityBar() {
     setSelectedActivity(item);
   };
 
+  const inspectFromLiveBar = (event: SyntheticEvent) => {
+    const target = event.target as HTMLElement;
+    const button = target.closest<HTMLElement>('[data-live-user-key]');
+    const key = button?.dataset.liveUserKey;
+    if (!key) return;
+    const item = items.find((candidate) => userKey(candidate) === key);
+    if (item) inspectItem(event, item);
+  };
+
   const renderItem = (item: any, duplicate = false) => (
     <button
       key={`${item.id}-${duplicate ? 'copy' : 'primary'}`}
@@ -133,6 +142,7 @@ export function LiveActivityBar() {
       onClick={(event) => inspectItem(event, item)}
       tabIndex={duplicate ? -1 : 0}
       aria-hidden={duplicate}
+      data-live-user-key={userKey(item)}
       aria-label={`View full activity for ${maskUsername(item.username)}`}
     >
       <UserAvatar userId={item.userId} avatarId={item.avatarId} alt="" className="h-6 w-6 shrink-0 rounded-full border border-primary/20" />
@@ -147,7 +157,7 @@ export function LiveActivityBar() {
   );
 
   return (
-    <section className="live-activity-bar relative" aria-label="Live verified activity" aria-live="polite">
+    <section className="live-activity-bar relative" onPointerDownCapture={inspectFromLiveBar} onClickCapture={inspectFromLiveBar} aria-label="Live verified activity" aria-live="polite">
       <div className="live-activity-inner">
         <span className="live-activity-status"><Radio className="h-3.5 w-3.5" /> LIVE</span>
         {activities.isLoading ? (
