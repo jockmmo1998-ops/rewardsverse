@@ -405,44 +405,53 @@ export const appRouter = router({
     create: protectedProcedure
       .input(
         z.object({
-          amount: z.number().min(0.5),
-          cryptoType: z.enum(["bitcoin", "ethereum", "usdt_trc20", "usdt_erc20", "solana", "litecoin", "dogecoin"]),
-          walletAddress: z.string().min(10),
+          amount: z.number().min(0.3).max(100000),
+          cryptoType: z.enum(["bitcoin", "ethereum", "usdt_trc20", "usdt_erc20", "solana", "litecoin", "dogecoin", "binance"]),
+          walletAddress: z.string().trim().min(10).max(512),
         })
       )
       .mutation(async ({ ctx, input }) => {
         const user = await db.getUserByOpenId(ctx.user.openId);
         if (!user) throw new TRPCError({ code: "NOT_FOUND" });
 
-        if (parseFloat(user.balance || "0") < input.amount) {
+        const amount = Number(input.amount.toFixed(2));
+        const walletAddress = input.walletAddress.trim();
+        const existing = await db.getPendingWithdrawalByDetails(user.id, amount.toFixed(2), input.cryptoType, walletAddress);
+        if (existing) {
+          throw new TRPCError({ code: "CONFLICT", message: "An identical withdrawal request is already pending." });
+        }
+        const reserved = await db.deductBalanceIfSufficient(user.id, amount);
+        if (!reserved) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance" });
         }
-
-        await db.deductBalance(user.id, Number(input.amount));
-        const withdrawal = await db.createWithdrawal({
-          userId: user.id,
-          amount: input.amount.toFixed(2),
-          cryptoType: input.cryptoType,
-          walletAddress: input.walletAddress,
-          status: "pending",
-        });
-
-        await db.addActivity({
-          userId: user.id,
-          username: user.username || "User",
-          type: "withdrawal",
-          description: `withdrew $${input.amount.toFixed(2)} via ${input.cryptoType}`,
-          amount: input.amount.toFixed(2),
-        });
-
+        let withdrawal;
         try {
-          await notifyOwner({
-            title: "New Withdrawal Request",
-            content: `User ${user.username} requests $${input.amount.toFixed(2)} via ${input.cryptoType} to ${input.walletAddress.substring(0, 20)}...`,
+          withdrawal = await db.createWithdrawal({
+            userId: user.id,
+            amount: amount.toFixed(2),
+            cryptoType: input.cryptoType,
+            walletAddress,
+            status: "pending",
           });
-        } catch (e) {
-          console.warn("Failed to send notification:", e);
+        } catch (error) {
+          await db.refundBalance(user.id, amount);
+          throw error;
         }
+        try {
+          await db.addActivity({
+            userId: user.id,
+            username: user.username || "User",
+            type: "withdrawal",
+            description: `withdrew $${amount.toFixed(2)} via ${input.cryptoType}`,
+            amount: amount.toFixed(2),
+          });
+        } catch (error) {
+          console.warn("Failed to record withdrawal activity:", error);
+        }
+        void notifyOwner({
+          title: "New Withdrawal Request",
+          content: `User ${user.username} requests $${amount.toFixed(2)} via ${input.cryptoType} to ${walletAddress.substring(0, 20)}...`,
+        }).catch((error) => console.warn("Failed to send notification:", error));
 
         return { success: true, id: withdrawal.insertId };
       }),

@@ -19,6 +19,7 @@ function CryptoLogo({ type }: { type: PaymentMethod }) {
 }
 
 const MIN_WITHDRAWAL = 0.3;
+const MAX_WALLET_ADDRESS_LENGTH = 512;
 
 function statusLabel(status: string) {
   if (status === 'approved') return 'Completed';
@@ -51,16 +52,18 @@ export default function WithdrawPage() {
       setAddress('');
       setAmount('');
       setConfirmOpen(false);
-      void refreshProfile();
-      void withdrawalsQuery.refetch();
-      void utils.withdraw.getMyWithdrawals.invalidate();
-      void utils.notifications.getAll.invalidate();
-      void utils.notifications.getUnread.invalidate();
+      void Promise.allSettled([
+        refreshProfile(),
+        withdrawalsQuery.refetch(),
+        utils.withdraw.getMyWithdrawals.invalidate(),
+        utils.notifications.getAll.invalidate(),
+        utils.notifications.getUnread.invalidate(),
+      ]);
     },
     onError: (error) => toast.error(error.message || 'Unable to submit withdrawal.'),
   });
 
-  const canReview = validAmount && address.trim().length >= 10 && !withdrawMutation.isPending;
+  const canReview = validAmount && address.trim().length >= 10 && address.trim().length <= MAX_WALLET_ADDRESS_LENGTH && !withdrawMutation.isPending;
   const formattedAmount = useMemo(() => (Number.isFinite(amountValue) ? amountValue.toFixed(2) : '0.00'), [amountValue]);
 
   const requestWithdraw = (event: FormEvent) => {
@@ -73,7 +76,7 @@ export default function WithdrawPage() {
       toast.error('Insufficient balance.');
       return;
     }
-    if (address.trim().length < 10) {
+    if (address.trim().length < 10 || address.trim().length > MAX_WALLET_ADDRESS_LENGTH) {
       toast.error('Enter a valid wallet address.');
       return;
     }
@@ -126,7 +129,7 @@ export default function WithdrawPage() {
               </div>
             </div>
 
-            <div><label className="mb-2 block text-sm font-semibold text-foreground">2. Wallet address</label><input required value={address} onChange={(event) => setAddress(event.target.value)} placeholder={`Enter your ${selected.name} wallet address`} maxLength={256} className="h-12 w-full rounded-xl border border-border bg-background px-4 font-mono text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20" /><p className="mt-2 text-xs text-muted-foreground">Double-check the network. Crypto transfers cannot be reversed.</p></div>
+            <div><div className="mb-2 flex items-center justify-between gap-3"><label className="text-sm font-semibold text-foreground">2. Wallet address</label><span className="text-[11px] tabular-nums text-muted-foreground">{address.length}/{MAX_WALLET_ADDRESS_LENGTH}</span></div><textarea required value={address} onChange={(event) => setAddress(event.target.value)} placeholder={`Enter your ${selected.name} wallet address`} maxLength={MAX_WALLET_ADDRESS_LENGTH} rows={3} spellCheck={false} className="w-full resize-y rounded-xl border border-border bg-background px-4 py-3 font-mono text-sm leading-6 text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20" /><p className="mt-2 text-xs text-muted-foreground">Double-check the network. Crypto transfers cannot be reversed.</p></div>
 
             <div><div className="mb-2 flex items-center justify-between"><label className="text-sm font-semibold text-foreground">3. Amount</label><button type="button" onClick={() => setAmount(balance.toFixed(2))} className="text-xs font-semibold text-primary hover:underline">Use max</button></div><div className="relative"><span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">$</span><input required type="number" min={MIN_WITHDRAWAL} max={balance} step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder={`Minimum $${MIN_WITHDRAWAL.toFixed(2)}`} className="h-12 w-full rounded-xl border border-border bg-background pl-9 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20" /></div></div>
 
@@ -138,7 +141,7 @@ export default function WithdrawPage() {
         <div className="space-y-6"><Surface className="p-5 sm:p-6"><div className="flex items-center gap-2 text-foreground"><Clock3 className="h-4 w-4 text-primary" /><h2 className="font-display text-base font-semibold">What happens next?</h2></div><ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground"><li><span className="font-semibold text-foreground">1.</span> Your balance is reserved atomically when the request is accepted.</li><li><span className="font-semibold text-foreground">2.</span> The payout team reviews the destination and request.</li><li><span className="font-semibold text-foreground">3.</span> You can follow the status in your activity history.</li></ol></Surface><Surface className="p-5 sm:p-6"><p className="rv-eyebrow">Recent requests</p>{withdrawalsQuery.isLoading ? <p className="mt-3 text-sm text-muted-foreground">Loading requests…</p> : withdrawalsQuery.data?.length ? <div className="mt-3 space-y-2">{withdrawalsQuery.data.slice(0, 4).map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 text-sm"><div><p className="font-medium text-foreground">${Number(item.amount).toFixed(2)} · {item.cryptoType === 'litecoin' ? 'LTC' : 'Binance'}</p><p className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleDateString()}</p></div><span className="text-xs font-semibold text-muted-foreground">{statusLabel(item.status)}</span></div>)}</div> : <p className="mt-3 text-sm text-muted-foreground">No withdrawal requests yet.</p>}</Surface></div>
       </div>
 
-      {confirmOpen && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"><div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"><p className="rv-eyebrow">Final review</p><h2 className="mt-1 font-display text-xl font-semibold text-foreground">Confirm withdrawal</h2><div className="mt-6 space-y-3 rounded-xl border border-border bg-muted/50 p-4 text-sm"><div className="flex justify-between gap-3"><span className="text-muted-foreground">Method</span><span className="font-medium text-foreground">{selected.symbol} · {selected.network}</span></div><div className="flex justify-between gap-3"><span className="text-muted-foreground">Amount</span><span className="font-medium text-foreground">${formattedAmount}</span></div><div className="flex justify-between gap-3"><span className="text-muted-foreground">Destination</span><span className="max-w-[190px] truncate font-mono text-xs text-foreground">{address}</span></div></div><p className="mt-4 text-xs leading-5 text-muted-foreground">The server will re-check your balance, payment method and duplicate requests before creating the record.</p><div className="mt-6 flex gap-3"><button type="button" onClick={() => setConfirmOpen(false)} className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted">Cancel</button><button type="button" onClick={confirmWithdraw} disabled={!canReview} className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">{withdrawMutation.isPending ? 'Submitting…' : 'Confirm request'}</button></div></div></div>}
+      {confirmOpen && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"><div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"><p className="rv-eyebrow">Final review</p><h2 className="mt-1 font-display text-xl font-semibold text-foreground">Confirm withdrawal</h2><div className="mt-6 space-y-3 rounded-xl border border-border bg-muted/50 p-4 text-sm"><div className="flex justify-between gap-3"><span className="text-muted-foreground">Method</span><span className="font-medium text-foreground">{selected.symbol} · {selected.network}</span></div><div className="flex justify-between gap-3"><span className="text-muted-foreground">Amount</span><span className="font-medium text-foreground">${formattedAmount}</span></div><div className="space-y-1.5"><span className="text-muted-foreground">Full destination address</span><span className="block max-h-28 overflow-y-auto break-all rounded-lg border border-border/70 bg-background/60 p-2 font-mono text-[11px] leading-5 text-foreground">{address}</span></div></div><p className="mt-4 text-xs leading-5 text-muted-foreground">The server will re-check your balance, payment method and duplicate requests before creating the record.</p><div className="mt-6 flex gap-3"><button type="button" onClick={() => setConfirmOpen(false)} disabled={withdrawMutation.isPending} className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">Cancel</button><button type="button" onClick={confirmWithdraw} disabled={!canReview} className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">{withdrawMutation.isPending ? 'Submitting…' : 'Confirm request'}</button></div></div></div>}
     </div>
   );
 }
