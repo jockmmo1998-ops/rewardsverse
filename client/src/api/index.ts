@@ -1,4 +1,5 @@
 import { supabase } from '@/db/supabase';
+import { apiUrl } from '@/lib/apiBase';
 
 export async function fetchPlatformStats() {
   const { count: usersCount } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
@@ -63,7 +64,7 @@ export async function fetchLeaderboard() {
 
 async function fetchTrpc<T>(path: string): Promise<T> {
   const input = encodeURIComponent(JSON.stringify({ json: null }));
-  const response = await fetch(`/api/trpc/${path}?input=${input}`, { credentials: 'include' });
+  const response = await fetch(apiUrl(`/api/trpc/${path}?input=${input}`), { credentials: 'include' });
   const payload = await response.json();
   if (!response.ok || payload.error) throw new Error(payload.error?.json?.message || 'Request failed');
   return (payload.result?.data?.json ?? payload.result?.data) as T;

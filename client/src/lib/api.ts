@@ -1,10 +1,11 @@
 import type { LeaderboardEntry, LiveActivity } from '@/types/types';
+import { apiUrl } from '@/lib/apiBase';
 
 type TrpcEnvelope<T> = { result?: { data?: { json?: T; [key: string]: unknown } } };
 
 async function query<T>(path: string, input?: unknown): Promise<T> {
   const encoded = encodeURIComponent(JSON.stringify({ json: input ?? null }));
-  const response = await fetch(`/api/trpc/${path}?input=${encoded}`, { credentials: 'include' });
+  const response = await fetch(apiUrl(`/api/trpc/${path}?input=${encoded}`), { credentials: 'include' });
   const payload = (await response.json()) as TrpcEnvelope<T> & { error?: { json?: { message?: string } } };
   if (!response.ok || payload.error) throw new Error(payload.error?.json?.message || 'Request failed');
   const data = payload.result?.data;
