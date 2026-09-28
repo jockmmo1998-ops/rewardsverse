@@ -214,6 +214,19 @@ function pickSignedNumeric(params: Record<string, any>, fields: string[]): strin
   return "";
 }
 
+/**
+ * Offerwall.me sends two different reward concepts in the same callback:
+ * `reward` is the provider-side gross calculation, while `reward_value` is
+ * the user-facing Points value configured for the completed offer.  The
+ * latter must drive the wallet credit; using `reward` can turn a 500-point
+ * offer into a 1,593.80-point credit (as seen in the live callback).
+ *
+ * Keep `reward` as a fallback for older callbacks that predate reward_value.
+ */
+export function selectOfferwallMeReward(params: Record<string, any>): string {
+  return pickNumeric(params, ["reward_value", "reward"]);
+}
+
 function redactForLog(value: unknown): string {
   const sensitive = /token|password|secret|api.?key|signature|^sig$|hash|authorization/i;
   const redact = (input: unknown): unknown => {
@@ -777,7 +790,9 @@ async function handlePostback(req: Request, res: Response) {
         // AdsWedMedia test/live callbacks may include reward=0 together with
         // the actual USD payout. The wallet is USD-denominated, so payout
         // must be selected before the virtual reward field.
-        : provider === "adswedmedia"
+      : provider === "offerwallme"
+          ? selectOfferwallMeReward(params)
+      : provider === "adswedmedia"
           ? pickNumeric(params, ["payout", "reward", "round_reward"])
         : pickNumeric(params, [spec.reward, ...REWARD_FIELDS]);
 
