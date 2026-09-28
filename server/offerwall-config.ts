@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, createHmac } from "crypto";
 
 /**
  * Runtime configuration for every RewardsVerse offerwall.
@@ -70,6 +70,7 @@ function appendUserId(baseUrl: string, userId: string): string | null {
 
 export const OFFER_WALL_IDS = [
   "gemiwall",
+  "offerwallme",
   "revtoo",
   "gleamads",
   "moustache",
@@ -89,6 +90,7 @@ export const OFFER_WALL_IDS = [
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
   gemiwall: "Gemiwall",
+  offerwallme: "Offerwall.me",
   revtoo: "Revtoo",
   gleamads: "GleamAds",
   moustache: "MoustacheLeads",
@@ -107,6 +109,18 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
+  offerwallme: (userId) => {
+    const publicKey = env("OFFERWALLME_PUBLIC_API_KEY");
+    const privateSecret = env("OFFERWALLME_SECRET_KEY");
+    if (!publicKey || !privateSecret || !userId.trim()) return null;
+    const expires = String(Math.floor(Date.now() / 1000) + 3600);
+    const message = `offerwall-user-v1\n${publicKey}\n${userId}\n${expires}`;
+    const signature = createHmac("sha256", privateSecret).update(message, "utf8").digest("hex");
+    const url = new URL(`https://offerwall.me/offerwall/${encodeURIComponent(publicKey)}/${encodeURIComponent(userId)}`);
+    url.searchParams.set("identityExpires", expires);
+    url.searchParams.set("identitySignature", signature);
+    return url.toString();
+  },
   gemiwall: (userId) => {
     const legacyPlacement = env("GEMIWALL_PLACEMENT_ID");
     const base = env("GEMIWALL_OFFERWALL_URL") || (legacyPlacement ? `https://gemiwall.com/${encodeURIComponent(legacyPlacement)}` : "https://gemiwall.com/6987046ad95123da06330801");
@@ -210,6 +224,7 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
 };
 
 const secretEntries: Array<[string, string]> = [
+  ["offerwallme", env("OFFERWALLME_SECRET_KEY")],
   ["gemiwall", env("GEMIWALL_POSTBACK_SECRET")],
   // Revtoo's API key identifies the offerwall placement; its postback
   // signature uses the separate Secret Key from the placement settings.
@@ -244,6 +259,14 @@ export const POSTBACK_SECRETS: Record<string, string> = Object.fromEntries(
  * `transId`, `reward` and `signature` rather than the generic token query.
  */
 export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
+  offerwallme: {
+    user: "subId",
+    reward: "reward",
+    transaction: "transId",
+    auth: "md5",
+    response: "ok",
+    macros: ["subId", "transId", "reward", "offer_name", "offer_type", "payout", "userIp", "country", "status", "signature"],
+  },
   gemiwall: {
     user: "sub_id",
     reward: "reward",

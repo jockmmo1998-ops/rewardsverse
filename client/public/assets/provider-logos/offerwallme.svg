@@ -1,0 +1,17 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#markGradient)"/>
+  <rect x="46" y="52" width="164" height="152" rx="38" fill="#06111D" fill-opacity="0.95"/>
+  <path d="M82 91C82 84.3726 87.3726 79 94 79H162C168.627 79 174 84.3726 174 91V103H82V91Z" fill="#00B8A9"/>
+  <path d="M82 119H117V149H82V119Z" fill="#8BD450"/>
+  <path d="M131 119H174V149H131V119Z" fill="#00B8A9"/>
+  <path d="M82 165H174V169C174 175.627 168.627 181 162 181H94C87.3726 181 82 175.627 82 169V165Z" fill="#FFB703"/>
+  <path d="M186 55L191.2 69.8L206 75L191.2 80.2L186 95L180.8 80.2L166 75L180.8 69.8L186 55Z" fill="#FFFFFF"/>
+  <path d="M64 61L67.1 69.9L76 73L67.1 76.1L64 85L60.9 76.1L52 73L60.9 69.9L64 61Z" fill="#06111D" fill-opacity="0.8"/>
+  <defs>
+    <linearGradient id="markGradient" x1="30" y1="28" x2="226" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00B8A9"/>
+      <stop offset="0.56" stop-color="#8BD450"/>
+      <stop offset="1" stop-color="#FFB703"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -35,6 +35,10 @@ services:
         value: RewardsVerse <noreply@rewardsverse.online>
       - key: ADMIN_SECRET
         sync: false
+      - key: OFFERWALLME_PUBLIC_API_KEY
+        sync: false
+      - key: OFFERWALLME_SECRET_KEY
+        sync: false
       - key: GEMIWALL_OFFERWALL_URL
         sync: false
       - key: GEMIWALL_PLACEMENT_ID
