@@ -10,8 +10,6 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { sseManager } from "./sse";
-import path from "path";
-import { fileURLToPath } from "url";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -32,34 +30,6 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
-// Run Drizzle migrations against Supabase PostgreSQL before listening.
-// Migration files are additive/idempotent; no reset, drop, truncate, or seed runs.
-async function runMigrations() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) throw new Error("DATABASE_URL is required in production");
-  const { drizzle } = await import("drizzle-orm/postgres-js");
-  const { migrate } = await import("drizzle-orm/postgres-js/migrator");
-  const postgres = (await import("postgres")).default;
-  const sql = postgres(databaseUrl, { ssl: databaseUrl.includes("supabase.com") ? { rejectUnauthorized: false } : undefined, max: 1, connect_timeout: 20 });
-  const migrationsFolder = path.resolve(process.env.NODE_ENV === "production" ? path.dirname(fileURLToPath(import.meta.url)) : process.cwd(), "drizzle-pg");
-  try {
-    for (let attempt = 1; attempt <= 4; attempt++) {
-      try {
-        console.log("[Migration] Supabase PostgreSQL migrations (attempt " + attempt + "/4)...");
-        await migrate(drizzle(sql), { migrationsFolder });
-        console.log("[Migration] PostgreSQL migrations completed successfully");
-        return;
-      } catch (error) {
-        if (attempt === 4) throw error;
-        console.warn("[Migration] Attempt " + attempt + " failed; retrying:", error);
-        await new Promise(resolve => setTimeout(resolve, attempt * 3000));
-      }
-    }
-  } finally {
-    await sql.end({ timeout: 5 }).catch(closeError => console.warn("[Migration] PostgreSQL connection close warning:", closeError));
-  }
-}
-
 async function startServer() {
   const app = express();
   // Render terminates TLS at the proxy. Trust the first proxy so Express
@@ -69,6 +39,30 @@ async function startServer() {
   // Cấu hình body parser với giới hạn lớn hơn cho file upload
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  const allowedOrigins = new Set([
+    "https://rewardsverse.online",
+    "https://www.rewardsverse.online",
+  ]);
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.has(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader("Vary", "Origin");
+    }
+    if (req.method === "OPTIONS") {
+      return origin && allowedOrigins.has(origin) ? res.sendStatus(204) : res.sendStatus(403);
+    }
+    next();
+  });
+
+  app.get("/api/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   registerPostbackRoutes(app);
@@ -90,8 +84,6 @@ async function startServer() {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-
     // Gửi tin nhắn kết nối ban đầu
     res.write(`data: ${JSON.stringify({ type: "connected", message: "SSE connection established" })}\n\n`);
 
@@ -131,9 +123,9 @@ async function startServer() {
   });
 }
 
-// Migrations run before the server starts. Admin access is promoted through the
-// authenticated ADMIN_SECRET flow; no password or default account is seeded here.
-runMigrations().then(() => startServer()).catch(console.error);
+// The migration branch must never mutate the existing production database at startup.
+// Schema migrations remain in the repository for explicit, separately controlled use.
+startServer().catch(console.error);
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
