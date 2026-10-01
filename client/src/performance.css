@@ -1,0 +1,21 @@
+/* Safe performance defaults: no product behavior or API/auth changes. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+  .live-activity-items {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .hud-topbar,
+  .live-activity-bar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

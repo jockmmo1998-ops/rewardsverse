@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import "./index.css";
+import "./performance.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
 document.documentElement.classList.add("dark");

@@ -19,7 +19,7 @@ export const AVATAR_DEFINITIONS: AvatarDefinition[] = [
 export function avatarUrl(avatarId: unknown) {
   const id = Number(avatarId);
   const safeId = Number.isInteger(id) && id >= 1 && id <= 10 ? id : 1;
-  return `/assets/avatars/avatar-${String(safeId).padStart(2, '0')}.png`;
+  return `/assets/avatars/avatar-${String(safeId).padStart(2, '0')}.webp`;
 }
 
 export function stableAvatarId(userId: unknown, avatarId?: unknown) {

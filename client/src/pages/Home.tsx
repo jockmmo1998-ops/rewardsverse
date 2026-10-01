@@ -199,7 +199,7 @@ export default function Home() {
               <div className="flex -space-x-3">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden ring-1 ring-green-500/20">
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`} alt="User" />
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`} alt="User" loading="lazy" decoding="async" width="40" height="40" />
                   </div>
                 ))}
                 <div className="w-10 h-10 rounded-full border-2 border-background gradient-cyber flex items-center justify-center text-[10px] font-black text-[#060818] ring-1 ring-green-500/40">
@@ -521,7 +521,7 @@ export default function Home() {
                   <p className="text-sm italic mb-6 leading-relaxed text-muted-foreground flex-1">"{t.text}"</p>
                   <div className="flex items-center gap-3 pt-4 border-t border-green-500/10">
                     <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-green-500/20">
-                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${t.name}`} alt={t.name} />
+                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${t.name}`} alt={t.name} loading="lazy" decoding="async" width="36" height="36" />
                     </div>
                     <span className="text-sm font-bold">{t.name}</span>
                   </div>

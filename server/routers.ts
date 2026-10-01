@@ -246,7 +246,7 @@ export const appRouter = router({
       if (!user) return null;
       const avatarId = resolveAvatarId(user);
       if (user.avatarId !== avatarId) void db.updateUserProfile(user.id, { avatarId });
-      return { ...user, avatarId, avatarUrl: `/assets/avatars/avatar-${String(avatarId).padStart(2, "0")}.png` } as any;
+      return { ...user, avatarId, avatarUrl: `/assets/avatars/avatar-${String(avatarId).padStart(2, "0")}.webp` } as any;
     }),
     updateProfile: protectedProcedure
       .input(z.object({

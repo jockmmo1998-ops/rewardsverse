@@ -98,7 +98,15 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    // Only browser-cache immutable-ish static assets. HTML remains uncached so
+    // deploys and auth/session entry points never get stuck behind stale markup.
+    setHeaders(res, filePath) {
+      if (/\.(?:js|css|png|jpe?g|webp|svg|gif|ico|woff2?|ttf)$/i.test(filePath)) {
+        res.setHeader("Cache-Control", "public, max-age=86400");
+      }
+    },
+  }));
 
   // Keep the SPA fallback for declared React routes only. Unknown paths must
   // return a real 404 instead of the index shell (soft-404).
