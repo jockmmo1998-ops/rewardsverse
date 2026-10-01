@@ -74,11 +74,13 @@ const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 const ADMAXFLOW_CURRENCY_RATE = 400;
 /** GleamAds callbacks return integer points; this integration uses 1000 = $1. */
 const GLEAMADS_CURRENCY_RATE = 1000;
-const RADIENTWALL_CURRENCY_RATE = 1000;
+// RadientWall is configured to display 400 points per $1 gross. Its callback
+// reward is already the user's displayed points, so convert those points to
+// the USD-denominated wallet without applying a second 40% reduction.
+const RADIENTWALL_POINTS_PER_USD = 1000;
 const ADMAXFLOW_USER_SHARE = 0.40;
 const POCKETSFULL_USER_SHARE = 0.40;
 const GAINTWALL_USER_SHARE = 0.40;
-const RADIENTWALL_USER_SHARE = 0.40;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -850,7 +852,7 @@ async function handlePostback(req: Request, res: Response) {
       : provider === "gaintwall"
       ? providerReward * GAINTWALL_USER_SHARE
       : provider === "radientwall"
-      ? (providerReward / RADIENTWALL_CURRENCY_RATE) * RADIENTWALL_USER_SHARE
+      ? providerReward / RADIENTWALL_POINTS_PER_USD
       : providerReward * USER_PAYOUT_SHARE;
 
     const timewallPlacement = provider === "timewall" ? resolveTimewallPlacement() : null;
