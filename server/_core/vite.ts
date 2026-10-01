@@ -82,6 +82,12 @@ function normalizeRoutePath(url: string): string {
   return pathname;
 }
 
+function isOfferwallRoute(routePath: string): boolean {
+  // Offerwall pages are client-side routes. Keep the fallback scoped to one
+  // path segment so unknown server/API paths still receive a real 404.
+  return /^\/offerwalls\/[^/]+$/.test(routePath);
+}
+
 export function serveStatic(app: Express) {
   // Khi bundle bằng esbuild, __dirname trỏ vào dist/
   // Frontend build ra dist/public nên path luôn là dist/public
@@ -98,7 +104,7 @@ export function serveStatic(app: Express) {
   // return a real 404 instead of the index shell (soft-404).
   app.use("*", (req, res) => {
     const routePath = normalizeRoutePath(req.originalUrl);
-    if (VALID_SPA_ROUTES.has(routePath)) {
+    if (VALID_SPA_ROUTES.has(routePath) || isOfferwallRoute(routePath)) {
       res.sendFile(path.resolve(distPath, "index.html"));
       return;
     }

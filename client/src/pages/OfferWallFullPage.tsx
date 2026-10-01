@@ -8,7 +8,10 @@ import { EmptyState } from '@/components/shared/RewardUI';
 import { NEW_TAB_WALL_IDS, OFFER_WALLS, OPINION_UNIVERSE_URL, OPINION_UNIVERSE_WALL_ID } from './OfferWalls';
 
 export default function OfferWallPage() {
-  const { wallId = '' } = useParams();
+  const { wallId: routeWallId = '' } = useParams();
+  // Keep direct links from older offerwall cards working after the provider
+  // ID was normalized from "gain+wall" to "gaintwall".
+  const wallId = routeWallId === 'gain+wall' ? 'gaintwall' : routeWallId;
   const navigate = useNavigate();
   const { user, loading: authLoading, refreshProfile } = useAuth();
   const [wallUrl, setWallUrl] = useState('');
