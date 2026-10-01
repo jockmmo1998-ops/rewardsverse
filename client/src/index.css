@@ -778,3 +778,26 @@
 .app-shell-dashboard .live-activity-bar{position:relative;z-index:9999!important;isolation:isolate;pointer-events:auto!important}.app-shell-dashboard .live-activity-inner,.app-shell-dashboard .live-activity-track,.app-shell-dashboard .live-activity-items,.app-shell-dashboard .live-activity-button{pointer-events:auto!important}
 .live-activity-withdrawal{border:1px solid rgba(245,158,11,.78)!important;box-shadow:none!important}.live-activity-withdrawal .live-activity-user{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-summary{color:var(--foreground)!important;font-weight:650;letter-spacing:normal}.live-activity-withdrawal .live-activity-amount{color:var(--foreground)!important}.live-activity-withdrawal .live-activity-withdrawal-label{color:#f0b94b!important}
 .live-activity-summary,.app-shell-dashboard .live-activity-summary{color:var(--foreground)!important}.live-activity-summary .live-activity-amount,.app-shell-dashboard .live-activity-summary .live-activity-amount{color:var(--foreground)!important}.live-activity-summary .live-activity-withdrawal-label,.app-shell-dashboard .live-activity-summary .live-activity-withdrawal-label{color:#f0b94b!important}
+
+
+/* Approved provider-card polish: subtle logos + brand-colored borders only. */
+.unified-page .provider-card {
+  border-color: color-mix(in srgb, var(--provider-accent) 62%, #2f3b35) !important;
+  background: #202023 !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.05), inset 0 1px rgba(255,255,255,.04) !important;
+}
+.unified-page .provider-card:hover {
+  border-color: color-mix(in srgb, var(--provider-accent) 84%, white) !important;
+  background: #27272a !important;
+  box-shadow: 0 14px 26px rgba(0,0,0,.14) !important;
+}
+.unified-page .provider-card::before { display: none !important; }
+.unified-page .provider-card img {
+  filter: brightness(1.03) saturate(1.06) contrast(1.02) drop-shadow(0 3px 6px color-mix(in srgb, var(--provider-accent) 34%, transparent));
+  transition: filter .2s, transform .2s;
+}
+.unified-page .provider-card:hover img {
+  filter: brightness(1.06) saturate(1.09) contrast(1.03) drop-shadow(0 4px 7px color-mix(in srgb, var(--provider-accent) 42%, transparent));
+  transform: scale(1.015);
+}
+.unified-page .provider-logo-fallback { text-shadow: 0 0 5px color-mix(in srgb, var(--provider-accent) 32%, transparent); }
