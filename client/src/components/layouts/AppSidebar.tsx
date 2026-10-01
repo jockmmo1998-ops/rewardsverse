@@ -1,4 +1,4 @@
-import { ArrowDownToLine, Gift, History, LayoutDashboard, LogOut, ShieldCheck, Trophy, UserRound, Users, X, Zap } from 'lucide-react';
+import { LayoutDashboard, LogOut, ShieldCheck, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,18 +8,6 @@ type NavItem = { label: string; path: string; icon: typeof LayoutDashboard; badg
 
 const primaryItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { label: 'Earn rewards', path: '/offerwalls', icon: Zap, badge: 'LIVE' },
-  { label: 'Leaderboard', path: '/leaderboard', icon: Trophy },
-];
-
-const rewardItems: NavItem[] = [
-  { label: 'Activity', path: '/history', icon: History },
-  { label: 'Referrals', path: '/referrals', icon: Users },
-  { label: 'Withdraw', path: '/withdraw', icon: ArrowDownToLine },
-];
-
-const accountItems: NavItem[] = [
-  { label: 'Profile', path: '/profile', icon: UserRound },
 ];
 
 export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; onOpenChange?: (open: boolean) => void; onClose?: () => void }) {
@@ -52,12 +40,9 @@ export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; on
         </div>
         <div className="mt-7 flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto overscroll-contain pr-1 lg:mt-9">
           <NavSection title="Command center" items={primaryItems} />
-          <NavSection title="Your rewards" items={rewardItems} />
-          <NavSection title="Account" items={accountItems} />
           {profile?.is_admin && <NavSection title="Admin" items={[{ label: 'Admin console', path: '/admin', icon: ShieldCheck }]} />}
         </div>
         <div className="mt-4 shrink-0 space-y-3 border-t border-primary/15 pt-4 lg:mt-5">
-          <Link to="/support" onClick={onClose} className="hud-nav-link nav-link-idle focus-ring group w-full"><span className="flex min-w-0 items-center gap-3"><Gift className="h-[17px] w-[17px]" /> <span>Support</span></span></Link>
           <button onClick={handleLogout} className="hud-nav-link nav-link-idle focus-ring group w-full text-left hover:border-red-400/20 hover:bg-red-400/[.06] hover:text-red-300"><span className="flex min-w-0 items-center gap-3"><LogOut className="h-[17px] w-[17px]" /> <span>Disconnect</span></span></button>
         </div>
       </aside>
