@@ -6,7 +6,7 @@ RewardsVerse remains a full-stack application. **Cloudflare Pages serves only th
 
 - Framework preset: Vite
 - Build command: `npm run build:pages`
-- Build output directory: `dist`
+- Build output directory: `client/dist`
 - Root directory: repository root
 - SPA fallback: `client/public/_redirects` is copied into the output
 
@@ -30,4 +30,4 @@ No database, schema, reward, ledger, withdrawal, provider ID, postback URL, or p
 
 ## DNS and API hostname
 
-This branch does not change DNS. Configure `api.rewardsverse.online` as a Render custom domain separately only after the Render API is verified and explicit production approval is given. Until then, use the existing Render API URL in `VITE_API_BASE_URL` for preview testing.
+Configure `api.rewardsverse.online` as a Render custom domain only after the Render API is verified. Until DNS is active, use the existing Render API URL in `VITE_API_BASE_URL` for preview testing.
