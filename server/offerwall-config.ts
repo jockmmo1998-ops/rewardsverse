@@ -69,6 +69,7 @@ function appendUserId(baseUrl: string, userId: string): string | null {
 }
 
 export const OFFER_WALL_IDS = [
+  "radientwall",
   "gemiwall",
   "offerwallme",
   "revtoo",
@@ -89,6 +90,7 @@ export const OFFER_WALL_IDS = [
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
+  radientwall: "RadientWall",
   gemiwall: "Gemiwall",
   offerwallme: "Offerwall.me",
   revtoo: "Revtoo",
@@ -109,6 +111,11 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
+  radientwall: (userId) => {
+    const publicKey = env("RADIENTWALL_PUBLIC_KEY", "RADIENTWALL_SITE_KEY");
+    if (!publicKey || !userId.trim()) return null;
+    return `https://radientwall.com/offer/${encodeURIComponent(publicKey)}/${encodedUserId(userId)}`;
+  },
   offerwallme: (userId) => {
     const publicKey = env("OFFERWALLME_PUBLIC_API_KEY");
     const privateSecret = env("OFFERWALLME_SECRET_KEY");
@@ -224,6 +231,7 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
 };
 
 const secretEntries: Array<[string, string]> = [
+  ["radientwall", env("RADIENTWALL_SECRET_KEY", "RADIENTWALL_SECRET")],
   ["offerwallme", env("OFFERWALLME_SECRET_KEY")],
   ["gemiwall", env("GEMIWALL_POSTBACK_SECRET")],
   // Revtoo's API key identifies the offerwall placement; its postback
@@ -259,6 +267,16 @@ export const POSTBACK_SECRETS: Record<string, string> = Object.fromEntries(
  * `transId`, `reward` and `signature` rather than the generic token query.
  */
 export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
+  radientwall: {
+    user: "subId",
+    // RadientWall's reward is virtual points; conversion to USD happens in
+    // the postback handler at 1,000 points per $1 before the 40% user share.
+    reward: "reward",
+    transaction: "transId",
+    auth: "md5",
+    response: "ok",
+    macros: ["subId", "transId", "reward", "payout", "status", "userIp", "offer_name", "country"],
+  },
   offerwallme: {
     user: "subId",
     reward: "reward",

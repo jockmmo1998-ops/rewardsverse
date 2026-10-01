@@ -74,9 +74,11 @@ const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 const ADMAXFLOW_CURRENCY_RATE = 400;
 /** GleamAds callbacks return integer points; this integration uses 1000 = $1. */
 const GLEAMADS_CURRENCY_RATE = 1000;
+const RADIENTWALL_CURRENCY_RATE = 1000;
 const ADMAXFLOW_USER_SHARE = 0.40;
 const POCKETSFULL_USER_SHARE = 0.40;
 const GAINTWALL_USER_SHARE = 0.40;
+const RADIENTWALL_USER_SHARE = 0.40;
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -583,7 +585,7 @@ async function handlePostback(req: Request, res: Response) {
     if (providerSpec?.response === "ok" && httpStatus < 300) {
       // Revtoo explicitly requires the lowercase body "ok". Keep the
       // legacy duplicate marker used by AdsWedMedia unchanged.
-      const body = logStatus === "duplicate" && provider === "adswedmedia"
+      const body = logStatus === "duplicate" && (provider === "adswedmedia" || provider === "radientwall")
         ? "DUP"
         : provider === "revtoo" ? "ok" : "OK";
       return res.status(httpStatus).type("text/plain").send(body);
@@ -796,6 +798,8 @@ async function handlePostback(req: Request, res: Response) {
         // must be selected before the virtual reward field.
       : provider === "offerwallme"
           ? selectOfferwallMeReward(params)
+      : provider === "radientwall"
+          ? pickNumeric(params, ["reward"])
       : provider === "adswedmedia"
           ? pickNumeric(params, ["payout", "reward", "round_reward"])
         : pickNumeric(params, [spec.reward, ...REWARD_FIELDS]);
@@ -845,6 +849,8 @@ async function handlePostback(req: Request, res: Response) {
       ? providerReward * POCKETSFULL_USER_SHARE
       : provider === "gaintwall"
       ? providerReward * GAINTWALL_USER_SHARE
+      : provider === "radientwall"
+      ? (providerReward / RADIENTWALL_CURRENCY_RATE) * RADIENTWALL_USER_SHARE
       : providerReward * USER_PAYOUT_SHARE;
 
     const timewallPlacement = provider === "timewall" ? resolveTimewallPlacement() : null;
