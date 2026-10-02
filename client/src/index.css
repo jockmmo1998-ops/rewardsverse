@@ -1001,3 +1001,122 @@
   filter: contrast(1.18) saturate(1.16) brightness(1.06) drop-shadow(0 1px 2px rgba(0,0,0,.45));
 }
 .dashboard-page.dashboard-layout-grid .provider-mini-copy strong { color: #f5faf7; text-shadow: 0 1px 1px rgba(0,0,0,.25); }
+
+/* Responsive dashboard pass: dense on desktop, breathable on tablet, readable on mobile. */
+@media (min-width:1200px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-card {
+    min-height: 50px;
+    padding: 7px 6px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-copy strong { font-size: .62rem; }
+}
+@media (min-width:769px) and (max-width:1199px) {
+  .dashboard-page.dashboard-layout-grid {
+    padding: 16px 20px 30px !important;
+    gap: 14px;
+  }
+  .dashboard-page.dashboard-layout-grid .dashboard-hero {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1.05fr) minmax(260px, .95fr);
+    padding: 20px;
+  }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card {
+    min-height: 180px !important;
+    padding: 11px !important;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-card {
+    min-height: 62px;
+    padding: 9px 8px;
+  }
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-side-panel {
+    min-height: 0;
+  }
+}
+@media (min-width:521px) and (max-width:768px) {
+  .dashboard-page.dashboard-layout-grid {
+    padding: 12px 16px 26px !important;
+    gap: 12px;
+  }
+  .dashboard-page.dashboard-layout-grid .dashboard-hero {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card {
+    min-height: 160px !important;
+    padding: 10px !important;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-card {
+    min-height: 60px;
+    gap: 6px;
+    padding: 8px 7px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-logo {
+    height: 30px;
+    width: 30px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-logo img {
+    height: 20px;
+    width: 20px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-copy strong { font-size: .58rem; }
+}
+@media (max-width:520px) {
+  .dashboard-page.dashboard-layout-grid {
+    padding: 10px 10px 22px !important;
+    gap: 10px;
+  }
+  .dashboard-page.dashboard-layout-grid .dashboard-hero {
+    min-height: 0;
+    padding: 15px;
+  }
+  .dashboard-page.dashboard-layout-grid .dashboard-hero h1 { font-size: 1.8rem; line-height: 1.1; }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card {
+    min-height: 145px !important;
+    padding: 9px !important;
+  }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card h3 { font-size: .72rem; }
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-card {
+    min-height: 56px;
+    gap: 7px;
+    padding: 8px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-logo {
+    height: 29px;
+    width: 29px;
+    border-radius: 8px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-logo img {
+    height: 19px;
+    width: 19px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-mini-copy strong { font-size: .6rem; }
+  .dashboard-page.dashboard-layout-grid .dashboard-side-rail .dashboard-side-panel { padding: 12px; }
+}
