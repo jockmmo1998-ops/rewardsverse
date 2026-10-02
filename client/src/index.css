@@ -974,3 +974,30 @@
   filter: contrast(1.08) saturate(1.08);
 }
 .dashboard-page.dashboard-layout-grid .provider-mini-copy strong { color: #f2f7f4; }
+
+/* Final refinement: slightly narrower insight rail and deeper provider-card contrast. */
+@media (min-width:1200px) {
+  .dashboard-page.dashboard-layout-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px) !important;
+  }
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-side-panel {
+    padding: 14px;
+  }
+}
+.dashboard-page.dashboard-layout-grid .provider-mini-card {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--provider-brand, #16a34a) 13%, #202526), #171b1c);
+  border-color: color-mix(in srgb, var(--provider-brand, #16a34a) 54%, #4b5752);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 7px 16px rgba(0,0,0,.22);
+}
+.dashboard-page.dashboard-layout-grid .provider-mini-logo {
+  background: linear-gradient(145deg, #2b3532, #171d1c);
+  border-color: color-mix(in srgb, var(--provider-brand, #16a34a) 55%, #7f9289);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 3px 10px rgba(0,0,0,.3);
+}
+.dashboard-page.dashboard-layout-grid .provider-mini-logo img {
+  height: 23px;
+  width: 23px;
+  image-rendering: auto;
+  filter: contrast(1.18) saturate(1.16) brightness(1.06) drop-shadow(0 1px 2px rgba(0,0,0,.45));
+}
+.dashboard-page.dashboard-layout-grid .provider-mini-copy strong { color: #f5faf7; text-shadow: 0 1px 1px rgba(0,0,0,.25); }
