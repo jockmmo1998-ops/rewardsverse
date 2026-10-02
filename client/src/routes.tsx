@@ -19,6 +19,7 @@ const WalletPage       = lazy(() => import('./pages/WalletPage'));
 const ProfilePage      = lazy(() => import('./pages/ProfilePage'));
 const SettingsPage     = lazy(() => import('./pages/SettingsPage'));
 const SupportPage      = lazy(() => import('./pages/SupportPage'));
+const PreviewPage      = lazy(() => import('./pages/PreviewPage'));
 const AdminPage        = lazy(() => import('./pages/AdminPage'));
 const AdminAccessPage  = lazy(() => import('./pages/AdminAccessPage'));
 const LegalPage        = lazy(() => import('./pages/LegalPage'));
@@ -39,6 +40,7 @@ export interface RouteConfig {
 
 export const routes: RouteConfig[] = [
   { name: 'Root', path: '/', element: <Navigate to="/home" replace />, public: true },
+  { name: 'Preview', path: '/preview/*', element: <Suspense fallback={<PageFallback />}><PreviewPage /></Suspense>, public: true },
   { name: 'Login', path: '/login', element: <AuthPage />, public: true },
   { name: 'Register', path: '/register', element: <AuthPage />, public: true },
   { name: 'Onboarding', path: '/onboarding', element: withLayout(OnboardingPage) },

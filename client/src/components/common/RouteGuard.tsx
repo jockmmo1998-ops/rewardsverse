@@ -51,6 +51,8 @@ export function RouteGuard({ children }: RouteGuardProps) {
     }
   }, [user, profile, loading, location.pathname, navigate, needsOnboarding]);
 
+  if (location.pathname.startsWith('/preview')) return <>{children}</>;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
