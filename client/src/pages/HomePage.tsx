@@ -62,8 +62,8 @@ export default function HomePage() {
   const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
 
   const allOffers = featured.data ?? [];
-  const leaderboard = (leaderboardQuery.data ?? []).slice(0, 5) as any[];
-  const trendingOffers = allOffers.slice(0, 5);
+  const leaderboard = (leaderboardQuery.data ?? []).slice(0, 10) as any[];
+  const trendingOffers = allOffers.slice(0, 10);
   const weeklyDays = weeklyQuery.data?.days ?? [];
   const weeklyTotal = Number(weeklyQuery.data?.total ?? 0);
   const weeklyGoal = Number(weeklyQuery.data?.goal ?? 10);

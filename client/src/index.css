@@ -871,3 +871,41 @@
   border-color: transparent !important;
   box-shadow: none !important;
 }
+
+/* Full-width insights row: show more leaderboard and trending content below the main dashboard. */
+.dashboard-page.dashboard-layout-grid > .dashboard-side-rail {
+  grid-column: 1 / -1;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  position: static;
+  gap: 12px;
+}
+.dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-side-panel {
+  min-height: 250px;
+  padding: 16px;
+}
+.dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-earner-list,
+.dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-trending-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+  row-gap: 2px;
+}
+.dashboard-page.dashboard-layout-grid .provider-rail-grid {
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+}
+@media (max-width:1199px) {
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+@media (max-width:900px) {
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail { grid-template-columns: 1fr; }
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-earner-list,
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-trending-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width:520px) {
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-earner-list,
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-trending-list { grid-template-columns: 1fr; }
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
