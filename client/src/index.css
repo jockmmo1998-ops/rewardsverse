@@ -909,3 +909,28 @@
   .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-trending-list { grid-template-columns: 1fr; }
   .dashboard-page.dashboard-layout-grid .provider-rail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Keep dashboard insights in the original right rail, with a wider column for richer content. */
+@media (min-width:1200px) {
+  .dashboard-page.dashboard-layout-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px) !important;
+  }
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+    position: sticky;
+    top: 1rem;
+    width: auto;
+    gap: 12px;
+  }
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-side-panel {
+    min-height: 0;
+    padding: 16px;
+  }
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-earner-list,
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-trending-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 14px;
+    row-gap: 2px;
+  }
+}
