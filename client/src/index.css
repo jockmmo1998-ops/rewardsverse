@@ -143,6 +143,7 @@
 .dark .hud-nav-link:hover, .dark .nav-link-idle:hover { background: #27272A; border-color: #2F2F33; }
 .dark .nav-link-active { color: #9af3bb; background: rgba(85,217,141,.14); border-color: rgba(85,217,141,.38); box-shadow: inset 3px 0 0 #55d98d; }
 .dark .hud-label, .dark .footer-title, .dark .dashboard-kicker, .dark .offer-category { color: #A1A1AA; }
+.dark .hud-sidebar .hud-label, .dark .hud-sidebar .hud-nav-link, .dark .hud-sidebar .nav-link-idle, .dark .hud-sidebar .nav-link-active { color: #ffffff; }
 .dark .hud-search, .dark .support-button, .dark .balance-pill { border-color: #2F2F33; background: #202023; color: #FAFAFA; }
 .dark .hud-search:focus-within { background: #27272A; border-color: rgba(85,217,141,.62); }
 .dark .rv-dropdown { border-color: #2F2F33; background: #27272A; box-shadow: 0 22px 50px rgba(0,0,0,.38); }
