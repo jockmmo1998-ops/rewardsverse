@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { Activity, ArrowDownToLine, CalendarDays, CircleDollarSign, Trophy, WalletCards, X } from 'lucide-react';
+import { Activity, ArrowDownToLine, CalendarDays, Check, CircleDollarSign, Trophy, WalletCards, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { UserAvatar } from '@/components/AvatarSystem';
 import { useAuth } from '@/contexts/AuthContext';
@@ -197,7 +197,7 @@ export function LiveActivityBar() {
   return (
     <section className="live-activity-bar relative" onPointerDownCapture={inspectFromLiveBar} onClickCapture={inspectFromLiveBar} aria-label="Live verified activity" aria-live="polite">
       <div className="live-activity-inner">
-        <span className="live-activity-status"><span className="live-activity-status-dot" aria-hidden="true" /> LIVE</span>
+        <span className="live-activity-status" aria-label="Verified live activity"><Check className="live-activity-status-check" aria-hidden="true" /></span>
         {activities.isLoading ? (
           <span className="text-xs text-muted-foreground">Loading verified activity…</span>
         ) : items.length ? (

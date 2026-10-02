@@ -207,7 +207,7 @@
 .live-activity-bar { position: relative; z-index: 50; isolation: isolate; border-bottom: 1px solid #e5e7eb; background: #ffffff; }
 .live-activity-inner { display: flex; min-height: 38px; align-items: center; gap: 1rem; padding: 0 1.5rem; }
 .live-activity-status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .42rem; color: var(--primary); font-size: .62rem; font-weight: 800; letter-spacing: .13em; }
-.live-activity-status-dot { width: .42rem; height: .42rem; flex: 0 0 auto; border-radius: 999px; background: #34d399; box-shadow: 0 0 .55rem rgba(52, 211, 153, .72); animation: livePulse 1.8s ease-in-out infinite; }
+.live-activity-status-check { width: .9rem; height: .9rem; flex: 0 0 auto; color: #34d399; stroke-width: 3; filter: drop-shadow(0 0 .32rem rgba(52, 211, 153, .72)); }
 .live-activity-track { width: 100%; min-width: 0; flex: 1; overflow: hidden; }
 .live-activity-items { display: flex; width: max-content; min-width: max-content; align-items: center; white-space: nowrap; will-change: transform; animation: liveActivityMarquee 78s linear infinite !important; animation-play-state: running !important; }
 .live-activity-group { display: flex; flex: 0 0 auto; align-items: center; gap: .55rem; padding-right: .55rem; }
