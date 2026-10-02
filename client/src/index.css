@@ -740,6 +740,10 @@
 @media (min-width:1024px){.app-shell-dashboard{grid-template-columns:272px minmax(0,1fr)!important}.app-shell-dashboard .hud-sidebar{width:272px!important}}
 .hud-nav-link,.hud-nav-link:active{transform:none!important;min-height:40px}
 .hud-nav-link:active{transition:none!important}
+.hud-topbar{height:42px;min-height:42px;padding:0 .75rem}
+.hud-topbar>div:last-child{min-height:40px;align-items:center}
+.hud-topbar .balance-pill{min-height:40px}
+.hud-topbar>div:last-child>button{min-height:40px}
 .live-activity-bar{background:#11191c!important;border-bottom-color:#26373a!important}
 .live-activity-status{background:transparent!important;border-color:transparent!important;color:#b0e8c5!important;box-shadow:none!important}
 .live-activity-item{background:#172326!important;border-color:#34494a!important;color:#c7d5d1!important}
