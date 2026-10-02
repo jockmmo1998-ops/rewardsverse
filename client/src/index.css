@@ -1120,3 +1120,10 @@
   .dashboard-page.dashboard-layout-grid .provider-mini-copy strong { font-size: .6rem; }
   .dashboard-page.dashboard-layout-grid .dashboard-side-rail .dashboard-side-panel { padding: 12px; }
 }
+
+/* Desktop provider rail: use nine balanced columns on PC. */
+@media (min-width:1200px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+  }
+}
