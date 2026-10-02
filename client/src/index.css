@@ -207,7 +207,7 @@
 .live-activity-bar { position: relative; z-index: 50; isolation: isolate; border-bottom: 1px solid #e5e7eb; background: #ffffff; }
 .live-activity-inner { display: flex; min-height: 38px; align-items: center; gap: 1rem; padding: 0 1.5rem; }
 .live-activity-status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .42rem; color: var(--primary); font-size: .62rem; font-weight: 800; letter-spacing: .13em; }
-.live-activity-status-check { width: .9rem; height: .9rem; flex: 0 0 auto; color: #34d399; stroke-width: 3; filter: drop-shadow(0 0 .32rem rgba(52, 211, 153, .72)); }
+.live-activity-status-dot { width: .42rem; height: .42rem; flex: 0 0 auto; border-radius: 999px; background: #34d399; box-shadow: 0 0 .55rem rgba(52, 211, 153, .72); animation: livePulse 1.8s ease-in-out infinite; }
 .live-activity-track { width: 100%; min-width: 0; flex: 1; overflow: hidden; }
 .live-activity-items { display: flex; width: max-content; min-width: max-content; align-items: center; white-space: nowrap; will-change: transform; animation: liveActivityMarquee 78s linear infinite !important; animation-play-state: running !important; }
 .live-activity-group { display: flex; flex: 0 0 auto; align-items: center; gap: .55rem; padding-right: .55rem; }
@@ -729,7 +729,7 @@
 .hud-topbar .hud-status-dot + span{font-size:13px;font-weight:750;letter-spacing:-.01em}
 .live-activity-bar{min-height:42px;border-bottom-color:rgba(55,84,80,.3);background:rgba(10,19,23,.92)}
 .live-activity-inner{width:100%;max-width:none;min-height:42px;height:42px;gap:13px;padding:0 12px}
-.live-activity-status{height:28px;min-width:112px;justify-content:center;border:1px solid rgba(52,211,145,.2);border-radius:999px;background:linear-gradient(90deg,rgba(28,167,111,.22),rgba(28,167,111,.08));color:#9ff0c4;font-size:9px;letter-spacing:.1em}
+.live-activity-status{height:28px;min-width:auto;justify-content:flex-start;border:0;border-radius:0;background:transparent;color:#9ff0c4;font-size:9px;letter-spacing:.1em}
 .live-activity-track{height:42px;display:flex;align-items:center;min-width:0;overflow:hidden}.live-activity-items{height:42px;align-items:center;gap:8px;animation:liveActivityMarquee 58s linear infinite!important}.live-activity-group{height:42px;align-items:center;gap:8px;padding-right:8px}.live-activity-item{min-width:138px;height:34px;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(105,139,128,.24);border-radius:7px;background:rgba(16,29,31,.66);padding:2px 7px;color:#c1cdca;font-size:9px}.live-activity-button:hover{background:rgba(37,62,58,.9);transform:none}.live-activity-copy{gap:1px}.live-activity-user{color:#e2ebe7;font-size:9px}.live-activity-summary{color:#a6b7af;font-size:7px}.live-activity-summary span{color:#7bf0b1}
 .rv-avatar{display:block;isolation:isolate;filter:brightness(1.14) saturate(1.16) contrast(1.08);background:linear-gradient(145deg,#254d43 0%,#132a29 52%,#0d181b 100%);box-shadow:inset 0 0 0 1px rgba(154,243,187,.22),0 2px 8px rgba(0,0,0,.24)}
 .avatar-tile-image{background:radial-gradient(circle at 50% 28%,rgba(122,242,173,.28),rgba(23,55,48,.96) 68%,#101a1c 100%);padding:4px}.avatar-tile-image img{filter:brightness(1.14) saturate(1.16) contrast(1.08);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.24)}
@@ -741,10 +741,10 @@
 .hud-nav-link,.hud-nav-link:active{transform:none!important;min-height:40px}
 .hud-nav-link:active{transition:none!important}
 .live-activity-bar{background:#11191c!important;border-bottom-color:#26373a!important}
-.live-activity-status{background:#1b292b!important;border-color:#3c5a55!important;color:#b0e8c5!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.live-activity-status{background:transparent!important;border-color:transparent!important;color:#b0e8c5!important;box-shadow:none!important}
 .live-activity-item{background:#172326!important;border-color:#34494a!important;color:#c7d5d1!important}
 .live-activity-button:hover{background:#223235!important}
-.app-shell-dashboard .live-activity-bar{background:#11191c!important;border-bottom-color:#26373a!important}.app-shell-dashboard .live-activity-status{background:#1b292b!important;border-color:#3c5a55!important}
+.app-shell-dashboard .live-activity-bar{background:#11191c!important;border-bottom-color:#26373a!important}.app-shell-dashboard .live-activity-status{background:transparent!important;border-color:transparent!important}
 
 /* Avatar-specific support colors: each character gets its own contrast-safe backdrop. */
 .rv-avatar-tone-1,.avatar-tile-image.rv-avatar-tone-1{background:linear-gradient(145deg,#2d765d 0%,#163e36 52%,#102521 100%)}

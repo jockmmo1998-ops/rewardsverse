@@ -1,5 +1,5 @@
-import { Bell, Check, ChevronDown, ExternalLink, LogOut, Menu, Search, Settings, UserRound, WalletCards } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Bell, Check, ChevronDown, ExternalLink, LogOut, Menu, Settings, UserRound, WalletCards } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -9,12 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSSE } from '@/hooks/useSSE';
 import { playBellSound, unlockBellSound } from '@/utils/bellSound';
 import { UserAvatar } from '@/components/AvatarSystem';
-
-const labels: Record<string, string> = {
-  '/home': 'Dashboard', '/dashboard': 'Dashboard', '/offerwalls': 'Earn rewards', '/leaderboard': 'Leaderboard', '/achievements': 'Achievements',
-  '/history': 'Activity', '/referrals': 'Referrals', '/wallet': 'Wallet', '/withdraw': 'Withdraw', '/profile': 'Profile',
-  '/settings': 'Settings', '/support': 'Support', '/privacy': 'Privacy Policy', '/terms': 'Terms of Service', '/cookies': 'Cookie Policy', '/reward-policy': 'Reward Policy', '/withdrawal-policy': 'Withdrawal Policy', '/faq': 'FAQ', '/admin': 'Admin console',
-};
 
 function getInitials(user: any) {
   const value = String(user?.username || user?.name || user?.email || 'RV');
@@ -32,11 +26,9 @@ function money(value: unknown) {
 }
 
 export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () => void; sidebarOpen?: boolean }) {
-  const location = useLocation();
   const { user, profile, logout, refreshProfile } = useAuth();
   const [openMenu, setOpenMenu] = useState<'notifications' | 'profile' | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const pageLabel = labels[location.pathname] || 'RewardsVerse';
   const notifications = trpc.notifications.getAll.useQuery(undefined, {
     enabled: Boolean(user),
     retry: false,
@@ -117,10 +109,8 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
     <header className="hud-topbar">
       <div className="flex min-w-0 items-center gap-3">
         <button onClick={onMenuClick} className="focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={sidebarOpen}><Menu className="h-5 w-5" /></button>
-        <div className="flex min-w-0 items-center gap-2.5"><span className="hud-status-dot" /><span className="truncate font-display text-sm font-semibold text-foreground">{pageLabel}</span></div>
       </div>
       <div ref={menuRef} className="relative flex items-center gap-1.5 sm:gap-3">
-        <label className="hud-search hidden xl:flex" aria-label="Search rewards"><Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><input placeholder="Search rewards…" /></label>
         <button type="button" onClick={() => toggleMenu('notifications')} className={cn('focus-ring relative rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground', openMenu === 'notifications' && 'bg-primary/[.09] text-primary')} aria-label="Notifications" aria-expanded={openMenu === 'notifications'}>
           <Bell className="h-[17px] w-[17px]" />
           {unreadCount > 0 && <span className="notification-count" aria-label={`${unreadCount} unread notifications`}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
