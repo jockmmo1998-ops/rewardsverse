@@ -934,3 +934,43 @@
     row-gap: 2px;
   }
 }
+
+/* Vertical insight panels: keep the original sidebar position and use its height, not extra columns. */
+@media (min-width:1200px) {
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail {
+    align-self: stretch;
+    grid-template-columns: 1fr;
+  }
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-side-panel {
+    min-height: 390px;
+    display: flex;
+    flex-direction: column;
+  }
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-earner-list,
+  .dashboard-page.dashboard-layout-grid > .dashboard-side-rail .dashboard-trending-list {
+    flex: 1;
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(38px, auto);
+    row-gap: 4px;
+  }
+}
+/* Higher-contrast provider cards and sharper logos. */
+.dashboard-page.dashboard-layout-grid .provider-mini-card {
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--provider-brand, #16a34a) 48%, #56615d);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--provider-brand, #16a34a) 16%, #252a2b), #1e2324);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 14px rgba(0,0,0,.16);
+}
+.dashboard-page.dashboard-layout-grid .provider-mini-logo {
+  border: 1px solid color-mix(in srgb, var(--provider-brand, #16a34a) 32%, #cfd9d4);
+  background: #ffffff;
+  box-shadow: 0 3px 9px rgba(0,0,0,.22);
+}
+.dashboard-page.dashboard-layout-grid .provider-mini-logo img {
+  height: 21px;
+  width: 21px;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  filter: contrast(1.08) saturate(1.08);
+}
+.dashboard-page.dashboard-layout-grid .provider-mini-copy strong { color: #f2f7f4; }
