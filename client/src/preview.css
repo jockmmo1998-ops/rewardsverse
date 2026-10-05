@@ -42,5 +42,3 @@
 }
 
 .preview-country-flag { display: inline-flex; width: 1.05rem; height: 1.05rem; align-items: center; justify-content: center; flex: 0 0 auto; font-size: .9rem; line-height: 1; }
-
-.preview-shell .christmas-snow { z-index: 40; }

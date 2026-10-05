@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { trpc } from '@/lib/trpc';
@@ -47,7 +47,6 @@ export function AppLayout({ children }: { children?: ReactNode }) {
 
   return (
     <div className={`app-shell ${isOfferLanding ? 'app-shell-dashboard' : ''} flex min-h-screen w-full overflow-x-clip lg:grid lg:grid-cols-[272px_minmax(0,1fr)]`}>
-      <div className="christmas-snow" aria-hidden="true">{Array.from({ length: 34 }, (_, index) => <i key={index} style={{ '--snow-x': `${(index * 29) % 100}%`, '--snow-delay': `${-((index * 17) % 18)}s`, '--snow-duration': `${10 + (index % 9)}s`, '--snow-size': `${2 + (index % 4)}px`, '--snow-drift': `${-32 + ((index * 19) % 65)}px` } as CSSProperties} />)}</div>
       <div className="app-shell-background" aria-hidden="true" />
       <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 w-full max-w-full flex-1 flex-col">
