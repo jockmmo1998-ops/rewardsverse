@@ -74,10 +74,10 @@ const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 const ADMAXFLOW_CURRENCY_RATE = 400;
 /** GleamAds callbacks return integer points; this integration uses 1000 = $1. */
 const GLEAMADS_CURRENCY_RATE = 1000;
-// RadientWall is configured to display 400 points per $1 gross. Its callback
-// reward is already the user's displayed points, so convert those points to
-// the USD-denominated wallet without applying a second 40% reduction.
-const RADIENTWALL_POINTS_PER_USD = 1000;
+// RadientWall site 365 displays 400 points per $1 gross. Its callback reward
+// is already the user's displayed points, so convert those points to the
+// USD-denominated wallet without applying a second 40% reduction.
+const RADIENTWALL_POINTS_PER_USD = 400;
 const ADMAXFLOW_USER_SHARE = 0.40;
 const POCKETSFULL_USER_SHARE = 0.40;
 const GAINTWALL_USER_SHARE = 0.40;
