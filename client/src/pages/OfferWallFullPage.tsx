@@ -17,7 +17,9 @@ export default function OfferWallPage() {
   const [wallUrl, setWallUrl] = useState('');
   const [redirecting, setRedirecting] = useState(false);
   const wall = useMemo(() => OFFER_WALLS.find((item) => item.id === wallId), [wallId]);
-  const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id) && !authLoading, retry: false, refetchOnWindowFocus: false });
+  // The URL query validates the selected provider itself. Cointo is redirected
+  // top-level, so do not wait for the separate all-provider status request.
+  const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(user?.id) && !authLoading && wallId !== 'cointo', retry: false, refetchOnWindowFocus: false });
   const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: wallId }, { enabled: Boolean(user?.id && wallId && wallId !== OPINION_UNIVERSE_WALL_ID) && !authLoading, retry: false, refetchOnWindowFocus: false });
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function OfferWallPage() {
   }, [wallUrl, wallId, redirecting]);
 
   const configured = wallStatusQuery.data?.find((item) => item.provider === wallId)?.configured !== false;
-  const loading = authLoading || wallStatusQuery.isLoading || wallUrlQuery.isFetching || (wallId === OPINION_UNIVERSE_WALL_ID && !wallUrl);
+  const loading = authLoading || (wallId !== 'cointo' && wallStatusQuery.isLoading) || wallUrlQuery.isFetching || (wallId === OPINION_UNIVERSE_WALL_ID && !wallUrl);
   const embeddedSandbox = wallId === 'admaxflow' || wallId === 'gaintwall' || wallId === 'offermintx'
     ? 'allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms'
     : 'allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation allow-top-navigation-by-user-activation';
