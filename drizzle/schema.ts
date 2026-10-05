@@ -30,6 +30,9 @@ export const users = pgTable(
     suspensionReason: text("suspensionReason"),
     username: varchar("username", { length: 64 }).unique(),
     password: varchar("password", { length: 256 }),
+    // ISO 3166-1 alpha-2 country detected from the signup IP. The raw IP is
+    // deliberately not stored in the user profile.
+    countryCode: varchar("countryCode", { length: 2 }),
     refCode: varchar("refCode", { length: 16 }),
     referredBy: varchar("referredBy", { length: 16 }),
     balance: numeric("balance", { precision: 10, scale: 2 }).default("0.00"),

@@ -40,3 +40,5 @@
   .preview-live { display: grid; grid-template-columns: 7px max-content minmax(0, 1fr); gap: 7px; padding-inline: 10px; }
   .preview-live-track { display: block; }
 }
+
+.preview-country-flag { display: inline-flex; width: 1.05rem; height: 1.05rem; align-items: center; justify-content: center; flex: 0 0 auto; font-size: .9rem; line-height: 1; }

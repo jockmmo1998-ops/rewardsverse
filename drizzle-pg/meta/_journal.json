@@ -36,6 +36,13 @@
       "when": 1790442100000,
       "tag": "0004_avatar_id",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790468115000,
+      "tag": "0005_user_country_code",
+      "breakpoints": true
     }
   ]
 }

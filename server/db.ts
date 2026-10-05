@@ -82,7 +82,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     const values: InsertUser = { openId: user.openId, username: user.username ?? user.openId.slice(0, 64), password: user.password ?? "$2b$10$7EqJtq98hPqEX7fNZaFWoOeYfL1v1s8t6R1f5l7y2jM0Q0mYwQ0eG", refCode: user.refCode ?? `RV${user.openId.slice(-14)}` };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "avatar", "email", "loginMethod", "username", "refCode", "referredBy", "password", "emailVerificationTokenHash"] as const;
+    const textFields = ["name", "avatar", "email", "loginMethod", "username", "countryCode", "refCode", "referredBy", "password", "emailVerificationTokenHash"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {

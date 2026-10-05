@@ -1524,3 +1524,18 @@
   width: 100%;
   min-width: 0;
 }
+
+/* Country flag replaces the old live status dot; marquee now travels right. */
+.live-activity-country-flag {
+  display: inline-flex;
+  width: 1.15rem;
+  height: 1.15rem;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: .96rem;
+  line-height: 1;
+  filter: saturate(1.08);
+}
+.live-activity-status-dot { display: none !important; }
+.live-activity-items { animation-direction: reverse !important; }

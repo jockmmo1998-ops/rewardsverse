@@ -10,6 +10,7 @@ import { notifyOwner } from "./_core/notification";
 import { sdk } from "./_core/sdk";
 import bcrypt from "bcryptjs";
 import { createEmailVerificationToken, hashEmailVerificationToken, sendVerificationEmail } from "./email";
+import { detectSignupCountry } from "./geo";
 import {
   OFFER_WALL_URLS,
   OFFER_WALL_IDS,
@@ -75,6 +76,9 @@ export const appRouter = router({
         const { password, email, refCode } = input;
         const openId = `virtual_member_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
         const normalizedEmail = email.trim().toLowerCase();
+        // Resolve country in parallel with password hashing. Only the ISO code
+        // is retained; the signup IP itself is never written to the database.
+        const signupCountryPromise = detectSignupCountry(ctx.req);
 
         const existingEmail = await db.getUserByEmail(normalizedEmail);
         if (existingEmail) {
@@ -93,6 +97,7 @@ export const appRouter = router({
 
         const hashedPassword = await hashPassword(password);
         const verification = createEmailVerificationToken();
+        const countryCode = await signupCountryPromise;
         await db.upsertUser({
           openId,
           username: null,
@@ -101,6 +106,7 @@ export const appRouter = router({
           emailVerificationExpiresAt: verification.expiresAt,
           emailVerificationSentAt: new Date(),
           password: hashedPassword,
+          countryCode: countryCode || undefined,
           refCode: userRefCode,
           referredBy: referredBy || undefined,
           role: "user",
