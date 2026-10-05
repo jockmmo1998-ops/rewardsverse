@@ -74,6 +74,8 @@ const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 const ADMAXFLOW_CURRENCY_RATE = 400;
 /** GleamAds callbacks return integer points; this integration uses 1000 = $1. */
 const GLEAMADS_CURRENCY_RATE = 1000;
+/** LootWalls site currency is configured as Points at 400 points per USD. */
+const LOOTWALLS_POINTS_PER_USD = 400;
 // RadientWall site 365 displays 400 points per $1 gross. Its callback reward
 // is already the user's displayed points, so convert those points to the
 // USD-denominated wallet without applying a second 40% reduction.
@@ -853,6 +855,8 @@ async function handlePostback(req: Request, res: Response) {
       ? providerReward * GAINTWALL_USER_SHARE
       : provider === "radientwall"
       ? providerReward / RADIENTWALL_POINTS_PER_USD
+      : provider === "lootwalls"
+      ? providerReward / LOOTWALLS_POINTS_PER_USD
       : providerReward * USER_PAYOUT_SHARE;
 
     const timewallPlacement = provider === "timewall" ? resolveTimewallPlacement() : null;
