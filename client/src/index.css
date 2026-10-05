@@ -1422,3 +1422,20 @@
     transition: none !important;
   }
 }
+
+
+/* Mobile polish: remove the top accent rule and keep the live dot in its own lane. */
+.hud-topbar::after { display: none !important; }
+.live-activity-inner { min-width: 0; }
+.live-activity-status { position: relative; z-index: 2; min-width: max-content; flex-shrink: 0; }
+.live-activity-status-dot { position: relative; z-index: 3; display: inline-block; margin: 0 .14rem 0 0; }
+.live-activity-track { position: relative; z-index: 1; min-width: 0; overflow: hidden; }
+@media (max-width: 639px) {
+  .hud-topbar { border-bottom-color: var(--border); }
+  .live-activity-inner { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: .65rem; padding: 0 .75rem; }
+  .live-activity-status { gap: .38rem; }
+  .live-activity-status-dot { width: .42rem; height: .42rem; }
+  .live-activity-items { min-width: max-content; }
+  .live-activity-item { gap: .3rem; }
+  .live-activity-button { min-width: 128px; padding-inline: .35rem; }
+}

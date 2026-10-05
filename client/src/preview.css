@@ -28,3 +28,15 @@
 .preview-provider-rail .provider-partner-card::before { content: ''; position: absolute; inset: 0 auto 0 -55%; z-index: 2; width: 42%; pointer-events: none; background: linear-gradient(105deg, transparent, rgba(255,255,255,.16), transparent); transform: translateX(-120%); animation: providerPartnerSweep 6.8s ease-in-out infinite; }
 .preview-provider-rail .provider-partner-rating i b { transform-origin: left center; animation: providerRatingFill .8s cubic-bezier(.22,1,.36,1) both; }
 @media (prefers-reduced-motion: reduce) { .preview-provider-rail .provider-partner-card, .preview-provider-rail .provider-partner-card::before, .preview-provider-rail .provider-partner-rating i b { animation: none !important; transition: none !important; } }
+
+
+/* Mobile preview polish: the live dot stays separated from the scrolling ticker. */
+.preview-topbar::after { display: none !important; }
+.preview-live { min-width: 0; }
+.preview-live > .preview-dot { position: relative; z-index: 2; flex: 0 0 7px; margin-right: 1px; }
+.preview-live > span:nth-child(2) { flex: 0 0 auto; white-space: nowrap; }
+.preview-live-track { position: relative; z-index: 1; min-width: 0; flex: 1; overflow: hidden; }
+@media (max-width: 480px) {
+  .preview-live { display: grid; grid-template-columns: 7px max-content minmax(0, 1fr); gap: 7px; padding-inline: 10px; }
+  .preview-live-track { display: block; }
+}
