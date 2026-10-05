@@ -189,6 +189,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
+        const loginCountryPromise = detectSignupCountry(ctx.req);
         // New accounts sign in with the email used during registration. Keep
         // the username fallback so existing accounts are not locked out.
         const user = (input.username.includes("@")
@@ -230,6 +231,10 @@ export const appRouter = router({
           maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
+        if (!user.countryCode) {
+          const countryCode = await loginCountryPromise;
+          if (countryCode) await db.updateUserProfile(user.id, { countryCode });
+        }
         await db.updateUserProfile(user.id, { lastSignedIn: new Date() });
 
         return { success: true, username: user.username, email: user.email ?? null };
