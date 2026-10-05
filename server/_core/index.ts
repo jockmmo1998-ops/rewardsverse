@@ -66,6 +66,12 @@ async function startServer() {
   // correctly reports HTTPS when issuing the Secure session cookie.
   app.set("trust proxy", 1);
   const server = createServer(app);
+  // Account, reward and offerwall responses must never be served from a stale
+  // browser/CDN cache. Static fingerprinted assets are handled separately.
+  app.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store, max-age=0");
+    next();
+  });
   // Cấu hình body parser với giới hạn lớn hơn cho file upload
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

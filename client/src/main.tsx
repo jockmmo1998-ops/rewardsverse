@@ -14,10 +14,13 @@ document.documentElement.classList.add("dark");
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10_000,
-      gcTime: 5 * 60_000,
+      // Keep read-heavy dashboard data warm between route changes without
+      // showing stale values for too long. Mutations still invalidate queries.
+      staleTime: 30_000,
+      gcTime: 15 * 60_000,
       retry: 1,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
     },
   },
 });

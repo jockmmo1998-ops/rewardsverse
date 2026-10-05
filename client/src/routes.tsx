@@ -24,7 +24,7 @@ const AdminPage        = lazy(() => import('./pages/AdminPage'));
 const AdminAccessPage  = lazy(() => import('./pages/AdminAccessPage'));
 const LegalPage        = lazy(() => import('./pages/LegalPage'));
 
-const PageFallback = () => <div className="flex items-center justify-center min-h-[60vh]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+const PageFallback = () => <div className="rv-page-loader" role="status" aria-label="Loading"><span className="rv-loader" /></div>;
 
 function withLayout(Page: React.ComponentType): ReactNode {
   return <AppLayout><Suspense fallback={<PageFallback />}><Page /></Suspense></AppLayout>;

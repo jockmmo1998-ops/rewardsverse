@@ -99,11 +99,13 @@ export function serveStatic(app: Express) {
   }
 
   app.use(express.static(distPath, {
-    // Only browser-cache immutable-ish static assets. HTML remains uncached so
-    // deploys and auth/session entry points never get stuck behind stale markup.
+    // Vite fingerprints JS/CSS/assets, so immutable caching is safe. HTML stays
+    // revalidated so a deploy cannot leave users on an old asset manifest.
     setHeaders(res, filePath) {
       if (/\.(?:js|css|png|jpe?g|webp|svg|gif|ico|woff2?|ttf)$/i.test(filePath)) {
-        res.setHeader("Cache-Control", "public, max-age=86400");
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      } else if (/\.html$/i.test(filePath)) {
+        res.setHeader("Cache-Control", "no-cache, max-age=0, must-revalidate");
       }
     },
   }));
@@ -113,6 +115,7 @@ export function serveStatic(app: Express) {
   app.use("*", (req, res) => {
     const routePath = normalizeRoutePath(req.originalUrl);
     if (VALID_SPA_ROUTES.has(routePath) || isOfferwallRoute(routePath)) {
+      res.setHeader("Cache-Control", "no-cache, max-age=0, must-revalidate");
       res.sendFile(path.resolve(distPath, "index.html"));
       return;
     }

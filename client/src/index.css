@@ -1484,3 +1484,31 @@
   .live-activity-status { font-size: .56rem; }
   .live-activity-track { min-width: 0; }
 }
+
+
+/* Smooth loading primitives: one compositor-friendly animation for route/data waits. */
+@keyframes rvLoaderSpin { to { transform: translate3d(0, 0, 0) rotate(360deg); } }
+.rv-page-loader { display: flex; min-height: 60vh; align-items: center; justify-content: center; contain: layout paint; }
+.rv-loader {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  border: 2px solid color-mix(in srgb, var(--primary) 24%, transparent);
+  border-top-color: var(--primary);
+  border-right-color: color-mix(in srgb, var(--primary) 66%, transparent);
+  border-radius: 999px;
+  transform: translate3d(0, 0, 0);
+  animation: rvLoaderSpin .72s linear infinite;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+/* Tailwind's generic spin is also made compositor-friendly for legacy loaders. */
+.animate-spin {
+  animation-timing-function: linear !important;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rv-loader, .animate-spin { animation: none !important; }
+}
