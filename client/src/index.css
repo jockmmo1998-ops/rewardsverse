@@ -1576,3 +1576,40 @@
     padding: 0 10px !important;
   }
 }
+
+/* Offer wall partners: two balanced desktop rows with larger, easier-to-read cards. */
+@media (min-width: 1200px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-partner-card {
+    height: 104px;
+    min-height: 104px;
+    padding: 12px 11px 10px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-partner-card .provider-mini-logo {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    padding: 6px;
+    border-radius: 8px;
+  }
+  .dashboard-page.dashboard-layout-grid .provider-partner-card .provider-partner-main { gap: 10px; }
+  .dashboard-page.dashboard-layout-grid .provider-partner-card .provider-mini-copy { gap: 8px; }
+  .dashboard-page.dashboard-layout-grid .provider-partner-card .provider-mini-copy strong { font-size: .74rem; }
+  .dashboard-page.dashboard-layout-grid .provider-partner-rating small { font-size: 6px; }
+  .dashboard-page.dashboard-layout-grid .provider-partner-rating em { font-size: 7px; }
+}
+@media (max-width: 1199px) and (min-width: 901px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+  .dashboard-page.dashboard-layout-grid .provider-partner-card { height: 100px; min-height: 100px; }
+}
+@media (max-width: 900px) and (min-width: 521px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+  .dashboard-page.dashboard-layout-grid .provider-partner-card { height: 96px; min-height: 96px; }
+}
+@media (max-width: 520px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .dashboard-page.dashboard-layout-grid .provider-partner-card { height: 88px; min-height: 88px; }
+}
