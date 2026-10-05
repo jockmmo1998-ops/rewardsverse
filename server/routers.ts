@@ -255,6 +255,13 @@ export const appRouter = router({
       }
 
       if (!user) return null;
+      if (!user.countryCode) {
+        const countryCode = await detectSignupCountry(ctx.req);
+        if (countryCode) {
+          await db.updateUserProfile(user.id, { countryCode });
+          user = { ...user, countryCode };
+        }
+      }
       const avatarId = resolveAvatarId(user);
       if (user.avatarId !== avatarId) void db.updateUserProfile(user.id, { avatarId });
       return { ...user, avatarId, avatarUrl: `/assets/avatars/avatar-${String(avatarId).padStart(2, "0")}.webp` } as any;

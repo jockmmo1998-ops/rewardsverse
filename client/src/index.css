@@ -1539,3 +1539,23 @@
 }
 .live-activity-status-dot { display: none !important; }
 .live-activity-items { animation-direction: reverse !important; }
+
+/* Keep the country flag in its own fixed lane; only the activity list moves. */
+.live-activity-inner { gap: .75rem; }
+.live-activity-status {
+  position: relative;
+  z-index: 4;
+  width: 2.55rem;
+  height: 2rem;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 38%, var(--border));
+  border-radius: .55rem;
+  background: color-mix(in srgb, var(--primary) 10%, var(--background));
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+.live-activity-country-flag { width: 1.35rem; height: 1.35rem; font-size: 1.05rem; }
+.live-activity-track { position: relative; z-index: 1; }
+@media (max-width: 639px) {
+  .live-activity-inner { grid-template-columns: 2.55rem minmax(0, 1fr); gap: .65rem; }
+  .live-activity-status { width: 2.55rem; }
+}
