@@ -1525,37 +1525,34 @@
   min-width: 0;
 }
 
-/* Country flag replaces the old live status dot; marquee now travels right. */
-.live-activity-country-flag {
-  display: inline-flex;
-  width: 1.15rem;
-  height: 1.15rem;
-  align-items: center;
-  justify-content: center;
+/* Restore the original green live dot; the moving list never enters its lane. */
+.live-activity-status-dot {
+  display: inline-block !important;
+  width: .42rem;
+  height: .42rem;
   flex: 0 0 auto;
-  font-size: .96rem;
-  line-height: 1;
-  filter: saturate(1.08);
+  border-radius: 999px;
+  background: #34d399;
+  box-shadow: 0 0 .55rem rgba(52, 211, 153, .72);
+  animation: livePulse 1.8s ease-in-out infinite;
 }
-.live-activity-status-dot { display: none !important; }
 .live-activity-items { animation-direction: reverse !important; }
 
-/* Keep the country flag in its own fixed lane; only the activity list moves. */
+/* Keep the dot in its own fixed, transparent lane; only the activity list moves. */
 .live-activity-inner { gap: .75rem; }
 .live-activity-status {
   position: relative;
   z-index: 4;
-  width: 2.55rem;
+  width: 1.5rem;
   height: 2rem;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--primary) 38%, var(--border));
-  border-radius: .55rem;
-  background: color-mix(in srgb, var(--primary) 10%, var(--background));
-  box-shadow: 0 3px 12px color-mix(in srgb, var(--primary) 12%, transparent);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
-.live-activity-country-flag { width: 1.35rem; height: 1.35rem; font-size: 1.05rem; }
 .live-activity-track { position: relative; z-index: 1; }
 @media (max-width: 639px) {
-  .live-activity-inner { grid-template-columns: 2.55rem minmax(0, 1fr); gap: .65rem; }
-  .live-activity-status { width: 2.55rem; }
+  .live-activity-inner { grid-template-columns: 1.5rem minmax(0, 1fr); gap: .65rem; }
+  .live-activity-status { width: 1.5rem; }
 }

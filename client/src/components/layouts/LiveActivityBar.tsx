@@ -102,17 +102,10 @@ function userKey(item: any) {
   return String(item.userId ?? item.username ?? 'member');
 }
 
-function countryFlag(value: unknown) {
-  const code = String(value ?? '').trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(code) || code === 'XX') return '🌐';
-  return String.fromCodePoint(127397 + code.charCodeAt(0), 127397 + code.charCodeAt(1));
-}
-
 export function LiveActivityBar() {
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
   const { user } = useAuth();
-  const userCountryCode = user?.countryCode ?? user?.country_code;
   const activities = trpc.user.getActivities.useQuery(undefined, {
     staleTime: 15_000,
     refetchInterval: 15_000,
@@ -204,9 +197,7 @@ export function LiveActivityBar() {
   return (
     <section className="live-activity-bar relative" onPointerDownCapture={inspectFromLiveBar} onClickCapture={inspectFromLiveBar} aria-label="Live verified activity" aria-live="polite">
       <div className="live-activity-inner">
-        <span className="live-activity-status" aria-label={userCountryCode ? `Verified live activity · ${userCountryCode}` : 'Verified live activity'}>
-          <span className="live-activity-country-flag" aria-hidden="true">{countryFlag(userCountryCode)}</span>
-        </span>
+        <span className="live-activity-status" aria-label="Verified live activity"><span className="live-activity-status-dot" aria-hidden="true" /></span>
         {activities.isLoading ? (
           <span className="text-xs text-muted-foreground">Loading verified activity…</span>
         ) : items.length ? (

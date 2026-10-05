@@ -10,7 +10,6 @@ import { notifyOwner } from "./_core/notification";
 import { sdk } from "./_core/sdk";
 import bcrypt from "bcryptjs";
 import { createEmailVerificationToken, hashEmailVerificationToken, sendVerificationEmail } from "./email";
-import { detectSignupCountry } from "./geo";
 import {
   OFFER_WALL_URLS,
   OFFER_WALL_IDS,
@@ -76,9 +75,6 @@ export const appRouter = router({
         const { password, email, refCode } = input;
         const openId = `virtual_member_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
         const normalizedEmail = email.trim().toLowerCase();
-        // Resolve country in parallel with password hashing. Only the ISO code
-        // is retained; the signup IP itself is never written to the database.
-        const signupCountryPromise = detectSignupCountry(ctx.req);
 
         const existingEmail = await db.getUserByEmail(normalizedEmail);
         if (existingEmail) {
@@ -97,7 +93,6 @@ export const appRouter = router({
 
         const hashedPassword = await hashPassword(password);
         const verification = createEmailVerificationToken();
-        const countryCode = await signupCountryPromise;
         await db.upsertUser({
           openId,
           username: null,
@@ -106,7 +101,6 @@ export const appRouter = router({
           emailVerificationExpiresAt: verification.expiresAt,
           emailVerificationSentAt: new Date(),
           password: hashedPassword,
-          countryCode: countryCode || undefined,
           refCode: userRefCode,
           referredBy: referredBy || undefined,
           role: "user",
@@ -189,7 +183,6 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const loginCountryPromise = detectSignupCountry(ctx.req);
         // New accounts sign in with the email used during registration. Keep
         // the username fallback so existing accounts are not locked out.
         const user = (input.username.includes("@")
@@ -231,10 +224,6 @@ export const appRouter = router({
           maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-        if (!user.countryCode) {
-          const countryCode = await loginCountryPromise;
-          if (countryCode) await db.updateUserProfile(user.id, { countryCode });
-        }
         await db.updateUserProfile(user.id, { lastSignedIn: new Date() });
 
         return { success: true, username: user.username, email: user.email ?? null };
@@ -255,13 +244,6 @@ export const appRouter = router({
       }
 
       if (!user) return null;
-      if (!user.countryCode) {
-        const countryCode = await detectSignupCountry(ctx.req);
-        if (countryCode) {
-          await db.updateUserProfile(user.id, { countryCode });
-          user = { ...user, countryCode };
-        }
-      }
       const avatarId = resolveAvatarId(user);
       if (user.avatarId !== avatarId) void db.updateUserProfile(user.id, { avatarId });
       return { ...user, avatarId, avatarUrl: `/assets/avatars/avatar-${String(avatarId).padStart(2, "0")}.webp` } as any;
