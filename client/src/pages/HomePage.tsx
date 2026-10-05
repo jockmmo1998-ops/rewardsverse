@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
 import { EmptyState, Surface } from '@/components/shared/RewardUI';
-import { UserAvatar } from '@/components/AvatarSystem';
 import { OFFER_WALLS, OPINION_UNIVERSE_URL, OPINION_UNIVERSE_WALL_ID } from './OfferWalls';
 
 const offerFilters = [
@@ -20,13 +19,6 @@ const offerFilters = [
 function money(value: unknown) {
   const amount = Number(value || 0);
   return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : '$0.00';
-}
-
-function rewardLabel(value: unknown) {
-  if (value === undefined || value === null || value === '') return 'View details';
-  if (value === '*') return 'Variable reward';
-  const amount = Number(value);
-  return Number.isFinite(amount) ? money(amount) : String(value);
 }
 
 function categoryMatch(offer: any, filter: string) {
@@ -62,7 +54,6 @@ export default function HomePage() {
   const featured = trpc.user.getFeaturedOffers.useQuery(undefined, { staleTime: 60_000, gcTime: 5 * 60_000, placeholderData: (previousData) => previousData, refetchOnWindowFocus: false, retry: false });
   const summary = trpc.user.getDashboardSummary.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
   const weeklyQuery = trpc.user.getWeeklyProgress.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
-  const leaderboardQuery = trpc.user.getLeaderboard.useQuery(undefined, { staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
   const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
   const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && activeWall !== OPINION_UNIVERSE_WALL_ID && user?.id), retry: false, refetchOnWindowFocus: false });
 
@@ -76,8 +67,6 @@ export default function HomePage() {
   }, [activeWall, user?.id, user?.name, user?.username, wallUrlQuery.data?.url]);
 
   const allOffers = featured.data ?? [];
-  const leaderboard = (leaderboardQuery.data ?? []).slice(0, 10) as any[];
-  const trendingOffers = allOffers.slice(0, 10);
   const weeklyDays = weeklyQuery.data?.days ?? [];
   const weeklyTotal = Number(weeklyQuery.data?.total ?? 0);
   const weeklyGoal = Number(weeklyQuery.data?.goal ?? 10);
@@ -133,10 +122,7 @@ export default function HomePage() {
         <div className="weekly-chart-card"><div className="weekly-chart-heading"><span>Activity this week</span><small>This week⌄</small></div><div className="weekly-chart" aria-label="Real earnings by day this week">{weeklyDays.map((day: any) => <div className="weekly-chart-bar" key={day.label}><i style={{ height: `${Math.max(8, Math.round((Number(day.amount || 0) / weeklyMax) * 100))}%` }} /><span>{day.label}</span></div>)}</div></div>
       </section>
       </div>
-      <aside className="dashboard-side-rail" aria-label="Dashboard insights">
-        <section className="dashboard-side-panel"><div className="dashboard-side-heading"><div><h2><i className="section-dot" /> Top earners</h2><p>Latest users with the highest rewards</p></div><span className="side-select">This week</span></div><div className="dashboard-earner-list">{leaderboard.length ? leaderboard.map((entry: any, index: number) => <div className="dashboard-earner" key={entry.id ?? `${entry.username}-${index}`}><span className={`dashboard-rank rank-${index + 1}`}>{index + 1}</span><UserAvatar userId={entry.userId} avatarId={entry.avatarId} alt="" className="dashboard-mini-avatar rounded-full" /><div className="dashboard-earner-copy"><strong>{entry.username || 'Member'}</strong><span>{index + 1} place</span></div><b>{money(entry.totalEarned)}</b></div>) : <p className="dashboard-empty">No leaderboard data yet.</p>}</div><p className="dashboard-side-note">Figures update from verified rewards.</p></section>
-        <section className="dashboard-side-panel"><div className="dashboard-side-heading"><div><h2><i className="section-dot" /> Trending offers</h2><p>Popular offers from the live catalog</p></div><Link to="/offerwalls" className="dashboard-side-link">View all</Link></div><div className="dashboard-trending-list">{trendingOffers.length ? trendingOffers.map((offer: any, index: number) => <button type="button" className="dashboard-trending text-left" onClick={() => setActiveOffer(offer)} key={`${offer.provider}-${offer.id ?? index}`}><span className="dashboard-trending-logo">{String(offer.provider || offer.offerName || 'O').slice(0, 1).toUpperCase()}</span><span className="dashboard-trending-copy"><strong>{offer.offerName || offer.provider || 'Offer'}</strong><span>{offer.category || 'Offer'}</span></span><b>{rewardLabel(offer.reward ?? offer.payout)}</b></button>) : <p className="dashboard-empty">Live offers will appear here.</p>}</div></section>
-      </aside>
+
     </div>
   );
 }

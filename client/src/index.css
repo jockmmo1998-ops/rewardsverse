@@ -1512,3 +1512,15 @@
 @media (prefers-reduced-motion: reduce) {
   .rv-loader, .animate-spin { animation: none !important; }
 }
+
+
+/* Dashboard cleanup: the insight sidebar was removed, so the core journey
+   now reads cleanly from welcome → featured offers → partners → weekly progress. */
+.dashboard-page.dashboard-layout-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.dashboard-page.dashboard-layout-grid > .dashboard-main-column {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+}
