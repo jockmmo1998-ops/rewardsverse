@@ -1439,3 +1439,48 @@
   .live-activity-item { gap: .3rem; }
   .live-activity-button { min-width: 128px; padding-inline: .35rem; }
 }
+
+
+/* Production-safe live ticker isolation: status and scrolling content never overlap. */
+.live-activity-inner {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  gap: .85rem;
+  min-width: 0;
+}
+.live-activity-status {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  min-width: max-content;
+  flex: none;
+  align-items: center;
+  gap: .42rem;
+  background: var(--background);
+  padding: .08rem .25rem .08rem 0;
+  isolation: isolate;
+}
+.live-activity-status-dot {
+  position: relative;
+  z-index: 5;
+  display: inline-block;
+  width: .42rem;
+  height: .42rem;
+  flex: 0 0 .42rem;
+  margin: 0;
+}
+.live-activity-track {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  width: auto;
+  overflow: hidden;
+  clip-path: inset(0);
+}
+.live-activity-items { position: relative; z-index: 1; }
+@media (max-width: 639px) {
+  .live-activity-inner { grid-template-columns: max-content minmax(0, 1fr); gap: .6rem; padding-inline: .75rem; }
+  .live-activity-status { font-size: .56rem; }
+  .live-activity-track { min-width: 0; }
+}
