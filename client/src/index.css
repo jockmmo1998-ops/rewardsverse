@@ -1613,3 +1613,99 @@
   .dashboard-page.dashboard-layout-grid .provider-rail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .dashboard-page.dashboard-layout-grid .provider-partner-card { height: 88px; min-height: 88px; }
 }
+
+
+/* Visual fidelity audit — keep the existing RewardsVerse shell, but restore the
+   reference-like offer density: wide cards, readable hierarchy and predictable
+   responsive columns instead of compressed ten-up tiles. */
+.dashboard-page.dashboard-layout-grid .featured-offer-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card {
+  min-height: 218px !important;
+  padding: 13px !important;
+  border-radius: 12px;
+}
+.dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card h3 {
+  font-size: .92rem;
+  line-height: 1.25;
+}
+.dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card .mt-5 > p {
+  display: -webkit-box;
+  min-height: 2.5rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card .featured-offer-logo {
+  height: 48px;
+  width: 48px;
+  border-radius: 11px;
+}
+.dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card .status-badge {
+  padding: 4px 7px;
+  font-size: 8px;
+}
+.dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card .offer-cta {
+  font-size: .68rem;
+}
+
+@media (max-width: 1199px) {
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card {
+    min-height: 204px !important;
+  }
+}
+@media (max-width: 520px) {
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .dashboard-page.dashboard-layout-grid .featured-offer-grid .offer-card {
+    min-height: 184px !important;
+    padding: 12px !important;
+  }
+}
+
+/* Keep the provider rail compact without forcing unreadable horizontal cards. */
+.dashboard-page.dashboard-layout-grid .provider-rail-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 9px;
+}
+@media (min-width: 1200px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .dashboard-page.dashboard-layout-grid .provider-rail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Avoid clipped controls and excess side padding on narrow screens. */
+@media (max-width: 650px) {
+  .dashboard-page.dashboard-layout-grid .offer-marketplace {
+    padding-inline: 11px;
+  }
+  .dashboard-page.dashboard-layout-grid .offer-search {
+    width: 100%;
+  }
+  .dashboard-page.dashboard-layout-grid .dashboard-hero {
+    min-height: 0;
+  }
+}
