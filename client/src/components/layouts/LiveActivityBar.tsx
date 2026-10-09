@@ -4,6 +4,7 @@ import { Activity, ArrowDownToLine, CalendarDays, CircleDollarSign, Trophy, Wall
 import { trpc } from '@/lib/trpc';
 import { UserAvatar } from '@/components/AvatarSystem';
 import { useAuth } from '@/contexts/AuthContext';
+import { PaymentMethodLogo, resolvePaymentMethod } from '@/components/PaymentMethodLogo';
 
 function maskUsername(value: unknown) {
   const username = String(value || 'member').trim();
@@ -122,6 +123,8 @@ export function LiveActivityBar() {
       return (!currentUserId || itemUserId !== currentUserId) && (!currentUsername || itemUsername !== currentUsername);
     })
     .slice(0, 30) as any[];
+  const recentCredits = items.filter((item: any) => item.type !== 'withdrawal');
+  const recentWithdrawals = items.filter((item: any) => item.type === 'withdrawal');
   const groupedUsers = useMemo(() => {
     const groups = new Map<string, any[]>();
     items.forEach((item) => {
@@ -170,7 +173,9 @@ export function LiveActivityBar() {
     if (item) inspectItem(event, item);
   };
 
-  const renderItem = (item: any, duplicate = false) => (
+  const renderItem = (item: any, duplicate = false) => {
+    const method = item.type === 'withdrawal' ? resolvePaymentMethod(withdrawalMethod(item)) : null;
+    return (
     <button
       key={`${item.id}-${duplicate ? 'copy' : 'primary'}`}
       type="button"
@@ -183,8 +188,8 @@ export function LiveActivityBar() {
       data-live-user-key={userKey(item)}
       aria-label={`View full activity for ${maskUsername(item.username)}`}
     >
-      <UserAvatar userId={item.userId} avatarId={item.avatarId} alt="" className="h-6 w-6 shrink-0 rounded-full border border-primary/20" />
-      {item.type === 'withdrawal' ? <ArrowDownToLine className="h-3.5 w-3.5 shrink-0 text-amber-300" /> : <Activity className={`h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />}
+      <UserAvatar userId={item.userId} avatarId={item.avatarId} alt="" className="h-7 w-7 shrink-0 rounded-full border border-primary/35 shadow-[0_0_10px_rgba(130,214,61,.13)]" />
+      {method ? <PaymentMethodLogo method={method} size="small" decorative /> : item.type === 'withdrawal' ? <ArrowDownToLine className="h-3.5 w-3.5 shrink-0 text-amber-300" /> : <Activity className={`h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />}
       <span className="live-activity-copy">
         <span className="live-activity-user">{maskUsername(item.username)}</span>
         <span className="live-activity-summary">
@@ -192,24 +197,35 @@ export function LiveActivityBar() {
         </span>
       </span>
     </button>
+    );
+  };
+
+  const renderTrack = (feed: any[]) => (
+    <div className="live-activity-track">
+      <div className="live-activity-items">
+        <div className="live-activity-group">{feed.map((item) => renderItem(item))}</div>
+        <div className="live-activity-group" aria-hidden="true">{feed.map((item) => renderItem(item, true))}</div>
+      </div>
+    </div>
   );
 
   return (
     <section className="live-activity-bar relative" onPointerDownCapture={inspectFromLiveBar} onClickCapture={inspectFromLiveBar} aria-label="Live verified activity" aria-live="polite">
-      <div className="live-activity-inner">
-        <span className="live-activity-status" aria-label="Verified live activity"><span className="live-activity-status-dot" aria-hidden="true" /></span>
-        {activities.isLoading ? (
-          <span className="text-xs text-muted-foreground">Loading verified activity…</span>
-        ) : items.length ? (
-          <div className="live-activity-track">
-            <div className="live-activity-items">
-              <div className="live-activity-group">{items.map((item) => renderItem(item))}</div>
-              <div className="live-activity-group" aria-hidden="true">{items.map((item) => renderItem(item, true))}</div>
+      <div className="live-activity-stack">
+        <div className="live-activity-row live-activity-row-credits">
+          <div className="live-activity-row-label"><span className="live-activity-status-dot" aria-hidden="true" /><span>Recent credits</span></div>
+          {activities.isLoading ? <span className="live-activity-empty">Loading verified credits…</span> : recentCredits.length ? renderTrack(recentCredits) : <span className="live-activity-empty"><CircleDollarSign className="h-3.5 w-3.5" />No recent credits yet</span>}
+        </div>
+        <div className="live-activity-row live-activity-row-withdrawals">
+          <div className="live-activity-row-label"><span className="live-activity-status-dot" aria-hidden="true" /><span>Withdrawals</span></div>
+          {recentWithdrawals.length ? renderTrack(recentWithdrawals) : (
+            <div className="live-activity-methods" aria-label="Supported withdrawal methods">
+              <span className="live-activity-empty">No recent withdrawals</span>
+              <span className="live-activity-method-chip"><PaymentMethodLogo method="litecoin" size="small" decorative />Litecoin</span>
+              <span className="live-activity-method-chip"><PaymentMethodLogo method="binance" size="small" decorative />Binance</span>
             </div>
-          </div>
-        ) : (
-          <span className="text-xs text-muted-foreground"><CircleDollarSign className="mr-1.5 inline h-3.5 w-3.5" />No recent verified activity</span>
-        )}
+          )}
+        </div>
       </div>
       {selectedUser && createPortal(
         <div className="live-activity-detail live-activity-detail-portal" role="dialog" aria-label="User activity details">

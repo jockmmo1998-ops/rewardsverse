@@ -93,6 +93,7 @@ export default function HomePage() {
     <div className="dashboard-page dashboard-layout-grid mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="dashboard-main-column">
       <section className="welcome-panel dashboard-hero">
+        <img className="dashboard-hero-art" src="/rewardsverse-community-banner.webp" alt="" aria-hidden="true" decoding="async" />
         <div className="relative z-10 max-w-3xl">
           <div className="flex items-center gap-2"><span className="hud-status-dot" /><p className="rv-eyebrow">Your rewards workspace</p></div>
           <h1 className="mt-4 max-w-2xl font-display text-3xl font-semibold tracking-[-0.055em] text-foreground sm:text-5xl">Good to see you, <span className="text-primary">{displayName}</span> <span aria-hidden="true">👋</span></h1>

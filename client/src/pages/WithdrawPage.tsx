@@ -5,18 +5,12 @@ import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
 import { SectionHeading, StatTile, Surface } from '@/components/shared/RewardUI';
-
-type PaymentMethod = 'litecoin' | 'binance';
+import { PaymentMethodLogo, type PaymentMethod } from '@/components/PaymentMethodLogo';
 
 const paymentMethods: Array<{ id: PaymentMethod; symbol: string; name: string; network: string }> = [
   { id: 'litecoin', symbol: 'LTC', name: 'Litecoin', network: 'Litecoin network' },
   { id: 'binance', symbol: 'BNB', name: 'Binance', network: 'Binance wallet' },
 ];
-
-function CryptoLogo({ type }: { type: PaymentMethod }) {
-  if (type === 'litecoin') return <svg viewBox="0 0 40 40" aria-label="Litecoin logo" className="h-7 w-7"><circle cx="20" cy="20" r="19" fill="#345D9D" /><path d="M14 11h6l-3.1 10.3 5.2-1.7-1.1 3.5-5.2 1.7-.8 2.6h12l-1.2 4H8.7l1.2-4h2.4L16 11Z" fill="white" /></svg>;
-  return <svg viewBox="0 0 40 40" aria-label="Binance logo" className="h-7 w-7"><circle cx="20" cy="20" r="19" fill="#F3BA2F" /><g fill="#111827"><path d="m20 7 4.1 4.1-4.1 4.1-4.1-4.1L20 7Zm-7.2 7.2 4.1 4.1-4.1 4.1-4.1-4.1 4.1-4.1Zm14.4 0 4.1 4.1-4.1 4.1-4.1-4.1 4.1-4.1ZM20 17.2l4.1 4.1-4.1 4.1-4.1-4.1 4.1-4.1Zm0 7.3 4.1 4.1-4.1 4.1-4.1-4.1 4.1-4.1Z" /></g></svg>;
-}
 
 const MIN_WITHDRAWAL = 0.3;
 const MAX_WALLET_ADDRESS_LENGTH = 512;
@@ -122,7 +116,7 @@ export default function WithdrawPage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {paymentMethods.map((method) => (
                   <button type="button" key={method.id} onClick={() => setSelectedMethod(method.id)} className={`rounded-xl border p-4 text-left transition hover:-translate-y-0.5 ${selectedMethod === method.id ? 'border-primary/50 bg-primary/10 shadow-sm' : 'border-border bg-card hover:border-primary/30'}`}>
-                    <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted"><CryptoLogo type={method.id} /></span><div><p className="text-sm font-semibold text-foreground">{method.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{method.network}</p></div></div>{selectedMethod === method.id && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-3 w-3" /></span>}</div>
+                    <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3"><PaymentMethodLogo method={method.id} size="large" /><div><p className="text-sm font-semibold text-foreground">{method.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{method.network}</p></div></div>{selectedMethod === method.id && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-3 w-3" /></span>}</div>
                     <p className="mt-3 text-xs text-muted-foreground">Minimum ${MIN_WITHDRAWAL.toFixed(2)} · Review required</p>
                   </button>
                 ))}
