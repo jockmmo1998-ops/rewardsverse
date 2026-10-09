@@ -1,0 +1,15 @@
+Crypto logo attribution
+=======================
+
+Litecoin.svg
+- Authors credited by Wikimedia Commons: Albert dro, Charlie Lee, and Bushido.
+- Source: https://commons.wikimedia.org/wiki/File:Litecoin.svg
+- Original SVG: https://upload.wikimedia.org/wikipedia/commons/1/1c/Litecoin.svg
+- License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0): https://creativecommons.org/licenses/by-sa/4.0/
+- The SVG was not visually modified. This use identifies the Litecoin payout method and does not imply endorsement.
+
+Binance_Logo.svg
+- Author: Binance. Source: https://commons.wikimedia.org/wiki/File:Binance_Logo.svg
+- Original SVG: https://upload.wikimedia.org/wikipedia/commons/e/e8/Binance_Logo.svg
+- Wikimedia Commons identifies this geometric/text logo as public domain because it does not meet the threshold of originality. Trademark rights and other restrictions may still apply.
+- The SVG was not visually modified. This use identifies the Binance payout method and does not imply endorsement.
