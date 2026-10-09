@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight, Award, CheckCircle2, Clock3, Gift, Search, ShieldCheck, Sparkles, Tag, Timer, WalletCards, X, Zap } from 'lucide-react';
+import { Activity, ArrowRight, ArrowUpRight, Award, CheckCircle2, Clock3, Gift, Search, ShieldCheck, Sparkles, Tag, Timer, WalletCards, X, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { type CSSProperties, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -92,17 +92,34 @@ export default function HomePage() {
   return (
     <div className="dashboard-page dashboard-layout-grid mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="dashboard-main-column">
-      <section className="welcome-panel dashboard-hero">
-        <img className="dashboard-hero-art" src="/rewardsverse-community-banner.webp" alt="" aria-hidden="true" decoding="async" />
-        <div className="relative z-10 max-w-3xl">
-          <div className="flex items-center gap-2"><span className="hud-status-dot" /><p className="rv-eyebrow">Your rewards workspace</p></div>
-          <h1 className="mt-4 max-w-2xl font-display text-3xl font-semibold tracking-[-0.055em] text-foreground sm:text-5xl">Good to see you, <span className="text-primary">{displayName}</span> <span aria-hidden="true">👋</span></h1>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Earn rewards from verified surveys, apps, games and tasks, then follow every balance and payout update in one clear place.</p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row"><Link to={startEarningPath} className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-105"><Zap className="h-4 w-4" /> {user ? 'Start' : 'Register Now'} <ArrowRight className="h-4 w-4" /></Link><Link to="/withdraw" className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary px-5 py-3 text-sm font-semibold text-foreground transition hover:border-primary/35 hover:bg-muted"><WalletCards className="h-4 w-4 text-primary" /> Withdraw</Link></div>
-          <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 border-t border-border/70 pt-5 text-xs text-muted-foreground"><span className="inline-flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" /> Verified provider callbacks</span><span className="inline-flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> Server-validated payouts</span></div>
-        </div>
-        <div className="hero-side-card"><div className="quick-stats-grid"><Surface className="quick-stat"><span className="quick-stat-icon"><CheckCircle2 className="h-4 w-4" /></span><p className="dashboard-kicker">Offers completed</p><p className="mt-2 font-display text-2xl font-semibold text-foreground">{profile?.offersCompleted ?? profile?.completed_offers ?? 0}</p><p className="mt-1 text-[11px] text-muted-foreground">Verified completions</p></Surface><Surface className="quick-stat"><span className="quick-stat-icon"><Timer className="h-4 w-4" /></span><p className="dashboard-kicker">Today’s earnings</p><p className="mt-2 font-display text-2xl font-semibold text-foreground">{money(summary.data?.todayEarnings)}</p><p className="mt-1 text-[11px] text-muted-foreground">Rewards credited today</p></Surface><Surface className="quick-stat"><span className="quick-stat-icon"><Award className="h-4 w-4" /></span><p className="dashboard-kicker">Total earned</p><p className="mt-2 font-display text-2xl font-semibold text-foreground">{money(totalEarned)}</p><p className="mt-1 text-[11px] text-muted-foreground">All-time rewards</p></Surface><Surface className="quick-stat"><span className="quick-stat-icon"><Clock3 className="h-4 w-4" /></span><p className="dashboard-kicker">Pending rewards</p><p className="mt-2 font-display text-2xl font-semibold text-foreground">{money(pendingRewards)}</p><p className="mt-1 text-[11px] text-muted-foreground">Awaiting verification</p></Surface></div></div>
-      </section>
+        <section className="welcome-panel dashboard-hero">
+          <div className="dashboard-hero-copy">
+            <div className="dashboard-hero-kicker"><span className="hud-status-dot" /><span>REWARDSVERSE · WELCOME, {displayName}</span><span className="hero-public-tag">MEMBER SPACE</span></div>
+            <h1 className="dashboard-hero-title">Your rewards space.<br /><span>Built for clarity.</span></h1>
+            <p className="dashboard-hero-description">Progress, live offers, partner ratings and payout details—in one clear place.</p>
+            <div className="dashboard-hero-actions"><Link to={startEarningPath} className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-105"><Zap className="h-4 w-4" /> {user ? 'Start earning' : 'Register now'} <ArrowRight className="h-4 w-4" /></Link><Link to="/history" className="dashboard-hero-secondary focus-ring"><Activity className="h-4 w-4" /> View activity</Link></div>
+            <div className="dashboard-hero-proof"><span><CheckCircle2 className="h-3.5 w-3.5" /> Verified provider callbacks</span><span><ShieldCheck className="h-3.5 w-3.5" /> Server-validated payouts</span></div>
+          </div>
+          <div className="dashboard-hero-visual" aria-label="RewardsVerse community and account snapshot">
+            <img className="dashboard-hero-art" src="/rewardsverse-community-banner.webp" alt="RewardsVerse chibi community gathered around a branded laptop" decoding="async" fetchPriority="high" />
+            <div className="dashboard-hero-visual-shade" aria-hidden="true" />
+            <div className="dashboard-hero-art-top"><span>REWARDSVERSE · MEMBER SPACE</span><span><i /> LIVE</span></div>
+            <div className="hero-balance-overlay">
+              <div className="hero-balance-top"><span className="hero-balance-label">ACCOUNT SNAPSHOT</span><span className="hero-status">{user ? 'MEMBER' : 'PUBLIC VIEW'}</span></div>
+              <span className="hero-balance-caption">TOTAL EARNED</span>
+              <strong>{money(totalEarned)}</strong>
+              <span className="hero-balance-note">Verified rewards earned to date</span>
+              <div className="hero-balance-footer"><span>Available balance <b>{user && profile?.balance != null ? money(profile.balance) : '—'}</b></span><span>Offers completed <b>{profile?.offersCompleted ?? profile?.completed_offers ?? 0}</b></span></div>
+            </div>
+          </div>
+        </section>
+
+        <section className="dashboard-metrics-grid" aria-label="Reward overview metrics">
+          <Surface className="dashboard-metric-card"><span className="dashboard-metric-icon"><CheckCircle2 className="h-4 w-4" /></span><div className="dashboard-metric-copy"><p className="dashboard-kicker">Offers completed</p><strong>{profile?.offersCompleted ?? profile?.completed_offers ?? 0}</strong><small>Verified completions</small></div></Surface>
+          <Surface className="dashboard-metric-card"><span className="dashboard-metric-icon"><Timer className="h-4 w-4" /></span><div className="dashboard-metric-copy"><p className="dashboard-kicker">Today’s earnings</p><strong>{money(summary.data?.todayEarnings)}</strong><small>Rewards credited today</small></div></Surface>
+          <Surface className="dashboard-metric-card"><span className="dashboard-metric-icon"><Award className="h-4 w-4" /></span><div className="dashboard-metric-copy"><p className="dashboard-kicker">Total earned</p><strong>{money(totalEarned)}</strong><small>All-time rewards</small></div></Surface>
+          <Surface className="dashboard-metric-card"><span className="dashboard-metric-icon"><Clock3 className="h-4 w-4" /></span><div className="dashboard-metric-copy"><p className="dashboard-kicker">Pending rewards</p><strong>{money(pendingRewards)}</strong><small>Awaiting verification</small></div></Surface>
+        </section>
 
       <section className="offer-marketplace featured-primary">
         <div className="flex flex-col gap-5 border-b border-border/70 pb-5 xl:flex-row xl:items-end xl:justify-between"><div><div className="flex items-center gap-2"><span className="featured-live-dot" aria-hidden="true" /><span className="featured-activity-label">LIVE</span><p className="rv-eyebrow">Offer catalog</p></div><h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.05em] text-foreground sm:text-3xl">Featured offers</h2><p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Start with live offers from the current configured provider feed.</p></div><label className="hud-search offer-search" aria-label="Search offers"><Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search offers…" /></label></div>
