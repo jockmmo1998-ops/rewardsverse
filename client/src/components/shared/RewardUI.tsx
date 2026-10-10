@@ -94,7 +94,7 @@ export function LoadingRows({ count = 4 }: { count?: number }) {
 
 export function EmptyState({ title, description, icon: Icon = Inbox, action }: { title: string; description: string; icon?: typeof Inbox; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/15 px-6 py-12 text-center">
+    <div className="rv-empty-state flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/15 px-6 py-12 text-center">
       <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-muted text-muted-foreground"><Icon className="h-5 w-5" /></div>
       <h3 className="font-display text-base font-semibold text-foreground">{title}</h3>
       <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">{description}</p>

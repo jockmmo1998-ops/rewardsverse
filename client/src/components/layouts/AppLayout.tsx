@@ -15,10 +15,9 @@ export function AppLayout({ children }: { children?: ReactNode }) {
   const utils = trpc.useUtils();
   const isOfferLanding = location.pathname === '/home' || location.pathname === '/dashboard';
   const isSignedIn = Boolean(user);
-  // Keep one shared activity feed visible throughout the signed-in menu. The
-  // public Earn Rewards/Dashboard landing routes also keep it visible so
-  // navigation never changes the activity experience.
-  const showLiveTicker = isSignedIn || isOfferLanding;
+  // Keep live social proof in the member workspace. Public visitors see a
+  // focused landing page rather than a dense stream of repeated activity.
+  const showLiveTicker = isSignedIn;
 
   useEffect(() => {
     if (!isOfferLanding || !isSignedIn) return;

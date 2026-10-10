@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import "./index.css";
 import "./performance.css";
+import "./rewardsverse-design.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
 document.documentElement.classList.add("dark");

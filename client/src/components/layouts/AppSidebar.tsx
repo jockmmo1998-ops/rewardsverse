@@ -7,7 +7,7 @@ import { BrandMark } from '@/components/shared/RewardUI';
 type NavItem = { label: string; path: string; icon: typeof LayoutDashboard; badge?: string };
 
 const primaryItems: NavItem[] = [
-  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { label: 'Dashboard', path: '/home', icon: LayoutDashboard },
   { label: 'Earn rewards', path: '/offerwalls', icon: Zap, badge: 'LIVE' },
   { label: 'Leaderboard', path: '/leaderboard', icon: Trophy },
 ];
@@ -25,7 +25,7 @@ const accountItems: NavItem[] = [
 export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; onOpenChange?: (open: boolean) => void; onClose?: () => void }) {
   const location = useLocation();
   const { profile, logout } = useAuth();
-  const isActive = (path: string) => path === '/dashboard'
+  const isActive = (path: string) => path === '/home'
     ? location.pathname === '/dashboard' || location.pathname === '/home'
     : location.pathname === path;
   const handleLogout = async () => { await logout(); window.location.href = '/home'; };

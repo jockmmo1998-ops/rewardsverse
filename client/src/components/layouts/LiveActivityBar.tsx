@@ -122,7 +122,7 @@ export function LiveActivityBar() {
       const itemUsername = String(item.username ?? '').toLowerCase();
       return (!currentUserId || itemUserId !== currentUserId) && (!currentUsername || itemUsername !== currentUsername);
     })
-    .slice(0, 30) as any[];
+    .slice(0, 8) as any[];
   const groupedUsers = useMemo(() => {
     const groups = new Map<string, any[]>();
     items.forEach((item) => {

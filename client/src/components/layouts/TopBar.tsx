@@ -13,7 +13,7 @@ import { BrandMark } from '@/components/shared/RewardUI';
 
 const primaryNavItems = [
   { label: 'Dashboard', to: '/home', icon: LayoutDashboard },
-  { label: 'Offers', to: '/offerwalls', icon: Zap },
+  { label: 'Earn rewards', to: '/offerwalls', icon: Zap },
   { label: 'Leaderboard', to: '/leaderboard', icon: Trophy },
   { label: 'Activity', to: '/history', icon: HistoryIcon },
   { label: 'Referrals', to: '/referrals', icon: Users },
@@ -124,7 +124,8 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
       </nav>
       <div className="rv-topbar-actions">
         <button onClick={onMenuClick} className="rv-mobile-menu focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={sidebarOpen}><Menu className="h-5 w-5" /></button>
-        <div ref={menuRef} className="relative flex items-center gap-1.5 sm:gap-3">
+        {!user && <div className="rv-guest-actions"><Link to="/login" className="rv-guest-login focus-ring">Log in</Link><Link to="/register" className="rv-guest-register focus-ring">Create account</Link></div>}
+        <div ref={menuRef} className={cn('relative flex items-center gap-1.5 sm:gap-3', !user && 'hidden')}>
         <button type="button" onClick={() => toggleMenu('notifications')} className={cn('focus-ring relative rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground', openMenu === 'notifications' && 'bg-primary/[.09] text-primary')} aria-label="Notifications" aria-expanded={openMenu === 'notifications'}>
           <Bell className="h-[17px] w-[17px]" />
           {unreadCount > 0 && <span className="notification-count" aria-label={`${unreadCount} unread notifications`}>{unreadCount > 9 ? '9+' : unreadCount}</span>}

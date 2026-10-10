@@ -1,0 +1,485 @@
+/* RewardsVerse cohesive interface layer.
+   Keep the established graphite + RewardsVerse green identity; remove accumulated
+   metallic gradients, tiny labels and perspective hover effects from legacy styles. */
+:root {
+  --rv-bg: #1b1e1c;
+  --rv-surface: #222724;
+  --rv-surface-raised: #282e2a;
+  --rv-surface-hover: #2d342f;
+  --rv-border: rgba(239, 246, 240, .1);
+  --rv-border-strong: rgba(239, 246, 240, .16);
+  --rv-text: #f2f5f1;
+  --rv-muted: #b4beb5;
+  --rv-green: #16a34a;
+  --rv-green-bright: #4ade80;
+  --rv-amber: #e8c46a;
+  --rv-shadow: 0 12px 30px rgba(0, 0, 0, .18);
+  --radius: .875rem;
+}
+
+html.dark {
+  color-scheme: dark;
+  --background: var(--rv-bg);
+  --foreground: var(--rv-text);
+  --card: var(--rv-surface);
+  --card-foreground: var(--rv-text);
+  --popover: var(--rv-surface-raised);
+  --popover-foreground: var(--rv-text);
+  --primary: var(--rv-green);
+  --primary-foreground: #10170f;
+  --secondary: var(--rv-surface-raised);
+  --secondary-foreground: var(--rv-text);
+  --muted: var(--rv-surface-raised);
+  --muted-foreground: var(--rv-muted);
+  --accent: var(--rv-green);
+  --accent-foreground: #10170f;
+  --border: var(--rv-border);
+  --input: var(--rv-surface-raised);
+  --ring: var(--rv-green-bright);
+  --sidebar-background: var(--rv-bg);
+  --sidebar-foreground: var(--rv-text);
+  --sidebar-border: var(--rv-border);
+}
+
+html,
+body,
+#root {
+  background-color: var(--rv-bg);
+}
+
+body {
+  color: var(--rv-text);
+  background-image: radial-gradient(ellipse at 78% 0%, rgba(22, 163, 74, .055), transparent 38%);
+  background-attachment: fixed;
+}
+
+.app-shell-background,
+html.dark .app-shell-background {
+  background: var(--rv-bg) !important;
+}
+
+/* One restrained surface language across member and public pages. */
+html.dark :is(.rv-surface, .unified-surface, .offer-marketplace, .provider-rail, .weekly-progress-panel, .offers-partners-panel, .earn-center-hero) {
+  border: 1px solid var(--rv-border-strong) !important;
+  border-radius: 14px !important;
+  background: var(--rv-surface) !important;
+  box-shadow: var(--rv-shadow) !important;
+}
+
+html.dark .dashboard-page.dashboard-layout-grid .dashboard-hero {
+  border: 1px solid var(--rv-border-strong) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #252b27 0%, #202421 68%, #1d211e 100%) !important;
+  box-shadow: var(--rv-shadow) !important;
+}
+
+html.dark .dashboard-page.dashboard-layout-grid .dashboard-hero-title {
+  font-size: clamp(38px, 3.7vw, 56px) !important;
+}
+
+@media (min-width: 1200px) {
+  html.dark .dashboard-page.dashboard-layout-grid .dashboard-hero-visual {
+    min-height: 400px !important;
+  }
+}
+
+html.dark .earn-center-hero {
+  background: linear-gradient(135deg, #252b27 0%, #202421 72%) !important;
+}
+
+html.dark .earn-center-aurora,
+html.dark .earn-center-grid {
+  opacity: .35;
+}
+
+html.dark .dashboard-page.dashboard-layout-grid .dashboard-metric-card,
+html.dark .dashboard-page.dashboard-layout-grid .provider-mini-card,
+html.dark .featured-primary .featured-offer-grid .offer-card,
+html.dark .offers-partners-panel .provider-card,
+html.dark .profile-reward-card {
+  border: 1px solid var(--rv-border) !important;
+  border-radius: 12px !important;
+  background: var(--rv-surface-raised) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html.dark .dashboard-page.dashboard-layout-grid .dashboard-metric-card {
+  min-height: 100px;
+  padding: 16px !important;
+}
+
+html.dark .dashboard-metric-icon,
+html.dark .unified-icon,
+html.dark .stat-icon {
+  border-color: rgba(74, 222, 128, .22) !important;
+  background: rgba(22, 163, 74, .12) !important;
+  color: var(--rv-green-bright) !important;
+}
+
+@media (hover: hover) {
+  html.dark .dashboard-page.dashboard-layout-grid .provider-mini-card:hover,
+  html.dark .featured-primary .featured-offer-grid .offer-card:hover,
+  html.dark .offers-partners-panel .provider-card:hover {
+    border-color: rgba(74, 222, 128, .44) !important;
+    background: var(--rv-surface-hover) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .22) !important;
+    transform: translateY(-2px) !important;
+  }
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card::before,
+html.dark .featured-primary .featured-offer-grid .offer-card::after {
+  display: none !important;
+}
+
+html.dark .featured-primary .featured-offer-grid {
+  grid-auto-columns: clamp(230px, 22vw, 290px) !important;
+  gap: 12px !important;
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card {
+  min-height: 250px !important;
+  height: 250px !important;
+  padding: 14px !important;
+  scroll-snap-align: start;
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card .featured-offer-logo,
+html.dark .provider-mini-logo {
+  border: 1px solid var(--rv-border-strong) !important;
+  border-radius: 10px !important;
+  background: #1e2420 !important;
+  box-shadow: none !important;
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card .status-badge,
+html.dark .featured-primary .featured-offer-grid .offer-card .offer-category,
+html.dark .featured-primary .featured-offer-grid .offer-card .offer-cta,
+html.dark .provider-partner-badge,
+html.dark .featured-primary .filter-pill-active {
+  border: 1px solid rgba(74, 222, 128, .25) !important;
+  border-radius: 7px !important;
+  background: rgba(22, 163, 74, .1) !important;
+  color: var(--rv-green-bright) !important;
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card .status-badge {
+  font-size: 10px !important;
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card .offer-category,
+html.dark .featured-primary .featured-offer-grid .offer-card .mt-5 > div:first-child > span:last-child {
+  font-size: 9px !important;
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card h3 {
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card p {
+  color: var(--rv-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+}
+
+html.dark .featured-offer-reward {
+  border-color: rgba(74, 222, 128, .22) !important;
+  border-radius: 7px !important;
+  background: rgba(22, 163, 74, .08) !important;
+  color: var(--rv-green-bright) !important;
+  font-size: 11px !important;
+}
+
+html.dark .featured-primary .featured-offer-grid .offer-card .offer-cta {
+  font-size: 10px !important;
+}
+
+html.dark .provider-mini-card {
+  min-height: 104px !important;
+  padding: 13px !important;
+}
+
+html.dark .provider-mini-copy strong,
+html.dark .provider-card-title {
+  color: var(--rv-text) !important;
+  font-size: 13px !important;
+}
+
+html.dark .provider-partner-rating small,
+html.dark .provider-card-description {
+  color: var(--rv-muted) !important;
+  font-size: 10px !important;
+}
+
+html.dark .provider-partner-rating em,
+html.dark .provider-card-stars {
+  color: var(--rv-green-bright) !important;
+}
+
+html.dark .dashboard-kicker,
+html.dark .hud-label,
+html.dark .footer-title {
+  color: var(--rv-muted) !important;
+  font-size: 10px !important;
+}
+
+html.dark .rv-eyebrow,
+html.dark .featured-offer-heading-kicker,
+html.dark .earn-center-title span,
+html.dark .dashboard-hero-title span {
+  color: var(--rv-green-bright) !important;
+}
+
+html.dark .unified-page .unified-input,
+html.dark .unified-page input,
+html.dark .unified-page textarea,
+html.dark .unified-page select {
+  border-color: var(--rv-border-strong) !important;
+  border-radius: 9px;
+  background: #1d221f !important;
+  color: var(--rv-text) !important;
+}
+
+html.dark .unified-page .unified-primary-button {
+  border-color: var(--rv-green) !important;
+  border-radius: 9px;
+  background: var(--rv-green) !important;
+  color: #10170f !important;
+}
+
+html.dark .unified-page .unified-primary-button:hover {
+  background: #22b85b !important;
+}
+
+html.dark .unified-page .unified-secondary-button,
+html.dark .unified-page .unified-filter {
+  border-color: var(--rv-border-strong) !important;
+  border-radius: 9px;
+  background: var(--rv-surface-raised) !important;
+  color: var(--rv-text) !important;
+}
+
+html.dark .unified-page .unified-filter.active {
+  border-color: rgba(74, 222, 128, .35) !important;
+  background: rgba(22, 163, 74, .1) !important;
+  color: var(--rv-green-bright) !important;
+}
+
+html.dark .rv-empty-state {
+  border-color: var(--rv-border-strong) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, .015) !important;
+}
+
+html.dark .featured-primary .rv-empty-state {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 2px;
+  padding: 14px 18px !important;
+  text-align: left !important;
+}
+
+html.dark .featured-primary .rv-empty-state > div:first-child {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 36px;
+  height: 36px;
+  margin: 0 !important;
+  border-radius: 10px !important;
+}
+
+html.dark .featured-primary .rv-empty-state > h3 {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0 !important;
+}
+
+html.dark .featured-primary .rv-empty-state > p {
+  grid-column: 2;
+  grid-row: 2;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+html.dark .featured-primary .rv-empty-state > div:last-child {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  margin: 0 !important;
+}
+
+html.dark .rv-topbar {
+  border-bottom-color: var(--rv-border-strong) !important;
+  background: rgba(27, 30, 28, .96) !important;
+}
+
+html.dark .rv-primary-nav-link {
+  min-height: 42px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+html.dark .rv-primary-nav-link.is-active {
+  border-color: rgba(74, 222, 128, .24) !important;
+  background: rgba(22, 163, 74, .1) !important;
+  color: var(--rv-green-bright) !important;
+}
+
+.rv-guest-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rv-guest-login,
+.rv-guest-register {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--rv-border-strong);
+  border-radius: 9px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rv-guest-login {
+  color: var(--rv-text);
+}
+
+.rv-guest-register {
+  border-color: var(--rv-green);
+  background: var(--rv-green);
+  color: #10170f;
+}
+
+.rv-guest-login:hover {
+  background: var(--rv-surface-raised);
+}
+
+.rv-guest-register:hover {
+  background: #22b85b;
+}
+
+html.dark .live-activity-bar {
+  border-color: var(--rv-border-strong) !important;
+  border-radius: 12px !important;
+  background: var(--rv-surface) !important;
+  box-shadow: none !important;
+}
+
+html.dark .live-activity-row .live-activity-button {
+  border-color: var(--rv-border) !important;
+  border-radius: 9px !important;
+  background: var(--rv-surface-raised) !important;
+  box-shadow: none !important;
+}
+
+html.dark .live-activity-track:hover .live-activity-items {
+  animation-play-state: paused !important;
+}
+
+html.dark .app-footer {
+  border-top-color: var(--rv-border-strong) !important;
+  background: #191c1a !important;
+}
+
+html.dark :is(.text-muted-foreground, .dashboard-hero-description, .featured-offer-heading-copy > p) {
+  color: var(--rv-muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--rv-green-bright);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  html.dark .rv-topbar {
+    min-height: 64px !important;
+    padding-inline: 16px !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  html.dark .dashboard-page.dashboard-guest .dashboard-main-column {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html.dark .dashboard-page.dashboard-guest .dashboard-main-column > .provider-rail {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .rv-guest-login {
+    display: none;
+  }
+
+  .rv-guest-register {
+    min-height: 36px;
+    padding-inline: 10px;
+    font-size: 11px;
+  }
+
+  html.dark .featured-primary .featured-offer-grid {
+    grid-auto-columns: min(82vw, 280px) !important;
+  }
+
+  html.dark .featured-primary .featured-offer-grid .offer-card {
+    min-height: 232px !important;
+    height: 232px !important;
+  }
+
+  html.dark .dashboard-page.dashboard-layout-grid .dashboard-hero {
+    gap: 16px !important;
+  }
+
+  html.dark .dashboard-page.dashboard-layout-grid .dashboard-hero-visual {
+    min-height: 240px !important;
+  }
+
+  html.dark .featured-primary .rv-empty-state {
+    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: 10px;
+    padding: 12px !important;
+  }
+
+  html.dark .featured-primary .rv-empty-state > div:first-child {
+    grid-row: 1 / 3;
+  }
+
+  html.dark .featured-primary .rv-empty-state > h3 {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  html.dark .featured-primary .rv-empty-state > p {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  html.dark .featured-primary .rv-empty-state > div:last-child {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 8px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.dark .live-activity-items,
+  html.dark .featured-primary .featured-offer-grid .offer-card,
+  html.dark .dashboard-page.dashboard-layout-grid .provider-mini-card,
+  html.dark .offers-partners-panel .provider-card {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
