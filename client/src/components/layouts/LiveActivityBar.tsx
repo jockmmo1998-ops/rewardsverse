@@ -50,7 +50,7 @@ function activityLabel(type: unknown) {
 
 function activityTone(type: unknown) {
   if (type === 'withdrawal') return 'text-amber-500';
-  if (type === 'offer_complete' || type === 'reward') return 'text-emerald-600';
+  if (type === 'offer_complete' || type === 'reward') return 'text-primary';
   return 'text-slate-500';
 }
 
@@ -69,7 +69,7 @@ function compactActivityDescription(value: unknown) {
 }
 
 function shortOfferName(item: any) {
-  if (item.type === 'withdrawal') return 'WITHDRAW';
+  if (item.type === 'withdrawal') return 'WITHDRAWAL';
   const description = String(item.description || '').trim();
   const separatorIndex = description.indexOf(' — ');
   const rawOfferName = separatorIndex >= 0
@@ -123,8 +123,6 @@ export function LiveActivityBar() {
       return (!currentUserId || itemUserId !== currentUserId) && (!currentUsername || itemUsername !== currentUsername);
     })
     .slice(0, 30) as any[];
-  const recentCredits = items.filter((item: any) => item.type !== 'withdrawal');
-  const recentWithdrawals = items.filter((item: any) => item.type === 'withdrawal');
   const groupedUsers = useMemo(() => {
     const groups = new Map<string, any[]>();
     items.forEach((item) => {
@@ -175,6 +173,8 @@ export function LiveActivityBar() {
 
   const renderItem = (item: any, duplicate = false) => {
     const method = item.type === 'withdrawal' ? resolvePaymentMethod(withdrawalMethod(item)) : null;
+    const amount = formatAmount(Math.abs(Number(item.amount)));
+    const amountLabel = item.type === 'withdrawal' ? (amount ? `−${amount}` : 'Withdrawal') : amount || 'Verified';
     return (
     <button
       key={`${item.id}-${duplicate ? 'copy' : 'primary'}`}
@@ -193,7 +193,7 @@ export function LiveActivityBar() {
       <span className="live-activity-copy">
         <span className="live-activity-user">{maskUsername(item.username)}</span>
         <span className="live-activity-summary">
-          <span className="live-activity-amount">{formatAmount(item.amount) || 'Verified'}</span> <span>·</span> <span className={item.type === 'withdrawal' ? 'live-activity-withdrawal-label' : 'live-activity-offer-name'}>{shortOfferName(item)}</span>
+          <span className="live-activity-amount">{amountLabel}</span> <span>·</span> <span className={item.type === 'withdrawal' ? 'live-activity-withdrawal-label' : 'live-activity-offer-name'}>{shortOfferName(item)}</span>
         </span>
       </span>
     </button>
@@ -213,18 +213,8 @@ export function LiveActivityBar() {
     <section className="live-activity-bar relative" onPointerDownCapture={inspectFromLiveBar} onClickCapture={inspectFromLiveBar} aria-label="Live verified activity" aria-live="polite">
       <div className="live-activity-stack">
         <div className="live-activity-row live-activity-row-credits">
-          <div className="live-activity-row-label"><span className="live-activity-status-dot" aria-hidden="true" /><span>Recent credits</span></div>
-          {activities.isLoading ? <span className="live-activity-empty">Loading verified credits…</span> : recentCredits.length ? renderTrack(recentCredits) : <span className="live-activity-empty"><CircleDollarSign className="h-3.5 w-3.5" />No recent credits yet</span>}
-        </div>
-        <div className="live-activity-row live-activity-row-withdrawals">
-          <div className="live-activity-row-label"><span className="live-activity-status-dot" aria-hidden="true" /><span>Withdrawals</span></div>
-          {recentWithdrawals.length ? renderTrack(recentWithdrawals) : (
-            <div className="live-activity-methods" aria-label="Supported withdrawal methods">
-              <span className="live-activity-empty">No recent withdrawals</span>
-              <span className="live-activity-method-chip"><PaymentMethodLogo method="litecoin" size="small" decorative />Litecoin</span>
-              <span className="live-activity-method-chip"><PaymentMethodLogo method="binance" size="small" decorative />Binance</span>
-            </div>
-          )}
+          <div className="live-activity-row-label"><span className="live-activity-status-dot" aria-hidden="true" /><span className="live-activity-row-label-copy"><strong>Recent credits</strong><small>Withdrawals included</small></span></div>
+          {activities.isLoading ? <span className="live-activity-empty">Loading verified activity…</span> : items.length ? renderTrack(items) : <span className="live-activity-empty"><CircleDollarSign className="h-3.5 w-3.5" />No recent activity yet</span>}
         </div>
       </div>
       {selectedUser && createPortal(
