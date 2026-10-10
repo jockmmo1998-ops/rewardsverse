@@ -1,5 +1,5 @@
-import { Bell, Check, ChevronDown, ExternalLink, LogOut, Menu, Settings, UserRound, WalletCards } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowDownToLine, Award, Bell, Check, ChevronDown, ExternalLink, History as HistoryIcon, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, Trophy, UserRound, Users, WalletCards, Zap } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -9,6 +9,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSSE } from '@/hooks/useSSE';
 import { playBellSound, unlockBellSound } from '@/utils/bellSound';
 import { UserAvatar } from '@/components/AvatarSystem';
+import { BrandMark } from '@/components/shared/RewardUI';
+
+const primaryNavItems = [
+  { label: 'Dashboard', to: '/home', icon: LayoutDashboard },
+  { label: 'Offers', to: '/offerwalls', icon: Zap },
+  { label: 'Leaderboard', to: '/leaderboard', icon: Trophy },
+  { label: 'Activity', to: '/history', icon: HistoryIcon },
+  { label: 'Referrals', to: '/referrals', icon: Users },
+  { label: 'Withdraw', to: '/withdraw', icon: ArrowDownToLine },
+];
 
 function getInitials(user: any) {
   const value = String(user?.username || user?.name || user?.email || 'RV');
@@ -27,6 +37,7 @@ function money(value: unknown) {
 
 export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () => void; sidebarOpen?: boolean }) {
   const { user, profile, logout, refreshProfile } = useAuth();
+  const location = useLocation();
   const [openMenu, setOpenMenu] = useState<'notifications' | 'profile' | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const notifications = trpc.notifications.getAll.useQuery(undefined, {
@@ -104,13 +115,23 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
   const toggleMenu = (menu: 'notifications' | 'profile') => setOpenMenu((current) => current === menu ? null : menu);
   const displayName = profile?.username || profile?.name || user?.username || user?.name || 'Member';
   const unreadCount = unread.data?.length ?? 0;
+  const isNavActive = (path: string) => path === '/home'
+    ? location.pathname === '/home' || location.pathname === '/dashboard'
+    : location.pathname === path || (path === '/offerwalls' && location.pathname.startsWith('/offerwalls/'));
 
   return (
-    <header className="hud-topbar">
-      <div className="flex min-w-0 items-center gap-3">
-        <button onClick={onMenuClick} className="focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={sidebarOpen}><Menu className="h-5 w-5" /></button>
-      </div>
-      <div ref={menuRef} className="relative flex items-center gap-1.5 sm:gap-3">
+    <header className="hud-topbar rv-topbar">
+      <Link to="/home" className="rv-topbar-brand focus-ring" aria-label="RewardsVerse home"><BrandMark compact /></Link>
+      <nav className="rv-primary-nav" aria-label="Main navigation">
+        {primaryNavItems.map(({ label, to, icon: Icon }) => (
+          <Link key={to} to={to} className={`rv-primary-nav-link ${isNavActive(to) ? 'is-active' : ''}`} aria-current={isNavActive(to) ? 'page' : undefined}>
+            <Icon className="h-4 w-4" /><span>{label}</span>
+          </Link>
+        ))}
+      </nav>
+      <div className="rv-topbar-actions">
+        <button onClick={onMenuClick} className="rv-mobile-menu focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={sidebarOpen}><Menu className="h-5 w-5" /></button>
+        <div ref={menuRef} className="relative flex items-center gap-1.5 sm:gap-3">
         <button type="button" onClick={() => toggleMenu('notifications')} className={cn('focus-ring relative rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground', openMenu === 'notifications' && 'bg-primary/[.09] text-primary')} aria-label="Notifications" aria-expanded={openMenu === 'notifications'}>
           <Bell className="h-[17px] w-[17px]" />
           {unreadCount > 0 && <span className="notification-count" aria-label={`${unreadCount} unread notifications`}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
@@ -129,9 +150,13 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
           <div className="border-b border-border px-3 py-3"><p className="truncate text-xs font-semibold text-foreground">{displayName}</p><p className="mt-1 truncate text-[10px] text-muted-foreground">{user?.email || 'RewardsVerse member'}</p></div>
           <Link to="/profile" onClick={() => setOpenMenu(null)} className="dropdown-link"><UserRound className="h-4 w-4" />Profile</Link>
           <Link to="/settings" onClick={() => setOpenMenu(null)} className="dropdown-link"><Settings className="h-4 w-4" />Settings</Link>
+          <Link to="/wallet" onClick={() => setOpenMenu(null)} className="dropdown-link"><WalletCards className="h-4 w-4" />Wallet</Link>
+          <Link to="/achievements" onClick={() => setOpenMenu(null)} className="dropdown-link"><Award className="h-4 w-4" />Achievements</Link>
+          {profile?.is_admin && <Link to="/admin" onClick={() => setOpenMenu(null)} className="dropdown-link"><ShieldCheck className="h-4 w-4" />Admin console</Link>}
           <a href="https://t.me/wilsonrobertul804" target="_blank" rel="noreferrer" className="dropdown-link"><ExternalLink className="h-4 w-4" />Telegram support</a>
           <button type="button" onClick={() => { setOpenMenu(null); void logout(); }} className="dropdown-link hover:bg-red-400/[.06] hover:text-red-300"><LogOut className="h-4 w-4" />Logout</button>
         </div>}
+        </div>
       </div>
     </header>
   );

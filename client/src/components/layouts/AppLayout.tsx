@@ -46,7 +46,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
   }, [sidebarOpen]);
 
   return (
-    <div className={`app-shell ${isOfferLanding ? 'app-shell-dashboard' : ''} flex min-h-screen w-full overflow-x-clip lg:grid lg:grid-cols-[272px_minmax(0,1fr)]`}>
+    <div className={`app-shell ${isOfferLanding ? 'app-shell-dashboard' : ''} flex min-h-screen w-full flex-col overflow-x-clip`}>
       <div className="app-shell-background" aria-hidden="true" />
       <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 w-full max-w-full flex-1 flex-col">
