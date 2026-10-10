@@ -1,4 +1,4 @@
-import { ArrowDownToLine, Award, Bell, Check, ChevronDown, ExternalLink, History as HistoryIcon, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, Trophy, UserRound, Users, WalletCards, Zap } from 'lucide-react';
+import { Award, Bell, Check, ChevronDown, ExternalLink, LogOut, Menu, Settings, ShieldCheck, UserRound, WalletCards } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -9,16 +9,21 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSSE } from '@/hooks/useSSE';
 import { playBellSound, unlockBellSound } from '@/utils/bellSound';
 import { UserAvatar } from '@/components/AvatarSystem';
-import { BrandMark } from '@/components/shared/RewardUI';
+import { BrandGlyph, BrandMark } from '@/components/shared/RewardUI';
 
-const primaryNavItems = [
-  { label: 'Dashboard', to: '/home', icon: LayoutDashboard },
-  { label: 'Earn rewards', to: '/offerwalls', icon: Zap },
-  { label: 'Leaderboard', to: '/leaderboard', icon: Trophy },
-  { label: 'Activity', to: '/history', icon: HistoryIcon },
-  { label: 'Referrals', to: '/referrals', icon: Users },
-  { label: 'Withdraw', to: '/withdraw', icon: ArrowDownToLine },
-];
+function getPageTitle(path: string) {
+  if (path.startsWith('/offerwalls/')) return 'Provider offerwall';
+  const titles: Record<string, string> = {
+    '/home': 'Dashboard', '/dashboard': 'Dashboard', '/offerwalls': 'Earn rewards',
+    '/leaderboard': 'Leaderboard', '/history': 'Activity', '/referrals': 'Referrals',
+    '/withdraw': 'Withdraw', '/wallet': 'Wallet', '/profile': 'Profile',
+    '/achievements': 'Achievements', '/settings': 'Settings', '/support': 'Support',
+    '/admin': 'Admin console', '/admin/login': 'Admin access', '/privacy': 'Privacy policy',
+    '/terms': 'Terms of service', '/cookies': 'Cookie policy', '/reward-policy': 'Reward policy',
+    '/withdrawal-policy': 'Withdrawal policy', '/faq': 'Frequently asked questions',
+  };
+  return titles[path] || 'RewardsVerse';
+}
 
 function notificationTime(value: unknown) {
   if (!value) return 'Just now';
@@ -108,20 +113,12 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
   const toggleMenu = (menu: 'notifications' | 'profile') => setOpenMenu((current) => current === menu ? null : menu);
   const displayName = profile?.username || profile?.name || user?.username || user?.name || 'Member';
   const unreadCount = unread.data?.length ?? 0;
-  const isNavActive = (path: string) => path === '/home'
-    ? location.pathname === '/home' || location.pathname === '/dashboard'
-    : location.pathname === path || (path === '/offerwalls' && location.pathname.startsWith('/offerwalls/'));
+  const pageTitle = getPageTitle(location.pathname);
 
   return (
     <header className="hud-topbar rv-topbar">
       <Link to="/home" className="rv-topbar-brand focus-ring" aria-label="RewardsVerse home"><BrandMark compact /></Link>
-      <nav className="rv-primary-nav" aria-label="Main navigation">
-        {primaryNavItems.map(({ label, to, icon: Icon }) => (
-          <Link key={to} to={to} className={`rv-primary-nav-link ${isNavActive(to) ? 'is-active' : ''}`} aria-current={isNavActive(to) ? 'page' : undefined}>
-            <Icon className="h-4 w-4" /><span>{label}</span>
-          </Link>
-        ))}
-      </nav>
+      <div className="rv-topbar-context" aria-label={`Current page: ${pageTitle}`}><span className="rv-topbar-hero-mark" aria-hidden="true"><BrandGlyph className="h-5 w-5" /></span><span className="rv-topbar-context-copy"><span>REWARDSVERSE WORKSPACE</span><strong>{pageTitle}</strong></span></div>
       <div className="rv-topbar-actions">
         <button onClick={onMenuClick} className="rv-mobile-menu focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={sidebarOpen}><Menu className="h-5 w-5" /></button>
         {!user && <div className="rv-guest-actions"><Link to="/login" className="rv-guest-login focus-ring">Log in</Link><Link to="/register" className="rv-guest-register focus-ring">Create account</Link></div>}

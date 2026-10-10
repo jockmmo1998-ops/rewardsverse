@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ArrowUpRight, CheckCircle2, Clock3, Coins, Inbox, Loader2 } from 'lucide-react';
+import { CheckCircle2, Clock3, Coins, Inbox, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BrandGlyph({ className }: { className?: string }) {
@@ -62,25 +62,30 @@ export function StatTile({
   accent?: 'mint' | 'violet' | 'amber' | 'sky';
 }) {
   return (
-    <Surface className="group relative overflow-hidden p-5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/30">
+    <Surface className="rv-stat-tile">
       <div className={cn('stat-icon', `stat-icon-${accent}`)}><Icon className="h-[18px] w-[18px]" /></div>
       <p className="mt-5 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
       <p className="mt-2 font-display text-[1.65rem] font-bold tracking-[-0.04em] text-foreground">{value}</p>
       {helper && <p className="mt-1 text-xs text-muted-foreground">{helper}</p>}
-      <ArrowUpRight className="absolute right-5 top-5 h-4 w-4 text-muted-foreground/40 transition group-hover:text-primary" />
     </Surface>
   );
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const normalized = status.toLowerCase();
-  const tone = normalized === 'completed' || normalized === 'success' ? 'success' : normalized === 'pending' ? 'pending' : 'failed';
+  const normalized = status.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const tone = ['completed', 'complete', 'success', 'approved', 'processed', 'paid', 'credited'].includes(normalized)
+    ? 'success'
+    : ['pending', 'processing', 'queued', 'in_review', 'under_review', 'waiting'].includes(normalized)
+      ? 'pending'
+      : ['failed', 'rejected', 'cancelled', 'canceled', 'declined', 'error'].includes(normalized)
+        ? 'failed'
+        : 'neutral';
   return <span className={cn('status-badge', `status-${tone}`)}>{status}</span>;
 }
 
 export function LoadingRows({ count = 4 }: { count?: number }) {
   return (
-    <div className="space-y-3" aria-label="Loading">
+    <div className="space-y-3" role="status" aria-live="polite" aria-label="Loading records">
       {Array.from({ length: count }).map((_, index) => (
         <div key={index} className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/20 p-3">
           <div className="skeleton-shimmer h-10 w-10 rounded-xl" />
@@ -94,7 +99,7 @@ export function LoadingRows({ count = 4 }: { count?: number }) {
 
 export function EmptyState({ title, description, icon: Icon = Inbox, action }: { title: string; description: string; icon?: typeof Inbox; action?: ReactNode }) {
   return (
-    <div className="rv-empty-state flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/15 px-6 py-12 text-center">
+    <div className="rv-empty-state flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/15 px-6 py-12 text-center" role="status" aria-live="polite">
       <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-muted text-muted-foreground"><Icon className="h-5 w-5" /></div>
       <h3 className="font-display text-base font-semibold text-foreground">{title}</h3>
       <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">{description}</p>

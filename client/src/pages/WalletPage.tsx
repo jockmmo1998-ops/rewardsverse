@@ -23,7 +23,7 @@ export default function WalletPage() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className="unified-page wallet-page mx-auto w-full max-w-[1200px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <SectionHeading
         eyebrow="Your money"
         title="Wallet"
@@ -43,14 +43,14 @@ export default function WalletPage() {
               {transactions.map((tx: any) => {
                 const withdrawal = tx.type === 'withdrawal';
                 return (
-                  <div key={tx.id} className="flex items-center justify-between gap-4 rounded-xl border border-white/7 bg-white/[.025] p-3.5">
+                  <div key={tx.id} className="wallet-ledger-row">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${withdrawal ? 'bg-amber-300/10 text-amber-200' : 'bg-primary/10 text-primary'}`}>
                         {withdrawal ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                       </div>
-                      <div className="min-w-0"><p className="truncate text-sm font-semibold text-foreground">{tx.description}</p><p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><HistoryIcon className="h-3 w-3" />{new Date(tx.created_at).toLocaleString()}</p></div>
+                      <div className="wallet-ledger-copy min-w-0"><p className="truncate text-sm font-semibold text-foreground">{tx.description}</p><p className="wallet-ledger-meta mt-1"><HistoryIcon className="h-3 w-3" />{new Date(tx.created_at).toLocaleString()}</p></div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-3"><StatusBadge status={tx.status} /><span className={`font-display text-sm font-semibold ${withdrawal ? 'text-foreground' : 'text-primary'}`}>{withdrawal ? '-' : '+'}${Number(tx.amount).toFixed(2)}</span></div>
+                    <div className="wallet-ledger-value"><StatusBadge status={tx.status} /><span className={`font-display text-sm font-semibold ${withdrawal ? 'text-foreground' : 'text-primary'}`}>{withdrawal ? '-' : '+'}${Number(tx.amount).toFixed(2)}</span></div>
                   </div>
                 );
               })}

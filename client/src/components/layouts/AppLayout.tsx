@@ -45,13 +45,13 @@ export function AppLayout({ children }: { children?: ReactNode }) {
   }, [sidebarOpen]);
 
   return (
-    <div className={`app-shell ${isOfferLanding ? 'app-shell-dashboard' : ''} flex min-h-screen w-full flex-col overflow-x-clip`}>
+    <div className={`app-shell ${isOfferLanding ? 'app-shell-dashboard' : ''}`}>
       <div className="app-shell-background" aria-hidden="true" />
       <AppSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex min-w-0 w-full max-w-full flex-1 flex-col">
+      <div className="app-main-column">
         <TopBar onMenuClick={() => setSidebarOpen(true)} sidebarOpen={sidebarOpen} />
         {showLiveTicker && <LiveActivityBar />}
-        <main className="min-w-0 w-full max-w-full flex-1 overflow-x-hidden">
+        <main className="app-main-content">
           <div key={location.pathname} className="route-stage min-h-full">
             {children}
           </div>

@@ -9,13 +9,123 @@ export default function HistoryPage() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const pendingQuery = trpc.history.getOfferHistory.useQuery(undefined, { enabled: Boolean(user?.id), refetchInterval: 5000, refetchOnWindowFocus: false, retry: false });
+
+  const pendingQuery = trpc.history.getOfferHistory.useQuery(undefined, {
+    enabled: Boolean(user?.id),
+    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
   const pendingOffers = (pendingQuery.data ?? []).filter((offer: any) => offer.status === 'pending');
   const pendingTotal = pendingOffers.reduce((sum: number, offer: any) => sum + Number(offer.amount || 0), 0);
-  useEffect(() => { if (!user?.id) { setLoading(false); return; } fetchUserTransactions(user.id).then(setTransactions).catch(() => setTransactions([])).finally(() => setLoading(false)); }, [user?.id]);
-  const filtered = useMemo(() => transactions.filter((tx) => (filter === 'all' || (filter === 'earnings' && tx.type !== 'withdrawal') || (filter === 'withdrawals' && tx.type === 'withdrawal')) && `${tx.description} ${tx.type} ${tx.status}`.toLowerCase().includes(search.toLowerCase())), [transactions, filter, search]);
-  const exportCsv = () => { const rows = [['Date', 'Type', 'Description', 'Status', 'Amount'], ...filtered.map((tx) => [new Date(tx.created_at).toISOString(), tx.type, tx.description, tx.status, `${tx.type === 'withdrawal' ? '-' : '+'}${Number(tx.amount).toFixed(2)}`])]; const blob = new Blob([rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'rewardsverse-activity.csv'; anchor.click(); URL.revokeObjectURL(url); };
-  return <div className="unified-page mx-auto w-full max-w-[1300px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"><SectionHeading eyebrow="Money movement" title="Activity" description="A clear record of earnings, bonuses, referrals and withdrawals." action={<button onClick={exportCsv} disabled={!filtered.length} className="unified-secondary-button"><Download className="h-4 w-4" /> Export CSV</button>} /><Surface className="unified-surface unified-pending-panel p-4"><div className="flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-wider text-amber-300">Pending rewards</p><p className="mt-1 text-xs text-muted-foreground">Offers awaiting provider verification</p></div><div className="text-right"><p className="text-xl font-black text-amber-300">${pendingTotal.toFixed(2)}</p><p className="text-[11px] text-muted-foreground">{pendingOffers.length} offer{pendingOffers.length === 1 ? '' : 's'}</p></div></div></Surface><Surface className="unified-surface overflow-hidden p-5 sm:p-6"><div className="unified-toolbar"><div className="flex gap-2 overflow-x-auto">{[['all', 'All activity'], ['earnings', 'Earnings'], ['withdrawals', 'Withdrawals']].map(([value, label]) => <button key={value} onClick={() => setFilter(value)} className={`unified-filter ${filter === value ? 'active' : ''}`}><Filter className="mr-1.5 inline h-3.5 w-3.5" />{label}</button>)}</div><label className="relative block w-full lg:max-w-xs"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search activity" className="unified-input h-10 w-full pl-9" /></label></div><div className="mt-5">{loading ? <LoadingRows count={5} /> : filtered.length ? <div className="unified-activity-list">{filtered.map((tx: any) => { const withdrawal = tx.type === 'withdrawal'; return <div key={tx.id} className="unified-activity-row"><div className="flex min-w-0 items-center gap-3"><div className={`unified-activity-icon ${withdrawal ? 'withdrawal' : ''}`}>{withdrawal ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</div><div className="min-w-0"><p className="truncate text-sm font-semibold text-foreground">{tx.description}</p><p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><HistoryIcon className="h-3 w-3" />{new Date(tx.created_at).toLocaleString()} <span>·</span> {tx.type}</p></div></div><div className="flex items-center justify-between gap-4 pl-[52px] sm:justify-end sm:pl-0"><StatusBadge status={tx.status} /><span className={`font-display text-sm font-semibold ${withdrawal ? 'text-foreground' : 'text-primary'}`}>{withdrawal ? '-' : '+'}${Number(tx.amount).toFixed(2)}</span></div></div>; })}</div> : <EmptyState title="No matching activity" description="Your completed earnings and withdrawal requests will appear here." icon={WalletCards} />}</div></Surface></div>;
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setLoadError(false);
+    if (!user?.id) {
+      setTransactions([]);
+      setLoading(false);
+      return () => { active = false; };
+    }
+    fetchUserTransactions(user.id)
+      .then((items) => { if (active) setTransactions(items); })
+      .catch(() => {
+        if (!active) return;
+        setTransactions([]);
+        setLoadError(true);
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [user?.id, reloadKey]);
+
+  const filtered = useMemo(() => transactions.filter((tx) =>
+    (filter === 'all' || (filter === 'earnings' && tx.type !== 'withdrawal') || (filter === 'withdrawals' && tx.type === 'withdrawal'))
+    && `${tx.description} ${tx.type} ${tx.status}`.toLowerCase().includes(search.toLowerCase())), [transactions, filter, search]);
+
+  const exportCsv = () => {
+    const rows = [
+      ['Date', 'Type', 'Description', 'Status', 'Amount'],
+      ...filtered.map((tx) => [new Date(tx.created_at).toISOString(), tx.type, tx.description, tx.status, `${tx.type === 'withdrawal' ? '-' : '+'}${Number(tx.amount).toFixed(2)}`]),
+    ];
+    const blob = new Blob([rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'rewardsverse-activity.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="unified-page mx-auto w-full max-w-[1300px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <SectionHeading
+        eyebrow="Money movement"
+        title="Activity"
+        description="A clear record of earnings, bonuses, referrals and withdrawals."
+        action={<button type="button" onClick={exportCsv} disabled={!filtered.length} className="unified-secondary-button"><Download className="h-4 w-4" /> Export CSV</button>}
+      />
+
+      <Surface className="unified-surface unified-pending-panel p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-300">Pending rewards</p>
+            <p className="mt-1 text-xs text-muted-foreground">{pendingQuery.isError ? 'Pending status is temporarily unavailable.' : 'Offers awaiting provider verification'}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xl font-black text-amber-300">{pendingQuery.isError ? '—' : `$${pendingTotal.toFixed(2)}`}</p>
+            <p className="text-[11px] text-muted-foreground">{pendingQuery.isError ? 'Try again later' : `${pendingOffers.length} offer${pendingOffers.length === 1 ? '' : 's'}`}</p>
+          </div>
+        </div>
+      </Surface>
+
+      <Surface className="unified-surface overflow-hidden p-5 sm:p-6">
+        <div className="unified-toolbar">
+          <div className="flex gap-2 overflow-x-auto" role="group" aria-label="Filter activity">
+            {([['all', 'All activity'], ['earnings', 'Earnings'], ['withdrawals', 'Withdrawals']] as const).map(([value, label]) => (
+              <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)} className={`unified-filter ${filter === value ? 'active' : ''}`}>
+                <Filter className="mr-1.5 inline h-3.5 w-3.5" />{label}
+              </button>
+            ))}
+          </div>
+          <label className="relative block w-full lg:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input aria-label="Search activity" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search activity" className="unified-input h-10 w-full pl-9" />
+          </label>
+        </div>
+        <div className="mt-5">
+          {loading ? <LoadingRows count={5} /> : loadError ? (
+            <EmptyState title="Activity could not be loaded" description="Your activity service did not respond. Your account records have not been changed." icon={WalletCards} action={<button type="button" onClick={() => setReloadKey((key) => key + 1)} className="text-sm font-semibold text-primary">Try again</button>} />
+          ) : filtered.length ? (
+            <div className="unified-activity-list">
+              {filtered.map((tx: any) => {
+                const withdrawal = tx.type === 'withdrawal';
+                return (
+                  <div key={tx.id} className="unified-activity-row">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className={`unified-activity-icon ${withdrawal ? 'withdrawal' : ''}`}>{withdrawal ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">{tx.description}</p>
+                        <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><HistoryIcon className="h-3 w-3" />{new Date(tx.created_at).toLocaleString()} <span>·</span> {tx.type}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 pl-[52px] sm:justify-end sm:pl-0">
+                      <StatusBadge status={tx.status} />
+                      <span className={`font-display text-sm font-semibold ${withdrawal ? 'text-foreground' : 'text-primary'}`}>{withdrawal ? '-' : '+'}${Number(tx.amount).toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState title="No matching activity" description="Your completed earnings and withdrawal requests will appear here." icon={WalletCards} />
+          )}
+        </div>
+      </Surface>
+    </div>
+  );
 }

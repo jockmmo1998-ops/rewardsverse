@@ -1,30 +1,120 @@
 {
   "routes": [
-    { "path": "/", "title": "RewardsVerse" },
-    { "path": "/home", "title": "RewardsVerse" },
-    { "path": "/login", "title": "Log in" },
-    { "path": "/register", "title": "Create account" },
-    { "path": "/forgot-password", "title": "Forgot password" },
-    { "path": "/reset-password", "title": "Reset password" },
-    { "path": "/verify-email", "title": "Verify email" },
-    { "path": "/onboarding", "title": "Onboarding" },
-    { "path": "/dashboard", "title": "Dashboard" },
-    { "path": "/offerwalls", "title": "Offerwalls" },
-    { "path": "/offerwalls/:wallId", "title": "Offerwall" },
-    { "path": "/leaderboard", "title": "Leaderboard" },
-    { "path": "/achievements", "title": "Achievements" },
-    { "path": "/history", "title": "History" },
-    { "path": "/referrals", "title": "Referrals" },
-    { "path": "/withdraw", "title": "Withdraw" },
-    { "path": "/wallet", "title": "Wallet" },
-    { "path": "/profile", "title": "Profile" },
-    { "path": "/settings", "title": "Settings" },
-    { "path": "/support", "title": "Support" },
-    { "path": "/privacy", "title": "Privacy" },
-    { "path": "/terms", "title": "Terms" },
-    { "path": "/cookies", "title": "Cookies" },
-    { "path": "/reward-policy", "title": "Reward policy" },
-    { "path": "/withdrawal-policy", "title": "Withdrawal policy" },
-    { "path": "/faq", "title": "FAQ" }
+    {
+      "path": "/",
+      "title": "Home"
+    },
+    {
+      "path": "/preview/*",
+      "title": "Static design preview"
+    },
+    {
+      "path": "/login",
+      "title": "Log in"
+    },
+    {
+      "path": "/register",
+      "title": "Sign up"
+    },
+    {
+      "path": "/onboarding",
+      "title": "Profile setup"
+    },
+    {
+      "path": "/offerwalls/:wallId",
+      "title": "Offer wall"
+    },
+    {
+      "path": "/forgot-password",
+      "title": "Password recovery"
+    },
+    {
+      "path": "/reset-password",
+      "title": "Reset password"
+    },
+    {
+      "path": "/verify-email",
+      "title": "Verify email"
+    },
+    {
+      "path": "/home",
+      "title": "Home"
+    },
+    {
+      "path": "/dashboard",
+      "title": "Dashboard"
+    },
+    {
+      "path": "/offerwalls",
+      "title": "Offer walls"
+    },
+    {
+      "path": "/leaderboard",
+      "title": "Leaderboard"
+    },
+    {
+      "path": "/achievements",
+      "title": "Achievements"
+    },
+    {
+      "path": "/history",
+      "title": "Activity history"
+    },
+    {
+      "path": "/referrals",
+      "title": "Referral program"
+    },
+    {
+      "path": "/withdraw",
+      "title": "Withdraw"
+    },
+    {
+      "path": "/wallet",
+      "title": "Wallet"
+    },
+    {
+      "path": "/profile",
+      "title": "Profile"
+    },
+    {
+      "path": "/settings",
+      "title": "Settings"
+    },
+    {
+      "path": "/support",
+      "title": "Support"
+    },
+    {
+      "path": "/admin",
+      "title": "Admin dashboard"
+    },
+    {
+      "path": "/admin/login",
+      "title": "Admin access"
+    },
+    {
+      "path": "/privacy",
+      "title": "Privacy policy"
+    },
+    {
+      "path": "/terms",
+      "title": "Terms of service"
+    },
+    {
+      "path": "/cookies",
+      "title": "Cookie policy"
+    },
+    {
+      "path": "/reward-policy",
+      "title": "Reward policy"
+    },
+    {
+      "path": "/withdrawal-policy",
+      "title": "Withdrawal policy"
+    },
+    {
+      "path": "/faq",
+      "title": "FAQ"
+    }
   ]
 }

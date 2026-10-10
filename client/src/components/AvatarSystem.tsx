@@ -33,9 +33,10 @@ export function avatarDefinition(avatarId: unknown) {
   return AVATAR_DEFINITIONS.find((item) => item.id === Number(avatarId)) || AVATAR_DEFINITIONS[0];
 }
 
-export function UserAvatar({ userId, avatarId, alt = '', className }: { userId?: unknown; avatarId?: unknown; alt?: string; className?: string }) {
+export function UserAvatar({ userId, avatarId, src, alt = '', className }: { userId?: unknown; avatarId?: unknown; src?: string | null; alt?: string; className?: string }) {
   const id = stableAvatarId(userId, avatarId);
-  return <img src={avatarUrl(id)} alt={alt} className={cn('rv-avatar', `rv-avatar-tone-${id}`, 'object-cover', className)} loading="lazy" decoding="async" />;
+  const safeSource = src && (src.startsWith('/') || /^https:\/\//i.test(src)) ? src : avatarUrl(id);
+  return <img src={safeSource} alt={alt} className={cn('rv-avatar', `rv-avatar-tone-${id}`, 'object-cover', className)} loading="lazy" decoding="async" />;
 }
 
 export function AvatarPicker({ value, onChange }: { value?: number | null; onChange: (avatarId: number) => void }) {
