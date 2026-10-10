@@ -2780,3 +2780,178 @@ html.dark .rewards-auth-page input:focus { border-color: #16A34A !important; box
   font-weight: 850;
   text-shadow: 0 0 8px rgba(22,163,74,.18);
 }
+
+
+/* Final live-site polish: exact logo green for solid brand surfaces; brighter signal green for copy on charcoal. */
+:root {
+  --rv-logo-green: #16A34A;
+  --rv-signal-green: #4ADE80;
+  --rv-signal-soft: #86EFAC;
+  --rv-metal-top: #41484D;
+  --rv-metal-mid: #30363A;
+  --rv-metal-low: #262B2E;
+  --rv-metal-edge: rgba(197,207,213,.3);
+}
+.dark {
+  --primary: var(--rv-logo-green);
+  --ring: var(--rv-signal-green);
+}
+html.dark :is(.text-primary,.text-emerald-300,.text-emerald-400,.text-green-400) {
+  color: var(--rv-signal-green) !important;
+}
+html.dark .text-gradient {
+  background-image: linear-gradient(100deg,var(--rv-signal-green),var(--rv-signal-soft)) !important;
+  background-clip: text !important;
+  color: transparent !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+html.dark .dashboard-hero-title span,
+html.dark .auth-story-copy h1 em,
+html.dark .auth-kicker,
+html.dark .auth-form-eyebrow,
+html.dark .auth-story-points li > svg,
+html.dark .auth-story-footer svg,
+html.dark .auth-terms a,
+html.dark .auth-forgot a,
+html.dark .auth-mode-switch button,
+html.dark .auth-onboarding-note svg,
+html.dark .featured-offer-heading-kicker,
+html.dark .featured-offer-heading-kicker svg,
+html.dark .featured-view-all,
+html.dark .featured-offer-reward,
+html.dark .featured-offer-reward svg,
+html.dark .live-activity-row-label-copy strong,
+html.dark .live-activity-amount,
+html.dark .live-activity-offer-name,
+html.dark .dashboard-metric-icon,
+html.dark .rv-eyebrow,
+html.dark .provider-rail-count,
+html.dark .earn-center-title span,
+html.dark .provider-partner-rating em,
+html.dark .provider-card-stars,
+html.dark .provider-card .provider-logo-fallback {
+  color: var(--rv-signal-green) !important;
+}
+html.dark .nav-link-active { color: var(--rv-signal-green) !important; }
+html.dark .hud-live-badge { color: var(--rv-signal-green) !important; }
+html.dark .featured-live-dot,
+html.dark .live-activity-row-label .live-activity-status-dot,
+html.dark .provider-mini-status.is-ready { background-color: var(--rv-signal-green) !important; }
+html.dark .featured-live-dot,
+html.dark .live-activity-row-label .live-activity-status-dot { box-shadow: 0 0 12px rgba(74,222,128,.48) !important; }
+
+/* A shared forged-metal shell keeps dashboard, featured and provider cards in one family. */
+.dark .dashboard-page.dashboard-layout-grid .offer-marketplace,
+.dark .dashboard-page.dashboard-layout-grid .provider-rail,
+.dark .dashboard-page.dashboard-layout-grid .weekly-progress-panel,
+.dark .offers-partners-panel {
+  border: 1px solid var(--rv-metal-edge) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(145deg,#32393D,#252A2D) !important;
+  box-shadow: 0 15px 34px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.09) !important;
+}
+.dark .earn-center-hero,
+html.dark .auth-shell {
+  border-color: var(--rv-metal-edge) !important;
+  background: linear-gradient(145deg,#343B3F,#252A2D) !important;
+  box-shadow: 0 22px 58px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.1) !important;
+}
+.dark .dashboard-page.dashboard-layout-grid .dashboard-metric-card,
+.dark .dashboard-page.dashboard-layout-grid .provider-mini-card,
+.dark .featured-primary .featured-offer-grid .offer-card,
+.dark .offers-partners-panel .provider-card {
+  border-color: var(--rv-metal-edge) !important;
+  background: radial-gradient(ellipse at 100% 0%,rgba(74,222,128,.08),transparent 50%),linear-gradient(155deg,var(--rv-metal-top) 0%,var(--rv-metal-mid) 44%,var(--rv-metal-low) 100%) !important;
+  box-shadow: 0 13px 27px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.19),inset 0 -1px rgba(0,0,0,.48) !important;
+}
+.dark .dashboard-page.dashboard-layout-grid .provider-mini-card:hover,
+.dark .featured-primary .featured-offer-grid .offer-card:hover,
+.dark .offers-partners-panel .provider-card:hover {
+  border-color: rgba(74,222,128,.66) !important;
+  box-shadow: 0 19px 35px rgba(0,0,0,.4),0 0 0 1px rgba(74,222,128,.14),inset 0 1px rgba(255,255,255,.24) !important;
+}
+.dark .provider-mini-logo,
+.dark .featured-primary .featured-offer-grid .offer-card .featured-offer-logo {
+  border-color: rgba(220,231,234,.32) !important;
+  background: linear-gradient(145deg,#151A1D,#252C30) !important;
+  box-shadow: 0 5px 13px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.14) !important;
+}
+.dark .offers-partners-panel .provider-card .provider-badge,
+.dark .provider-partner-badge,
+.dark .featured-primary .featured-offer-grid .offer-card .offer-category,
+.dark .featured-primary .featured-offer-grid .offer-card .status-badge,
+.dark .featured-primary .featured-offer-grid .offer-card .status-success,
+.dark .featured-primary .featured-offer-grid .offer-card .offer-cta,
+.dark .featured-primary .filter-pill-active {
+  border-color: rgba(74,222,128,.38) !important;
+  background: #151C18 !important;
+  color: var(--rv-signal-green) !important;
+}
+.dark .featured-offer-reward,
+.dark .live-activity-amount,
+.dark .live-activity-offer-name {
+  border: 1px solid rgba(74,222,128,.3) !important;
+  border-radius: 6px !important;
+  background: #111713 !important;
+  padding: 3px 6px !important;
+}
+
+/* Small labels were too compressed on the deployed cards; lift them to comfortable reading sizes. */
+.dark .featured-offer-heading-kicker { font-size: 10px !important; }
+.dark .featured-offer-heading-copy > p { font-size: 12px !important; }
+.dark .featured-primary .featured-offer-grid .offer-card .status-badge { font-size: 9px !important; line-height: 1.15 !important; }
+.dark .featured-primary .featured-offer-grid .offer-card .offer-category { font-size: 8px !important; }
+.dark .featured-primary .featured-offer-grid .offer-card .mt-5 > div:first-child > span:last-child { font-size: 8px !important; }
+.dark .featured-primary .featured-offer-grid .offer-card h3 { font-size: 12px !important; line-height: 1.3 !important; }
+.dark .featured-primary .featured-offer-grid .offer-card p { font-size: 9px !important; line-height: 1.45 !important; }
+.dark .featured-primary .featured-offer-grid .offer-card .offer-cta { font-size: 9px !important; }
+.dark .featured-offer-reward { font-size: 10px !important; }
+.dark .provider-mini-card { min-height: 118px !important; border-radius: 12px !important; padding: 12px 13px !important; }
+.dark .provider-mini-logo { width: 40px !important; height: 40px !important; }
+.dark .provider-mini-copy strong { font-size: 13px !important; line-height: 1.25 !important; }
+.dark .provider-partner-badge { border-radius: 6px !important; padding: 4px 7px !important; font-size: 9px !important; line-height: 1.15 !important; letter-spacing: .06em !important; }
+.dark .provider-partner-rating { font-size: 10px !important; line-height: 1.2 !important; }
+.dark .provider-partner-rating small { font-size: 9px !important; }
+.dark .provider-partner-rating em { font-size: 11px !important; }
+.dark .offers-partners-panel .provider-card-title { font-size: 14px !important; }
+.dark .offers-partners-panel .provider-card-description { font-size: 9px !important; line-height: 1.3 !important; }
+.dark .offers-partners-panel .provider-card .provider-badge { font-size: 10px !important; }
+.dark .dashboard-kicker { font-size: 9px !important; letter-spacing: .11em !important; }
+.dark .dashboard-metric-copy small { font-size: 11px !important; line-height: 1.35 !important; }
+.dark .live-activity-row-label-copy strong { font-size: 10px !important; }
+.dark .live-activity-row-label-copy small { font-size: 8px !important; }
+
+/* The full-page auth panels keep the original logo fill while the text/controls stay crisp. */
+html.dark .auth-story {
+  background: radial-gradient(ellipse at 95% 4%,rgba(74,222,128,.15),transparent 48%),linear-gradient(155deg,#30373A,#24292C) !important;
+}
+html.dark .auth-story::after { border-color: rgba(74,222,128,.16); background: radial-gradient(circle,rgba(74,222,128,.11),transparent 68%); }
+html.dark .auth-kicker,
+html.dark .auth-form-eyebrow { font-size: 10px !important; }
+html.dark .auth-story-copy h1 em { color: var(--rv-signal-green) !important; }
+html.dark .auth-story-description { color: #D6DDD8 !important; font-size: 14px !important; line-height: 1.65 !important; }
+html.dark .auth-story-points li strong { font-size: 12px !important; }
+html.dark .auth-story-points li small { color: #C2CAC4 !important; font-size: 11px !important; }
+html.dark .auth-story-footer span { color: #C4CDC7 !important; font-size: 9px !important; }
+html.dark .auth-form-heading > p:last-child { color: #D0D6D1 !important; font-size: 13px !important; }
+html.dark .auth-tabs button { font-size: 13px !important; }
+html.dark .auth-field > label { font-size: 12px !important; }
+html.dark .auth-field > label span { font-size: 11px !important; }
+html.dark .auth-input-wrap input { font-size: 14px !important; }
+html.dark .auth-input-wrap input::placeholder { color: #AEB7B1 !important; }
+html.dark .auth-field-help { color: #C0C9C2 !important; font-size: 11px !important; }
+html.dark .auth-terms { color: #D3D9D4 !important; font-size: 12px !important; }
+html.dark .auth-submit { font-size: 14px !important; }
+html.dark .auth-forgot a,
+html.dark .auth-mode-switch { font-size: 12px !important; }
+html.dark .auth-onboarding-note { color: #D2D9D3 !important; font-size: 11px !important; }
+html.dark .auth-submit:hover:not(:disabled) { border-color: var(--rv-signal-soft) !important; background: #2CCB68 !important; }
+@media (max-width: 600px) {
+  .dark .provider-mini-card { min-height: 122px !important; padding: 11px 10px !important; }
+  .dark .provider-mini-copy strong { font-size: 12px !important; }
+  .dark .provider-partner-rating { font-size: 9px !important; }
+  .dark .live-activity-row-label-copy strong { font-size: 8px !important; }
+  .dark .live-activity-row-label-copy small { font-size: 7px !important; }
+  .dark .featured-primary .featured-offer-grid .offer-card { min-height: 210px !important; }
+}
