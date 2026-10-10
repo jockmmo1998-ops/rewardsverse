@@ -2383,3 +2383,24 @@ html.dark #root,
   background: rgba(5,8,5,.83) !important;
 }
 .dashboard-page.dashboard-layout-grid .dashboard-hero-visual .hero-balance-overlay > strong { font-size: 41px !important; }
+
+
+/* Keep public auth screens on the same RewardsVerse charcoal/grid canvas. */
+html.dark .rewards-auth-page {
+  background-color: #212121 !important;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    radial-gradient(ellipse at 54% 0%, rgba(255,255,255,.055), transparent 61%),
+    linear-gradient(180deg, #242424, #202020) !important;
+  background-size: 58px 58px, 58px 58px, 100% 720px, 100% 100% !important;
+  background-position: top left, top left, center top, center !important;
+  background-attachment: fixed, fixed, fixed, fixed !important;
+}
+html.dark .rewards-auth-page::before { display: none !important; content: none !important; }
+html.dark .rewards-auth-page .bg-emerald-600 { background-color: #82d63d !important; color: #14200d !important; }
+html.dark .rewards-auth-page .bg-emerald-600:hover { background-color: #a0e260 !important; }
+html.dark .rewards-auth-page .text-emerald-400,
+html.dark .rewards-auth-page .text-emerald-300 { color: #a8e86b !important; }
+html.dark .rewards-auth-page input { border-color: #454545; background-color: #151716; color: #f7f8f5; }
+html.dark .rewards-auth-page input:focus { border-color: #82d63d !important; box-shadow: 0 0 0 2px rgba(130,214,61,.2) !important; outline: none !important; }
