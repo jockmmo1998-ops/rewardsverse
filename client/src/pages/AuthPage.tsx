@@ -1,7 +1,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Gift, LockKeyhole, Mail } from "lucide-react";
+import { ArrowRight, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, WalletCards } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BrandMark } from "@/components/shared/RewardUI";
 
 const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string => {
   const message = error?.message ?? "";
@@ -88,33 +89,87 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="rewards-auth-page relative flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link to="/home" className="inline-flex items-center gap-2 text-2xl font-black tracking-tight">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/25"><Gift className="h-5 w-5" /></span>
-            <span className="tracking-[0.08em]">REWARDSVERSE</span>
-          </Link>
-          <p className="mt-3 text-sm text-muted-foreground">{isRegister ? "Create a free account to start earning rewards." : "Log in to continue earning rewards."}</p>
-        </div>
-        <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-2xl shadow-black/20 backdrop-blur sm:p-8">
-          <div className="mb-6 grid grid-cols-2 rounded-xl border border-border/60 bg-background/50 p-1">
-            <button type="button" onClick={() => switchMode(false)} className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${!isRegister ? "bg-emerald-600 text-white shadow-sm" : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700"}`}>Log in</button>
-            <button type="button" onClick={() => switchMode(true)} className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${isRegister ? "bg-emerald-600 text-white shadow-sm" : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700"}`}>Sign up</button>
+    <main className={`rewards-auth-page rewards-auth-layout ${isRegister ? "rewards-auth-register" : "rewards-auth-login"}`}>
+      <div className="auth-shell">
+        <aside className="auth-story">
+          <Link to="/home" className="auth-brand" aria-label="RewardsVerse home"><BrandMark /></Link>
+          <div className="auth-story-copy">
+            <p className="auth-kicker"><span aria-hidden="true" /> MEMBER ACCESS · REWARDSVERSE</p>
+            <h1>{isRegister ? <>Make room for<br /><em>what’s next.</em></> : <>Your rewards space.<br /><em>Ready when you are.</em></>}</h1>
+            <p className="auth-story-description">
+              {isRegister
+                ? "Create your account for a clear, focused start. After registration, set your username and choose your 3D avatar."
+                : "Sign in to follow verified rewards, account activity, and payout details in one place."}
+            </p>
+            <ul className="auth-story-points">
+              <li><CheckCircle2 aria-hidden="true" /><span><strong>Real offer activity</strong><small>Browse surveys, apps, games, and tasks when available.</small></span></li>
+              <li><CheckCircle2 aria-hidden="true" /><span><strong>Clear reward history</strong><small>See credits after provider verification.</small></span></li>
+              <li><CheckCircle2 aria-hidden="true" /><span><strong>Transparent withdrawals</strong><small>Review supported payout methods in one place.</small></span></li>
+            </ul>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegister && <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email address</label><div className="relative"><Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20" /></div><p className="text-[11px] text-muted-foreground">We’ll send a verification link here.</p></div>}
-            {!isRegister && <div className="space-y-2"><label htmlFor="login-email" className="text-sm font-medium">Email address</label><div className="relative"><Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input id="login-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@gmail.com" autoComplete="email" className="h-11 w-full rounded-lg border border-border bg-background pl-10 pr-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20" /></div><p className="text-[11px] text-muted-foreground">Use the email address you used when creating your account.</p></div>}
-            <div className="space-y-2"><label htmlFor="password" className="text-sm font-medium">Password</label><div className="relative"><LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 6 characters" autoComplete={isRegister ? "new-password" : "current-password"} className="h-11 w-full rounded-lg border border-border bg-background px-10 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20" /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Show or hide password">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
-            {isRegister && <><div className="space-y-2"><label htmlFor="confirmPassword" className="text-sm font-medium">Re-enter password</label><div className="relative"><LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Re-enter password" autoComplete="new-password" className="h-11 w-full rounded-lg border border-border bg-background px-10 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20" /><button type="button" onClick={() => setShowConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Show or hide password confirmation">{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div><div className="space-y-2"><label htmlFor="refCode" className="text-sm font-medium">Referral code <span className="text-muted-foreground">(optional)</span></label><input id="refCode" value={refCode} onChange={(event) => setRefCode(event.target.value)} placeholder="Enter your code if you have one" className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20" /></div><label className="flex items-start gap-3 rounded-xl border border-border/60 bg-background/40 p-3 text-xs leading-5 text-muted-foreground"><input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-emerald-600" /> <span>I agree to the <Link to="/terms" target="_blank" className="font-semibold text-emerald-400 hover:underline">Terms of Service</Link> and understand the RewardsVerse policies.</span></label></>}
-            {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-            {notice && <p role="status" className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{notice}</p>}
-            <button type="submit" disabled={submitting || loading || (isRegister && !termsAccepted)} className="h-11 w-full rounded-lg bg-emerald-600 px-4 text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">{submitting ? "Processing…" : isRegister ? "Create account" : "Log in"}</button>
-            {!isRegister && <div className="text-center"><Link to="/forgot-password" className="text-xs font-semibold text-emerald-400 hover:underline">Forgot password?</Link></div>}
+          <div className="auth-story-footer">
+            <span><ShieldCheck aria-hidden="true" /> VERIFIED PROVIDER CALLBACKS</span>
+            <span><WalletCards aria-hidden="true" /> SERVER-VALIDATED PAYOUTS</span>
+          </div>
+        </aside>
+
+        <section className="auth-form-panel" aria-labelledby="auth-page-title">
+          <div className="auth-form-heading">
+            <p className="auth-form-eyebrow"><span aria-hidden="true" /> {isRegister ? "CREATE ACCOUNT" : "WELCOME BACK"}</p>
+            <h2 id="auth-page-title">{isRegister ? "Your next step starts here." : "Log in to continue."}</h2>
+            <p>{isRegister ? "Use your email to create a RewardsVerse account." : "Log in to continue earning rewards."}</p>
+          </div>
+
+          <div className="auth-tabs" role="tablist" aria-label="Account access">
+            <button type="button" role="tab" aria-selected={!isRegister} className={!isRegister ? "is-active" : ""} onClick={() => switchMode(false)}>Log in</button>
+            <button type="button" role="tab" aria-selected={isRegister} className={isRegister ? "is-active" : ""} onClick={() => switchMode(true)}>Sign up</button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            {isRegister ? (
+              <div className="auth-field-grid">
+                <div className="auth-field">
+                  <label htmlFor="email">Email address</label>
+                  <div className="auth-input-wrap"><Mail aria-hidden="true" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" /><span /></div>
+                  <p className="auth-field-help">We’ll send a verification link here.</p>
+                </div>
+                <div className="auth-field">
+                  <label htmlFor="password">Password</label>
+                  <div className="auth-input-wrap"><LockKeyhole aria-hidden="true" /><input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 6 characters" autoComplete="new-password" /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label="Show or hide password">{showPassword ? <EyeOff /> : <Eye />}</button></div>
+                </div>
+                <div className="auth-field">
+                  <label htmlFor="confirmPassword">Re-enter password</label>
+                  <div className="auth-input-wrap"><LockKeyhole aria-hidden="true" /><input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Enter it again" autoComplete="new-password" /><button type="button" onClick={() => setShowConfirmPassword((value) => !value)} aria-label="Show or hide password confirmation">{showConfirmPassword ? <EyeOff /> : <Eye />}</button></div>
+                </div>
+                <div className="auth-field">
+                  <label htmlFor="refCode">Referral code <span>(optional)</span></label>
+                  <div className="auth-input-wrap auth-input-no-icon"><input id="refCode" value={refCode} onChange={(event) => setRefCode(event.target.value)} placeholder="Enter your code if you have one" /></div>
+                </div>
+              </div>
+            ) : (
+              <div className="auth-field-stack">
+                <div className="auth-field">
+                  <label htmlFor="login-email">Email address</label>
+                  <div className="auth-input-wrap"><Mail aria-hidden="true" /><input id="login-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@gmail.com" autoComplete="email" /></div>
+                  <p className="auth-field-help">Use the email address you used when creating your account.</p>
+                </div>
+                <div className="auth-field">
+                  <label htmlFor="password">Password</label>
+                  <div className="auth-input-wrap"><LockKeyhole aria-hidden="true" /><input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 6 characters" autoComplete="current-password" /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label="Show or hide password">{showPassword ? <EyeOff /> : <Eye />}</button></div>
+                </div>
+              </div>
+            )}
+
+            {isRegister && <label className="auth-terms"><input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} /><span>I agree to the <Link to="/terms" target="_blank">Terms of Service</Link> and understand the RewardsVerse policies.</span></label>}
+            {error && <p role="alert" className="auth-message auth-error">{error}</p>}
+            {notice && <p role="status" className="auth-message auth-notice">{notice}</p>}
+            <button type="submit" disabled={submitting || loading || (isRegister && !termsAccepted)} className="auth-submit"><span>{submitting ? "Processing…" : isRegister ? "Create account" : "Log in"}</span><ArrowRight aria-hidden="true" /></button>
+            {!isRegister && <div className="auth-forgot"><Link to="/forgot-password">Forgot password?</Link></div>}
           </form>
-          <p className="mt-6 text-center text-xs text-muted-foreground">{isRegister ? "Already have an account?" : "Don't have an account?"}{" "}<button type="button" onClick={() => switchMode(!isRegister)} className="font-semibold text-emerald-400 hover:text-emerald-300">{isRegister ? "Log in" : "Sign up free"}</button></p>
+
+          <p className="auth-mode-switch">{isRegister ? "Already have an account?" : "Don’t have an account?"} <button type="button" onClick={() => switchMode(!isRegister)}>{isRegister ? "Log in" : "Sign up free"}</button></p>
+          {isRegister && <p className="auth-onboarding-note"><ShieldCheck aria-hidden="true" /> Your username and avatar are set in the next profile step.</p>}
         </section>
-        <p className="mt-5 text-center text-xs text-muted-foreground">Your rewards journey starts here</p>
       </div>
     </main>
   );
