@@ -1025,22 +1025,6 @@ button:disabled {
   background: linear-gradient(90deg, rgba(10, 15, 22, .26), transparent 56%), linear-gradient(0deg, rgba(10, 15, 22, .46), transparent 52%);
 }
 
-.dashboard-hero-art-top {
-  position: absolute;
-  z-index: 3;
-  top: 13px;
-  right: 14px;
-  left: 14px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: #f3f6fa;
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: .08em;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, .75);
-}
-
 .dashboard-page.dashboard-guest .dashboard-hero {
   min-height: 0;
   grid-template-columns: minmax(0, 1.12fr) minmax(280px, .88fr);

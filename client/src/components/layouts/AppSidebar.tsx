@@ -3,6 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { BrandMark } from '@/components/shared/RewardUI';
+import { UserAvatar } from '@/components/AvatarSystem';
+import { trpc } from '@/lib/trpc';
 
 type NavItem = { label: string; path: string; icon: typeof LayoutDashboard; badge?: string };
 
@@ -28,6 +30,14 @@ const accountItems: NavItem[] = [
 export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; onOpenChange?: (open: boolean) => void; onClose?: () => void }) {
   const location = useLocation();
   const { user, profile, logout } = useAuth();
+  const leaderboardQuery = trpc.user.getLeaderboard.useQuery(undefined, {
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const communityAvatars = (leaderboardQuery.data ?? []).slice(0, 4);
+  const communityCount = leaderboardQuery.data?.length ?? 0;
   const isActive = (path: string) => path === '/home'
     ? location.pathname === '/dashboard' || location.pathname === '/home'
     : location.pathname === path;
@@ -53,7 +63,37 @@ export function AppSidebar({ open, onOpenChange, onClose }: { open?: boolean; on
           <Link to="/home" onClick={onClose} className="focus-ring flex items-center gap-3" aria-label="RewardsVerse" title="RewardsVerse"><BrandMark compact /></Link>
           <button onClick={onClose} className="focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close navigation"><X className="h-4 w-4" /></button>
         </div>
-        <div className="mt-7 flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto overscroll-contain pr-1 lg:mt-9">
+        <div className="mt-5 flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto overscroll-contain pr-1 lg:mt-7">
+          {communityAvatars.length > 0 && (
+            <Link
+              to="/leaderboard"
+              onClick={onClose}
+              aria-label={`View the leaderboard with ${communityCount} top members`}
+              className="focus-ring group flex min-h-11 shrink-0 items-center gap-3 rounded-xl border border-primary/15 bg-primary/[.04] px-2.5 py-2 transition hover:border-primary/30 hover:bg-primary/[.08]"
+            >
+              <span className="flex shrink-0 -space-x-2" aria-hidden="true">
+                {communityAvatars.map((member) => (
+                  <UserAvatar
+                    key={member.userId}
+                    userId={member.userId}
+                    avatarId={member.avatarId}
+                    alt=""
+                    className="h-8 w-8 rounded-full border-2 border-background shadow-sm transition group-hover:-translate-y-0.5"
+                  />
+                ))}
+                {communityCount > communityAvatars.length && (
+                  <span className="grid h-8 min-w-8 place-items-center rounded-full border-2 border-background bg-primary/15 px-1 text-[9px] font-bold text-primary">
+                    +{communityCount - communityAvatars.length}
+                  </span>
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[9px] font-semibold uppercase tracking-[.12em] text-foreground/80">Top members</span>
+                <span className="mt-0.5 block text-[10px] text-muted-foreground">See the leaderboard</span>
+              </span>
+              <Trophy className="h-3.5 w-3.5 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
+          )}
           <NavSection title="Command center" items={primaryItems} />
           <NavSection title="Your rewards" items={rewardItems} />
           <NavSection title="Account" items={accountItems} />

@@ -56,7 +56,20 @@ export default function ReferralsPage() {
           {query.isLoading ? <LoadingRows count={3} /> : query.isError ? (
             <EmptyState title="Referrals could not be loaded" description="The referral service is temporarily unavailable. Your referral records have not been changed." icon={Users} action={<button type="button" onClick={() => void query.refetch()} className="text-sm font-semibold text-primary">Try again</button>} />
           ) : referrals.length ? (
-            <div className="overflow-x-auto">
+            <>
+              <div className="space-y-2 md:hidden">
+                {referrals.map((ref: any) => (
+                  <article key={ref.id} className="flex min-h-16 min-w-0 items-center gap-3 rounded-xl border border-border/70 bg-background/25 p-3">
+                    <UserAvatar userId={ref.userId || ref.id} avatarId={ref.avatarId} alt="" className="h-9 w-9 shrink-0 rounded-full" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">{ref.username || 'Member'}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">Joined {new Date(ref.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <p className="shrink-0 text-right text-sm font-semibold text-primary">${Number(ref.totalEarned || 0).toFixed(2)}</p>
+                  </article>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto md:block">
               <table className="unified-table w-full min-w-[580px] text-left text-sm">
                 <thead><tr><th>Member</th><th>Joined</th><th className="text-right">Recorded earnings</th></tr></thead>
                 <tbody>{referrals.map((ref: any) => (
@@ -67,7 +80,8 @@ export default function ReferralsPage() {
                   </tr>
                 ))}</tbody>
               </table>
-            </div>
+              </div>
+            </>
           ) : <EmptyState title="No referrals yet" description="Share your invite link to start building your referral network." icon={MousePointerClick} />}
         </div>
       </Surface>

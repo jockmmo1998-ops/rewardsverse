@@ -110,7 +110,6 @@ export default function HomePage() {
           <div className="dashboard-hero-visual" aria-label="RewardsVerse community and account snapshot">
             <img className="dashboard-hero-art" src="/rewardsverse-community-banner.webp" alt="RewardsVerse chibi community gathered around a branded laptop" decoding="async" fetchPriority="high" />
             <div className="dashboard-hero-visual-shade" aria-hidden="true" />
-            <div className="dashboard-hero-art-top"><span>REWARDSVERSE · MEMBER SPACE</span><span><i /> {previewDataUnavailable ? 'PREVIEW' : 'LIVE'}</span></div>
             <div className="hero-balance-overlay">
               <div className="hero-balance-top"><span className="hero-balance-label">ACCOUNT SNAPSHOT</span><span className="hero-status">{user ? 'MEMBER' : 'PUBLIC VIEW'}</span></div>
               <span className="hero-balance-caption">TOTAL EARNED</span>
@@ -130,9 +129,9 @@ export default function HomePage() {
       <section className="offer-marketplace featured-primary">
         <div className="rv-verified-feed-heading">
           <div>
-            <p className="rv-eyebrow"><span className="section-dot" /> VERIFIED OFFER FEED</p>
+            <p className="rv-eyebrow"><span className="section-dot" /> LIVE PARTNER FEED</p>
             <h2>Offers, when they’re live.</h2>
-            <p>Only real records from the provider feed appear in this section.</p>
+            <p>Current listings returned by connected providers—no demo offers or placeholder rewards.</p>
           </div>
           <label className="hud-search offer-search" aria-label="Search offers">
             <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -147,8 +146,8 @@ export default function HomePage() {
           ))}
         </div>
         <div className="rv-feed-results-meta" role="status">
-          <span>{featured.isError && !allOffers.length ? 'LIVE FEED' : 'RESULTS IN THIS VIEW'}</span>
-          <strong>{featured.isError && !allOffers.length ? '—' : filteredOffers.length}</strong>
+          <span>{featured.isLoading && !allOffers.length ? 'SYNCING PARTNER FEED' : featured.isError && !allOffers.length ? 'PARTNER FEED UNAVAILABLE' : 'LIVE OFFERS IN VIEW'}</span>
+          <strong>{featured.isLoading && !allOffers.length ? '…' : featured.isError && !allOffers.length ? '—' : filteredOffers.length}</strong>
         </div>
         <OfferCatalogResults
           allOffers={allOffers}

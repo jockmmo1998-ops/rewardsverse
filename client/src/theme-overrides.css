@@ -1866,3 +1866,304 @@ body {
 @media (max-width: 640px) {
   .withdrawal-status-toast { margin-top: .5rem !important; margin-right: max(.75rem, env(safe-area-inset-right)) !important; }
 }
+
+
+/* Live marketplace redesign: factual feed framing and partner-led color. */
+.offer-marketplace.featured-primary {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(22, 163, 74, .34) !important;
+  background:
+    radial-gradient(ellipse at 0 0, rgba(22, 163, 74, .18), transparent 38%),
+    linear-gradient(140deg, #18221b 0%, #111713 52%, #171b18 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 18px 48px rgba(0,0,0,.24) !important;
+}
+.rv-verified-feed-heading {
+  align-items: flex-end !important;
+  gap: clamp(14px, 2.5vw, 30px) !important;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(152, 184, 161, .19);
+}
+.rv-verified-feed-heading .rv-eyebrow {
+  color: #82e5a4 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .16em !important;
+}
+.rv-verified-feed-heading h2 {
+  margin-top: 8px !important;
+  color: #f3f8f4 !important;
+  font-size: clamp(1.28rem, 2.1vw, 1.85rem) !important;
+  letter-spacing: -.045em !important;
+  line-height: 1.12 !important;
+}
+.rv-verified-feed-heading > div > p:last-child {
+  max-width: 58ch;
+  color: #b1beb5 !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+}
+.rv-verified-feed-heading .offer-search {
+  min-height: 44px !important;
+  border-color: rgba(137, 165, 144, .27) !important;
+  border-radius: 11px !important;
+  background: rgba(8, 14, 10, .76) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+.rv-verified-feed-heading .offer-search:focus-within {
+  border-color: rgba(74, 222, 128, .72) !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, .12);
+}
+.rv-verified-filter-row { gap: 7px !important; margin-top: 14px !important; }
+.rv-verified-filter-row .filter-pill {
+  min-height: 44px !important;
+  border: 1px solid rgba(180, 198, 184, .12) !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.025) !important;
+  color: #c2cdc5 !important;
+}
+.rv-verified-filter-row .filter-pill:hover {
+  border-color: rgba(74, 222, 128, .38) !important;
+  background: rgba(22, 163, 74, .1) !important;
+  color: #e8fff0 !important;
+}
+.rv-verified-filter-row .filter-pill.filter-pill-active {
+  border-color: rgba(74, 222, 128, .58) !important;
+  background: linear-gradient(135deg, rgba(22, 163, 74, .25), rgba(22, 163, 74, .1)) !important;
+  color: #a8f2bf !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 4px 14px rgba(22,163,74,.08);
+}
+.rv-feed-results-meta {
+  display: inline-flex !important;
+  min-height: 30px;
+  align-items: center;
+  margin: 2px 0 12px !important;
+  padding: 5px 10px;
+  border: 1px solid rgba(74, 222, 128, .23);
+  border-radius: 999px;
+  background: rgba(22, 163, 74, .075);
+  color: #aab8ae !important;
+  font-size: 9px !important;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+.rv-feed-results-meta strong { color: #eaffef !important; font-size: 11px; font-weight: 800 !important; }
+
+.rv-catalog-offer-grid.rv-catalog-offer-grid-compact { gap: 11px !important; }
+.rv-catalog-offer-grid-compact .rv-offer-card-compact {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(115, 223, 148, .32) !important;
+  border-radius: 15px !important;
+  background:
+    radial-gradient(ellipse at 14% 0%, rgba(22, 163, 74, .24), transparent 62%),
+    linear-gradient(155deg, #17221b 0%, #111612 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 8px 20px rgba(0,0,0,.22) !important;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease !important;
+}
+.rv-offer-card-art-glow {
+  position: absolute;
+  z-index: 0;
+  inset: -22% -16% 10%;
+  overflow: hidden;
+  opacity: .55;
+  filter: blur(17px) saturate(1.8);
+  pointer-events: none;
+  transform: scale(1.08);
+}
+.rv-offer-card-art-glow img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.rv-catalog-offer-grid-compact .rv-offer-card-compact::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8,13,10,.03) 0%, rgba(8,13,10,.13) 42%, rgba(8,13,10,.91) 100%);
+  content: '';
+  pointer-events: none;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-compact > .rv-offer-card-image,
+.rv-catalog-offer-grid-compact .rv-offer-card-compact > .rv-offer-card-points {
+  position: relative;
+  z-index: 2;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-image {
+  border: 1px solid rgba(255,255,255,.9) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 7px 18px rgba(0,0,0,.24);
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-image img { padding: 5px !important; }
+.rv-catalog-offer-grid-compact .rv-offer-card-points {
+  min-height: 25px !important;
+  padding: 5px 10px !important;
+  border: 1px solid rgba(134, 239, 172, .35);
+  border-radius: 999px;
+  background: rgba(6, 16, 10, .92);
+  color: #c8f7d5 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 5px 14px rgba(0,0,0,.22);
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-compact:hover,
+.rv-catalog-offer-grid-compact .rv-offer-card-compact:focus-visible {
+  transform: translateY(-3px) !important;
+  border-color: rgba(134, 239, 172, .8) !important;
+  background:
+    radial-gradient(ellipse at 14% 0%, rgba(34, 197, 94, .34), transparent 62%),
+    linear-gradient(155deg, #1b2b20 0%, #121a15 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.075), 0 13px 28px rgba(0,0,0,.3), 0 0 0 1px rgba(22,163,74,.14) !important;
+}
+
+/* Featured partner tiles use each provider's real logo palette, not a generic green wash. */
+.rv-partner-card {
+  border-color: color-mix(in srgb, var(--partner-accent, #16A34A) 52%, #38413b) !important;
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--partner-accent, #16A34A) 42%, transparent), transparent 52%),
+    linear-gradient(145deg, color-mix(in srgb, var(--partner-accent, #16A34A) 25%, #282c2a), color-mix(in srgb, var(--partner-accent, #16A34A) 15%, #202321) 58%, #191c1a) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 10px 22px rgba(0,0,0,.2) !important;
+}
+.rv-partner-card:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--partner-accent, #16A34A) 76%, white) !important;
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--partner-accent, #16A34A) 56%, transparent), transparent 58%),
+    linear-gradient(145deg, color-mix(in srgb, var(--partner-accent, #16A34A) 31%, #2b302d), color-mix(in srgb, var(--partner-accent, #16A34A) 19%, #202421) 58%, #191c1a) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.075), 0 14px 30px color-mix(in srgb, var(--partner-accent, #16A34A) 20%, transparent) !important;
+}
+.rv-partner-logo { box-shadow: 0 5px 18px color-mix(in srgb, var(--partner-accent, #16A34A) 28%, transparent); }
+.rv-partner-reward { color: #d5f9df !important; font-weight: 800 !important; }
+
+.unified-page .provider-card {
+  isolation: isolate !important;
+  border-color: color-mix(in srgb, var(--provider-brand, var(--provider-accent, #16A34A)) 72%, #87928b) !important;
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--provider-accent, #16A34A) 54%, transparent), transparent 51%),
+    radial-gradient(ellipse at 0% 100%, color-mix(in srgb, var(--provider-brand, #16A34A) 34%, transparent), transparent 52%),
+    linear-gradient(155deg, color-mix(in srgb, var(--provider-brand, #16A34A) 34%, #202426) 0%, color-mix(in srgb, var(--provider-accent, #16A34A) 19%, #181d20) 57%, #111518 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 12px 27px rgba(0,0,0,.25) !important;
+}
+.unified-page .provider-card:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--provider-accent, #16A34A) 82%, white) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 16px 34px color-mix(in srgb, var(--provider-brand, #16A34A) 22%, transparent) !important;
+}
+.unified-page .provider-badge {
+  border: 1px solid color-mix(in srgb, var(--provider-badge, var(--provider-accent, #16A34A)) 68%, white) !important;
+  background: color-mix(in srgb, var(--provider-badge, var(--provider-accent, #16A34A)) 40%, #111714) !important;
+  color: #f7fff9 !important;
+  box-shadow: 0 5px 15px rgba(0,0,0,.2) !important;
+}
+.unified-page .provider-card-stars { color: var(--provider-accent, #86efac) !important; }
+.unified-page .provider-card-description { color: #e0e9e2 !important; }
+.unified-page .provider-card > div:first-of-type > div:first-child { box-shadow: 0 7px 20px color-mix(in srgb, var(--provider-accent, #16A34A) 24%, transparent); }
+
+@media (max-width: 640px) {
+  .rv-verified-feed-heading { align-items: stretch !important; }
+  .rv-verified-feed-heading h2 { max-width: 20ch; }
+  .rv-verified-filter-row .filter-pill { min-height: 44px !important; }
+  .rv-catalog-offer-grid-compact .rv-offer-card-compact { height: 112px !important; }
+  .unified-page .provider-card { min-height: 184px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rv-offer-card-art-glow { filter: none; opacity: .3; }
+}
+
+
+/* Higher-specificity dark theme override: provider brand tints must win the legacy neutral surface rule. */
+.dark .unified-page .provider-card {
+  border-color: color-mix(in srgb, var(--provider-brand, var(--provider-accent, #16A34A)) 76%, #a7b2aa) !important;
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--provider-accent, #16A34A) 62%, transparent), transparent 52%),
+    radial-gradient(ellipse at 0% 100%, color-mix(in srgb, var(--provider-brand, #16A34A) 42%, transparent), transparent 54%),
+    linear-gradient(155deg, color-mix(in srgb, var(--provider-brand, #16A34A) 43%, #202426) 0%, color-mix(in srgb, var(--provider-accent, #16A34A) 27%, #181d20) 57%, #111518 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 27px rgba(0,0,0,.25) !important;
+}
+.dark .unified-page .provider-card:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--provider-accent, #16A34A) 84%, white) !important;
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--provider-accent, #16A34A) 72%, transparent), transparent 56%),
+    radial-gradient(ellipse at 0% 100%, color-mix(in srgb, var(--provider-brand, #16A34A) 50%, transparent), transparent 56%),
+    linear-gradient(155deg, color-mix(in srgb, var(--provider-brand, #16A34A) 50%, #202426) 0%, color-mix(in srgb, var(--provider-accent, #16A34A) 32%, #181d20) 57%, #111518 100%) !important;
+}
+.dark .unified-page .provider-badge {
+  border-color: color-mix(in srgb, var(--provider-badge, var(--provider-accent, #16A34A)) 74%, white) !important;
+  background: color-mix(in srgb, var(--provider-badge, var(--provider-accent, #16A34A)) 52%, #111714) !important;
+}
+
+
+/* Provider status pills should remain readable in the narrower two-column mobile grid. */
+.dark .unified-page .provider-badge {
+  max-width: 80% !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+  padding-right: 6px !important;
+  padding-left: 6px !important;
+  font-size: 8px !important;
+  letter-spacing: .05em !important;
+}
+
+
+/* Logos stay artwork-first: remove the extra white plaques around marks. */
+.rv-catalog-offer-grid-compact .rv-offer-card-image {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-image img {
+  padding: 0 !important;
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,.24));
+}
+.rv-partner-card { isolation: isolate; }
+.rv-partner-logo {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.rv-partner-logo img { filter: drop-shadow(0 3px 8px rgba(0,0,0,.24)); }
+.dark .unified-page .provider-card > div:first-of-type > div:first-child:not(.provider-revtoo-logo) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.dark .unified-page .provider-card > div:first-of-type > div:first-child img {
+  background: transparent !important;
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,.24));
+}
+/* Two supplied raster marks have an opaque white canvas; multiply blends it into the brand-tinted card. */
+.rv-partner-logo img[src$="lootwalls.jpeg"],
+.rv-partner-logo img[src$="klink.webp"],
+.dark .unified-page .provider-card img[src$="lootwalls.jpeg"],
+.dark .unified-page .provider-card img[src$="klink.webp"] {
+  mix-blend-mode: multiply;
+}
+
+
+/* Blend the dashboard hero image into the same deep green-black surface as the brand. */
+.dashboard-page.dashboard-layout-grid .dashboard-hero-visual {
+  border-color: rgba(22,163,74,.25) !important;
+  border-radius: 16px !important;
+  background-color: #080d09 !important;
+}
+.dashboard-hero-visual-shade {
+  background: linear-gradient(90deg, rgba(6,12,8,.2), transparent 56%), linear-gradient(0deg, rgba(6,12,8,.26), transparent 52%) !important;
+}
+
+/* Match opaque-white raster logos to each existing brand surface, regardless of theme wrapper depth. */
+.rv-partner-logo img[src$="lootwalls.jpeg"],
+.rv-partner-logo img[src$="klink.webp"],
+.provider-card img[src$="lootwalls.jpeg"],
+.provider-card img[src$="klink.webp"] {
+  mix-blend-mode: multiply !important;
+}
+
+/* Transparent raster logo variants keep their original brand colors on provider cards. */
+.dark .unified-page .provider-card img[src$="lootwalls-transparent.png"],
+.dark .unified-page .provider-card img[src$="klink-transparent.png"] {
+  mix-blend-mode: normal !important;
+}
