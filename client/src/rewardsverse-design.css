@@ -3161,3 +3161,158 @@ button:disabled {
     min-height: 0;
   }
 }
+
+
+/* RewardsVerse Graphite Dark finishing pass: spacious, readable and green only as an accent. */
+:root {
+  --rv-bg: #202123;
+  --rv-sidebar: #191a1d;
+  --rv-surface: #27282c;
+  --rv-surface-raised: #303236;
+  --rv-surface-hover: #393b40;
+  --rv-border: #414349;
+  --rv-border-strong: #55575e;
+  --rv-text: #f2f3f4;
+  --rv-muted: #b8bbbd;
+  --rv-green: #71d18b;
+  --rv-green-hover: #8ade9e;
+  --rv-green-soft: #9bdfa9;
+}
+.dark .hud-topbar { background: rgba(32, 33, 35, .94); }
+.app-shell-background {
+  z-index: 0 !important;
+  background-color: var(--rv-bg);
+  background-image:
+    linear-gradient(rgba(242, 243, 244, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 243, 244, .035) 1px, transparent 1px),
+    radial-gradient(ellipse at 84% 2%, rgba(113, 209, 139, .07), transparent 48%);
+  background-size: 48px 48px, 48px 48px, auto;
+  background-position: 0 0, 0 0, center top;
+  background-repeat: repeat, repeat, no-repeat;
+}
+.app-shell {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch !important;
+  grid-template-columns: none !important;
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+}
+.app-shell > .hud-sidebar {
+  position: fixed !important;
+  inset: 0 auto 0 0 !important;
+  z-index: 60 !important;
+  width: min(300px, calc(100vw - 32px)) !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 16px 16px 0;
+  transition: transform 200ms ease, visibility 200ms ease !important;
+}
+.hud-sidebar:not(.is-open) {
+  transform: translateX(-105%) !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.hud-sidebar.is-open {
+  transform: translateX(0) !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+.hud-sidebar-backdrop { display: block !important; }
+.app-main-column {
+  grid-column: auto;
+  grid-row: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.rv-topbar .rv-mobile-menu { display: inline-flex !important; }
+.dashboard-page.dashboard-layout-grid {
+  width: 100%;
+  max-width: none !important;
+  margin-inline: 0;
+}
+.featured-primary .featured-offer-grid {
+  display: flex !important;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 3px 2px 14px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 187, 189, .35) transparent;
+}
+.featured-primary .featured-offer-grid .offer-card {
+  display: flex;
+  flex: 0 0 clamp(220px, calc((100vw - 180px) / 5), 300px);
+  flex-direction: column;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+/* Registration stays in-context: dim and blur the complete workspace behind the form. */
+.register-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+  background: rgba(12, 13, 14, .68);
+  backdrop-filter: blur(12px) saturate(.72);
+  -webkit-backdrop-filter: blur(12px) saturate(.72);
+  animation: registerBackdropIn .22s ease-out both;
+}
+.register-dialog {
+  position: relative;
+  width: min(100%, 470px);
+  max-height: min(92dvh, 860px);
+  overflow-y: auto;
+  padding: clamp(24px, 5vw, 36px);
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #292a2d 0%, #242528 100%);
+  color: #f2f3f4;
+  box-shadow: 0 35px 100px rgba(0,0,0,.56), inset 0 1px rgba(255,255,255,.05);
+  animation: registerDialogIn .26s cubic-bezier(.2,.8,.2,1) both;
+}
+.register-dialog-close { position: absolute; top: 15px; right: 15px; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(255,255,255,.08); border-radius: 11px; background: rgba(255,255,255,.035); color: #c6c8ca; }
+.register-dialog-close:hover { background: rgba(255,255,255,.08); color: #fff; }
+.register-dialog-brand { display: flex; align-items: center; gap: 10px; color: #eff1f0; font-size: 10px; font-weight: 800; letter-spacing: .15em; }
+.register-dialog-logo { display: inline-flex; width: 38px; height: 38px; overflow: hidden; padding: 3px; border: 1px solid rgba(255,255,255,.1); border-radius: 11px; background: #202123; }
+.register-dialog-kicker { margin-top: 27px; color: #9cdda9; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.register-dialog h2 { margin: 8px 0 0; color: #f4f5f5; font-size: clamp(24px, 5vw, 30px); line-height: 1.15; letter-spacing: -.05em; }
+.register-dialog-description { margin-top: 9px; color: #b8bbbd; font-size: 13px; line-height: 1.6; }
+.register-dialog-form { display: flex; flex-direction: column; margin-top: 22px; }
+.register-field-label { margin: 13px 0 7px; color: #e1e3e4; font-size: 11px; font-weight: 700; }
+.register-field-label span { color: #a6a9ab; font-weight: 500; }
+.register-input-wrap { position: relative; display: flex; align-items: center; }
+.register-input-wrap > input, .register-referral-input { width: 100%; min-height: 46px; padding: 0 42px; border: 1px solid #45474a; border-radius: 11px; outline: none; background: #202123; color: #f3f4f4; font-size: 13px; }
+.register-input-wrap > input::placeholder, .register-referral-input::placeholder { color: #777b7e; }
+.register-input-wrap > input:focus, .register-referral-input:focus { border-color: rgba(113,209,139,.68); box-shadow: 0 0 0 3px rgba(113,209,139,.12); }
+.register-input-icon { position: absolute; left: 14px; width: 16px; height: 16px; color: #999da0; pointer-events: none; }
+.register-password-toggle { position: absolute; right: 8px; display: grid; width: 32px; height: 32px; place-items: center; border-radius: 8px; background: transparent; color: #aeb1b3; }
+.register-password-toggle:hover { background: rgba(255,255,255,.06); color: #f2f3f4; }
+.register-referral-input { padding: 0 13px; }
+.register-terms { display: flex; align-items: flex-start; gap: 9px; margin-top: 17px; color: #b6b9bb; font-size: 11px; line-height: 1.55; }
+.register-terms input { width: 15px; height: 15px; flex: 0 0 auto; margin-top: 1px; accent-color: #71d18b; }
+.register-terms a, .register-dialog-login a { color: #9bdfa9; font-weight: 700; }
+.register-terms a:hover, .register-dialog-login a:hover { color: #c0f0c9; }
+.register-form-error { margin-top: 12px; padding: 9px 11px; border: 1px solid rgba(241,116,116,.2); border-radius: 9px; background: rgba(241,116,116,.08); color: #ffaaaa; font-size: 11px; line-height: 1.45; }
+.register-submit { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 47px; margin-top: 18px; border: 1px solid rgba(113,209,139,.28); border-radius: 11px; background: #71d18b; color: #101712; font-size: 13px; font-weight: 800; }
+.register-submit:hover:not(:disabled) { background: #8ade9e; box-shadow: 0 7px 22px rgba(113,209,139,.16); }
+.register-submit:disabled { cursor: not-allowed; opacity: .52; }
+.register-dialog-login { margin-top: 17px; color: #aeb1b3; font-size: 11px; text-align: center; }
+@keyframes registerBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes registerDialogIn { from { opacity: 0; transform: translateY(9px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 760px) {
+  .featured-primary .featured-offer-grid .offer-card { flex-basis: min(82vw, 310px); }
+  .register-modal-backdrop { align-items: flex-start; }
+  .register-dialog { margin-block: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .register-modal-backdrop, .register-dialog { animation: none; }
+}

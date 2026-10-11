@@ -120,8 +120,8 @@ export function TopBar({ onMenuClick, sidebarOpen = false }: { onMenuClick: () =
       <Link to="/home" className="rv-topbar-brand focus-ring" aria-label="RewardsVerse home"><BrandMark compact /></Link>
       <div className="rv-topbar-context" aria-label={`Current page: ${pageTitle}`}><span className="rv-topbar-hero-mark" aria-hidden="true"><BrandGlyph className="h-5 w-5" /></span><span className="rv-topbar-context-copy"><span>REWARDSVERSE WORKSPACE</span><strong>{pageTitle}</strong></span></div>
       <div className="rv-topbar-actions">
-        <button onClick={onMenuClick} className="rv-mobile-menu focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded={sidebarOpen}><Menu className="h-5 w-5" /></button>
-        {!user && <div className="rv-guest-actions"><Link to="/login" className="rv-guest-login focus-ring">Log in</Link><Link to="/register" className="rv-guest-register focus-ring">Create account</Link></div>}
+        <button onClick={onMenuClick} className="rv-mobile-menu focus-ring rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'} aria-controls="primary-navigation" aria-expanded={sidebarOpen}><Menu className="h-5 w-5" /></button>
+        {!user && <div className="rv-guest-actions"><Link to="/login" className="rv-guest-login focus-ring">Log in</Link><button type="button" onClick={() => window.dispatchEvent(new Event('rv:open-register'))} className="rv-guest-register focus-ring">Create account</button></div>}
         <div ref={menuRef} className={cn('relative flex items-center gap-1.5 sm:gap-3', !user && 'hidden')}>
         <button type="button" onClick={() => toggleMenu('notifications')} className={cn('focus-ring relative rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground', openMenu === 'notifications' && 'bg-primary/[.09] text-primary')} aria-label="Notifications" aria-expanded={openMenu === 'notifications'}>
           <Bell className="h-[17px] w-[17px]" />
