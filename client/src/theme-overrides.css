@@ -1699,6 +1699,37 @@ body {
 .rv-catalog-offer-grid-compact .rv-offer-card-image-empty { color: #37443a !important; }
 .rv-catalog-offer-grid-compact .rv-offer-card-points { min-height: 17px; color: #b8f4ce !important; font-size: 11px !important; font-weight: 750 !important; line-height: 1.2 !important; }
 
+/* Ten-column live offer layout: keep dense coverage without shrinking brand marks. */
+@media (min-width: 701px) {
+  .rv-catalog-offer-grid.rv-catalog-offer-grid-compact {
+    grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
+    grid-template-rows: none !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: auto !important;
+    grid-auto-rows: 146px !important;
+    gap: 10px !important;
+    overflow: visible !important;
+  }
+
+  .rv-catalog-offer-grid-compact .rv-offer-card-compact {
+    height: 146px !important;
+    padding: 9px !important;
+    gap: 7px !important;
+  }
+
+  .rv-catalog-offer-grid-compact .rv-offer-card-image {
+    height: 101px !important;
+    min-height: 101px !important;
+    padding: 7px !important;
+    border-radius: 10px !important;
+  }
+
+  .rv-catalog-offer-grid-compact .rv-offer-card-image img {
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+}
+
 .unified-page .offers-partners-panel { padding: clamp(13px, 2vw, 24px) !important; }
 .unified-page .offers-partners-panel .grid.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
 .unified-page .provider-card {
