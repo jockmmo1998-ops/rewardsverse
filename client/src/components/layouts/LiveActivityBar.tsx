@@ -253,12 +253,12 @@ export function LiveActivityBar() {
                 <div className="live-detail-stat"><span>Latest action</span><strong>{timeLabel(selectedUser.createdAt)}</strong></div>
               </div>
               <div className="mt-3 space-y-2 border-t border-border/70 pt-3">
-                {selectedItems.filter((item) => item.type === 'offer_complete' || item.type === 'reward').slice(0, 6).map((item) => (
+                {selectedItems.filter((item) => item.type === 'offer_complete' || item.type === 'reward').slice(0, 3).map((item) => (
                   <div key={item.id} className="live-detail-card">
                     <div className="flex min-w-0 items-start gap-2"><Activity className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-emerald-300">Offer completed</p><p className="mt-1 break-words text-xs font-semibold text-foreground">{shortOfferName(item)}</p><p className="mt-1 text-[10px] text-muted-foreground">Offer wall: <strong className="text-foreground">{providerName(item)}</strong> · {timeLabel(item.createdAt)}</p></div></div><strong className="shrink-0 text-xs text-emerald-300">+{formatAmount(item.amount) || '—'}</strong>
                   </div>
                 ))}
-                {selectedItems.filter((item) => item.type === 'withdrawal').slice(0, 6).map((item) => (
+                {selectedItems.filter((item) => item.type === 'withdrawal').slice(0, 3).map((item) => (
                   <div key={item.id} className="live-detail-card live-detail-card-withdrawal">
                     <div className="flex min-w-0 items-start gap-2"><ArrowDownToLine className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" /><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-amber-300">Withdrawal</p><p className="mt-1 text-xs font-semibold text-foreground">{withdrawalMethod(item)}</p><p className="mt-1 text-[10px] text-muted-foreground">{timeLabel(item.createdAt)}</p></div></div><strong className="shrink-0 text-xs text-amber-300">-{formatAmount(item.amount) || '—'}</strong>
                   </div>
