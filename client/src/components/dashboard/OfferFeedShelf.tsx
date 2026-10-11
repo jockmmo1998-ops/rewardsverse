@@ -22,7 +22,7 @@ function formatPoints(value: unknown) {
   return Number.isFinite(parsed) ? `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(parsed)} pts` : '—';
 }
 
-export function OfferCard({ offer, onSelect, compact = false }: { offer: any; onSelect: (offer: any) => void; compact?: boolean }) {
+export function OfferCard({ offer, onSelect, compact = false }: { offer: any; onSelect: (offer: any, trigger?: HTMLButtonElement) => void; compact?: boolean }) {
   const title = String(offer.offerName || offer.title || 'Offer');
   const provider = String(offer.provider || 'Provider');
   const rawReward = offer.rewardLabel ?? offer.rewardText ?? offer.reward;
@@ -32,7 +32,7 @@ export function OfferCard({ offer, onSelect, compact = false }: { offer: any; on
 
   if (compact) {
     return (
-      <button type="button" className="rv-offer-card rv-offer-card-compact" title={title} aria-label={`${title} from ${provider}; reward ${formatPoints(reward)}`} onClick={() => onSelect(offer)}>
+      <button type="button" className="rv-offer-card rv-offer-card-compact" title={title} aria-label={`${title} from ${provider}; reward ${formatPoints(reward)}`} onClick={(event) => onSelect(offer, event.currentTarget)}>
         <span className="rv-offer-card-image">
           {offer.imageUrl ? <img src={offer.imageUrl} alt={`${title} offer artwork`} loading="lazy" decoding="async" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : <span className="rv-offer-card-image-empty">{provider}</span>}
         </span>
@@ -45,7 +45,7 @@ export function OfferCard({ offer, onSelect, compact = false }: { offer: any; on
     <button
       className="rv-offer-card"
       type="button"
-      onClick={() => onSelect(offer)}
+      onClick={(event) => onSelect(offer, event.currentTarget)}
       aria-label={`View ${title} from ${provider}`}
     >
       <span className="rv-offer-card-image">

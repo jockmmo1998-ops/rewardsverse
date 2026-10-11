@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Activity, ArrowDownToLine, CalendarDays, CircleDollarSign, Trophy, WalletCards, X } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -99,6 +99,7 @@ function userKey(item: any) {
 export function LiveActivityBar() {
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
+  const activityTriggerRef = useRef<HTMLElement | null>(null);
   const { user } = useAuth();
   const visualPreview = import.meta.env.DEV && import.meta.env.VITE_VISUAL_PREVIEW === 'true';
   const activities = trpc.user.getActivities.useQuery(undefined, {
@@ -136,6 +137,19 @@ export function LiveActivityBar() {
   }, [groupedUsers, selectedUserKey]);
 
   useEffect(() => {
+    if (!selectedUserKey) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setSelectedUserKey(null);
+      setSelectedActivity(null);
+      if (activityTriggerRef.current?.isConnected) activityTriggerRef.current.focus();
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [selectedUserKey]);
+
+  useEffect(() => {
     const handleNativeClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
       const button = target?.closest<HTMLElement>('[data-live-user-key]');
@@ -152,8 +166,16 @@ export function LiveActivityBar() {
 
   const inspectItem = (event: SyntheticEvent, item: any) => {
     event.stopPropagation();
+    const trigger = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-live-user-key]');
+    if (trigger) activityTriggerRef.current = trigger;
     setSelectedUserKey(userKey(item));
     setSelectedActivity(item);
+  };
+
+  const closeActivityDetails = () => {
+    setSelectedUserKey(null);
+    setSelectedActivity(null);
+    if (activityTriggerRef.current?.isConnected) activityTriggerRef.current.focus();
   };
 
   const inspectFromLiveBar = (event: SyntheticEvent) => {
@@ -178,6 +200,8 @@ export function LiveActivityBar() {
       tabIndex={duplicate ? -1 : 0}
       aria-hidden={duplicate}
       data-live-user-key={userKey(item)}
+      aria-expanded={selectedUserKey === userKey(item)}
+      aria-controls={selectedUserKey === userKey(item) ? 'live-activity-detail' : undefined}
       aria-label={`View full activity for ${maskUsername(item.username)}`}
     >
       <span className="live-activity-copy">
@@ -216,7 +240,7 @@ export function LiveActivityBar() {
         </div>
       </div>
       {selectedUser && createPortal(
-        <div className="live-activity-detail live-activity-detail-portal" role="dialog" aria-label="User activity details">
+        <div id="live-activity-detail" className="live-activity-detail live-activity-detail-portal" role="region" aria-label="User activity details">
           <div className="flex items-start gap-3">
             <div className={`live-activity-detail-icon ${selectedUser.type === 'withdrawal' ? 'withdrawal' : ''}`}>{selectedUser.type === 'withdrawal' ? <ArrowDownToLine className="h-4 w-4" /> : <WalletCards className="h-4 w-4" />}</div>
             <div className="min-w-0 flex-1">
@@ -242,7 +266,7 @@ export function LiveActivityBar() {
                 {!selectedItems.some((item) => item.type === 'offer_complete' || item.type === 'reward' || item.type === 'withdrawal') && <p className="text-xs text-muted-foreground">No completed offer or withdrawal activity recorded.</p>}
               </div>
             </div>
-            <button type="button" onClick={() => { setSelectedUserKey(null); setSelectedActivity(null); }} className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Close activity details"><X className="h-4 w-4" /></button>
+            <button type="button" onClick={closeActivityDetails} className="focus-ring grid h-11 w-11 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Close activity details"><X className="h-4 w-4" /></button>
           </div>
         </div>,
         document.body,

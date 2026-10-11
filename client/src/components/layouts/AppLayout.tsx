@@ -54,6 +54,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
           sidebarOpen={mobileNavOpen}
         />
         {showLiveTicker && <LiveActivityBar />}
+        <WithdrawalStatusToast />
         <main id="main-content" tabIndex={-1} className="rv-main-content">
           <div key={location.pathname} className="route-stage min-h-full">
             {children}
@@ -61,7 +62,6 @@ export function AppLayout({ children }: { children?: ReactNode }) {
         </main>
         <AppFooter />
       </div>
-      <WithdrawalStatusToast />
     </div>
   );
 }
