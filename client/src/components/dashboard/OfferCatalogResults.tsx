@@ -9,7 +9,7 @@ interface OfferCatalogResultsProps {
   loading: boolean;
   error: boolean;
   visualPreview: boolean;
-  onSelect: (offer: any) => void;
+  onSelect: (offer: any, trigger?: HTMLButtonElement) => void;
   onRetry: () => void;
 }
 

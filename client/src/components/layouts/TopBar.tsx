@@ -68,6 +68,8 @@ export function TopBar({
   const location = useLocation();
   const [openMenu, setOpenMenu] = useState<'notifications' | 'profile' | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLElement | null>(null);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const notifications = trpc.notifications.getAll.useQuery(undefined, {
     enabled: Boolean(user),
     retry: false,
@@ -151,6 +153,47 @@ export function TopBar({
     onMenuClose?.();
   }, [location.pathname, onMenuClose]);
 
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : mobileMenuButtonRef.current;
+    const nav = mobileNavRef.current;
+    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const focusFirst = window.requestAnimationFrame(() => {
+      const first = nav?.querySelector<HTMLElement>(focusableSelector);
+      (first ?? nav)?.focus();
+    });
+    const handleMenuKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onMenuClose?.();
+        return;
+      }
+      if (event.key !== 'Tab' || !nav) return;
+      const focusable = Array.from(nav.querySelectorAll<HTMLElement>(focusableSelector))
+        .filter((element) => element.getAttribute('aria-hidden') !== 'true');
+      if (!focusable.length) {
+        event.preventDefault();
+        nav.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleMenuKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFirst);
+      document.removeEventListener('keydown', handleMenuKeyDown);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [onMenuClose, sidebarOpen]);
+
   const toggleMenu = (menu: 'notifications' | 'profile') => setOpenMenu((current) => current === menu ? null : menu);
   const displayName = profile?.username || profile?.name || user?.username || user?.name || 'Member';
   const unreadCount = unread.data?.length ?? 0;
@@ -185,6 +228,7 @@ export function TopBar({
         <div className="rv-brand-slot">
           <button
             type="button"
+            ref={mobileMenuButtonRef}
             onClick={onMenuClick}
             className="rv-mobile-menu-button focus-ring"
             aria-label={sidebarOpen ? 'Close primary navigation' : 'Open primary navigation'}
@@ -264,7 +308,7 @@ export function TopBar({
 
       {sidebarOpen && <>
         <button type="button" className="rv-mobile-nav-backdrop" aria-label="Close navigation" onClick={onMenuClose} />
-        <nav id="primary-navigation" className="rv-mobile-nav" aria-label="Primary navigation">
+        <nav ref={mobileNavRef} id="primary-navigation" role="dialog" aria-modal="true" tabIndex={-1} className="rv-mobile-nav" aria-label="Primary navigation">
           <div className="rv-mobile-nav-links">{renderNavigation(true)}</div>
           {user ? <div className="rv-mobile-account-links">
             <p className="rv-mobile-nav-label">Account</p>

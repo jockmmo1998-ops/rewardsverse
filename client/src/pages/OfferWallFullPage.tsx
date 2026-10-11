@@ -65,7 +65,7 @@ export default function OfferWallPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-background">
+    <main className="offerwall-fullscreen-page flex min-h-screen flex-col bg-background">
       <header className="flex min-h-16 shrink-0 items-center gap-3 border-b border-green-500/15 bg-background/95 px-4 py-3 shadow-sm backdrop-blur-md sm:px-6">
         <button type="button" onClick={() => navigate('/offerwalls')} className="focus-ring inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"><ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to offerwalls</span></button>
         <div className="flex min-w-0 items-center gap-3"><div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl border border-green-500/20 bg-green-500/10 p-1">{wall.logo ? <img src={wall.logo} alt="" className="h-full w-full object-contain" /> : <span className="text-sm font-bold text-primary">{wall.name.slice(0, 1)}</span>}</div><div className="min-w-0"><h1 className="truncate text-sm font-bold text-foreground sm:text-base">{wall.name}</h1><p className="hidden items-center gap-1 text-[10px] text-muted-foreground sm:flex"><ShieldCheck className="h-3 w-3 text-emerald-400" /> Secure provider page</p></div></div>

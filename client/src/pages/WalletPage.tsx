@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, History as HistoryIcon, WalletCards } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchUserTransactions } from '@/api';
@@ -28,7 +29,7 @@ export default function WalletPage() {
         eyebrow="Your money"
         title="Wallet"
         description="See your available balance, pending rewards and wallet movement."
-        action={<a href="/withdraw" className="focus-ring inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Withdraw <ArrowUpRight className="h-4 w-4" /></a>}
+        action={<Link to="/withdraw" className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Withdraw <ArrowUpRight className="h-4 w-4" /></Link>}
       />
       <div className="grid gap-4 md:grid-cols-3">
         <StatTile label="Available balance" value={`$${Number(profile?.balance || 0).toFixed(2)}`} helper="Ready to withdraw" icon={WalletCards} accent="mint" />

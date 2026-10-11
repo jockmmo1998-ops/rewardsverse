@@ -5,7 +5,7 @@ import { OFFER_WALLS } from '@/pages/OfferWalls';
 
 interface PartnerDirectoryProps {
   statuses?: Array<{ provider: string; configured: boolean }>;
-  onSelect: (wallId: string) => void;
+  onSelect: (wallId: string, trigger?: HTMLButtonElement) => void;
 }
 
 export function PartnerDirectory({ statuses, onSelect }: PartnerDirectoryProps) {
@@ -30,10 +30,10 @@ export function PartnerDirectory({ statuses, onSelect }: PartnerDirectoryProps) 
               key={wall.id}
               type="button"
               disabled={!configured}
-              onClick={() => onSelect(wall.id)}
+              onClick={(event) => onSelect(wall.id, event.currentTarget)}
               className={`rv-partner-card ${!configured ? 'is-disabled' : ''}`}
               style={{ '--partner-accent': wall.accent } as CSSProperties}
-              aria-label={`${configured ? 'Open' : 'Unavailable'} ${wall.name}`}
+              aria-label={`${configured ? 'Open' : 'Unavailable'} ${wall.name}. Rewards ${wall.reward}.`}
             >
               <span className="rv-partner-card-top">
                 <span className="rv-partner-logo">
@@ -45,6 +45,7 @@ export function PartnerDirectory({ statuses, onSelect }: PartnerDirectoryProps) 
               </span>
               <strong>{wall.name}</strong>
               <span className="rv-partner-category">{wall.tag || 'Offer partner'}</span>
+              <span className="rv-partner-reward">Rewards {wall.reward}</span>
               <span className="rv-partner-description">{wall.desc}</span>
               {!configured && <span className="rv-partner-unavailable">Not configured</span>}
             </button>

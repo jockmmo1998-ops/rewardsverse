@@ -57,13 +57,13 @@ export function WithdrawalStatusToast() {
       : { border: 'border-amber-400/50', icon: 'bg-amber-400/15 text-amber-300', title: 'Withdrawal pending', text: 'Your request is waiting for payment review.' };
 
   return (
-    <aside className={`withdrawal-status-toast fixed right-4 top-[5.25rem] z-[70] w-[min(320px,calc(100vw-2rem))] rounded-2xl border ${tone.border} p-4 shadow-[0_18px_48px_rgba(0,0,0,.4)] backdrop-blur-md`} role="status" aria-live="polite">
+    <aside className={`withdrawal-status-toast mt-3 w-[min(320px,calc(100vw-2rem))] rounded-2xl border ${tone.border} p-4 shadow-[0_18px_48px_rgba(0,0,0,.4)] backdrop-blur-md`} role="status" aria-live="polite">
       <div className="mb-3 flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-[#25444a]">
         <div>
           <p className="withdrawal-status-kicker text-[10px] font-bold uppercase tracking-[0.16em]">Withdrawal status</p>
           <p className="withdrawal-status-subtitle mt-0.5 text-xs">Payout activity</p>
         </div>
-        <button type="button" onClick={() => setDismissedId(Number(latest.id))} className="shrink-0 rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-[#173036] dark:hover:text-slate-100" aria-label="Dismiss withdrawal status">
+        <button type="button" onClick={() => setDismissedId(Number(latest.id))} className="focus-ring grid h-11 w-11 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-[#173036] dark:hover:text-slate-100" aria-label="Dismiss withdrawal status">
           <X className="h-3.5 w-3.5" />
         </button>
       </div>

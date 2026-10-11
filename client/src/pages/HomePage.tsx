@@ -1,12 +1,12 @@
-import { Activity, ArrowRight, ArrowUpRight, Award, CheckCircle2, Clock3, Gift, Search, ShieldCheck, Sparkles, Tag, Timer, WalletCards, X, Zap } from 'lucide-react';
+import { Activity, ArrowRight, Award, CheckCircle2, Clock3, Gift, Search, ShieldCheck, Sparkles, Tag, Timer, WalletCards, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserAvatar } from '@/components/AvatarSystem';
-import { EmptyState, Surface } from '@/components/shared/RewardUI';
+import { Surface } from '@/components/shared/RewardUI';
 import { OfferCatalogResults } from '@/components/dashboard/OfferCatalogResults';
+import { EmbeddedOfferDialog } from '@/components/dashboard/EmbeddedOfferDialog';
 import { CommunityActivityPanel } from '@/components/dashboard/CommunityActivityPanel';
 import { PartnerDirectory } from '@/components/dashboard/PartnerDirectory';
 import { WeeklyProgressPanel } from '@/components/dashboard/WeeklyProgressPanel';
@@ -48,6 +48,8 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const [activeOffer, setActiveOffer] = useState<any | null>(null);
   const [activeWall, setActiveWall] = useState<string | null>(null);
+  const offerTriggerRef = useRef<HTMLElement | null>(null);
+  const wallTriggerRef = useRef<HTMLElement | null>(null);
   const [wallUrl, setWallUrl] = useState('');
   const featured = trpc.user.getFeaturedOffers.useQuery(undefined, { staleTime: 60_000, gcTime: 5 * 60_000, placeholderData: (previousData) => previousData, refetchOnWindowFocus: false, retry: false });
   const summary = trpc.user.getDashboardSummary.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
@@ -134,12 +136,12 @@ export default function HomePage() {
           </div>
           <label className="hud-search offer-search" aria-label="Search offers">
             <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search offers…" />
+            <input aria-label="Search live offers" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search offers…" />
           </label>
         </div>
-        <div className="rv-verified-filter-row" role="tablist" aria-label="Offer filters">
+        <div className="rv-verified-filter-row" aria-label="Offer filters">
           {offerFilters.map(({ label, value, icon: Icon }) => (
-            <button key={value} type="button" role="tab" aria-selected={activeFilter === value} onClick={() => setActiveFilter(value)} className={`filter-pill focus-ring ${activeFilter === value ? 'filter-pill-active' : ''}`}>
+            <button key={value} type="button" aria-pressed={activeFilter === value} onClick={() => setActiveFilter(value)} className={`filter-pill focus-ring ${activeFilter === value ? 'filter-pill-active' : ''}`}>
               <Icon className="h-3.5 w-3.5" />{label}
             </button>
           ))}
@@ -154,14 +156,45 @@ export default function HomePage() {
           loading={featured.isLoading}
           error={featured.isError}
           visualPreview={visualPreview}
-          onSelect={setActiveOffer}
+          onSelect={(offer, trigger) => {
+            offerTriggerRef.current = trigger ?? null;
+            setActiveOffer(offer);
+          }}
           onRetry={() => { void featured.refetch(); }}
         />
         <div className="rv-verified-feed-footer"><span>Search and filters apply to the live feed only.</span><Link to="/offerwalls">View all offers <ArrowRight aria-hidden="true" /></Link></div>
       </section>
 
-      <AnimatePresence>{activeOffer && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm sm:p-6 lg:p-10" onClick={(event) => { if (event.target === event.currentTarget) setActiveOffer(null); }}><motion.div initial={{ scale: .97, y: 8 }} animate={{ scale: 1, y: 0 }} exit={{ scale: .97, y: 8 }} transition={{ duration: .18 }} className="flex h-[78vh] w-[50vw] max-w-[1180px] min-h-0 flex-col overflow-hidden rounded-2xl border border-green-500/20 bg-background shadow-2xl shadow-slate-950/40 max-sm:h-[86vh] max-sm:w-full"><div className="flex min-h-16 shrink-0 items-center gap-3 border-b border-green-500/15 bg-background/95 px-4 py-3 backdrop-blur-md sm:px-5"><div className="flex min-w-0 items-center gap-3"><div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl border border-green-500/20 bg-green-500/10 p-1"><span className="text-sm font-bold text-primary">{String(activeOffer.provider || activeOffer.offerName || 'O').slice(0, 1).toUpperCase()}</span>{activeOffer.imageUrl ? <img src={activeOffer.imageUrl} alt="" className="h-full w-full object-contain" /> : null}</div><div className="min-w-0"><span className="block truncate text-sm font-bold text-gradient sm:text-base">{activeOffer.offerName || activeOffer.provider || 'Offer'}</span><span className="block truncate text-[10px] text-muted-foreground">{activeOffer.provider || activeOffer.category || 'Live offer'}</span></div></div><div className="ml-auto flex shrink-0 items-center gap-1.5"><a href={activeOffer.clickUrl} target="_blank" rel="noreferrer" className="focus-ring inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20"><ArrowUpRight className="h-4 w-4" /><span className="hidden sm:inline">OPEN OFFER PAGE</span></a><button type="button" onClick={() => setActiveOffer(null)} className="focus-ring rounded-xl p-2 text-muted-foreground transition hover:bg-red-50 hover:text-destructive" aria-label="Close offer"><X className="h-5 w-5" /></button></div></div><div className="min-h-0 flex-1 overflow-auto bg-white">{activeOffer.clickUrl ? <iframe src={activeOffer.clickUrl} className="block h-full min-h-full w-full border-0 bg-white" title={`${activeOffer.offerName || activeOffer.provider || 'Offer'} details`} sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation allow-top-navigation-by-user-activation" /> : <div className="flex h-full items-center justify-center bg-background"><EmptyState title="Offer unavailable" description="This offer did not return a valid provider URL." icon={Zap} /></div>}</div></motion.div></motion.div>}</AnimatePresence>
-      <AnimatePresence>{activeWall && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm sm:p-6 lg:p-10" onClick={(event) => { if (event.target === event.currentTarget) { setActiveWall(null); setWallUrl(''); } }}><motion.div initial={{ scale: .97, y: 8 }} animate={{ scale: 1, y: 0 }} exit={{ scale: .97, y: 8 }} transition={{ duration: .18 }} className="flex h-[78vh] w-[50vw] max-w-[1180px] min-h-0 flex-col overflow-hidden rounded-2xl border border-green-500/20 bg-background shadow-2xl shadow-slate-950/40 max-sm:h-[86vh] max-sm:w-full"><div className="flex min-h-16 shrink-0 items-center gap-3 border-b border-green-500/15 bg-background/95 px-4 py-3 backdrop-blur-md sm:px-5"><div className="flex min-w-0 items-center gap-3"><div className="h-9 w-9 shrink-0 overflow-hidden rounded-xl border border-green-500/20 bg-green-500/10 p-1">{OFFER_WALLS.find((wall) => wall.id === activeWall)?.logo ? <img src={OFFER_WALLS.find((wall) => wall.id === activeWall)?.logo} alt="" className="h-full w-full object-contain" /> : <span className="grid h-full w-full place-items-center text-sm font-bold text-primary">{OFFER_WALLS.find((wall) => wall.id === activeWall)?.name.slice(0, 1)}</span>}</div><span className="truncate text-sm font-bold text-gradient sm:text-base">{OFFER_WALLS.find((wall) => wall.id === activeWall)?.name}</span></div><div className="ml-auto flex shrink-0 items-center gap-1.5"><a href={`/offerwalls/${activeWall}`} target="_blank" rel="noreferrer" className="focus-ring inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20"><ArrowUpRight className="h-4 w-4" /><span className="hidden sm:inline">OPEN OFFER PAGE</span></a><button type="button" onClick={() => { setActiveWall(null); setWallUrl(''); }} className="focus-ring rounded-xl p-2 text-muted-foreground transition hover:bg-red-50 hover:text-destructive" aria-label="Close offerwall"><X className="h-5 w-5" /></button></div></div><div className="min-h-0 flex-1 overflow-auto bg-white">{wallUrlQuery.isFetching || (activeWall === OPINION_UNIVERSE_WALL_ID && !wallUrl) ? <div className="flex h-full flex-col items-center justify-center gap-3 text-sm text-muted-foreground"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />Loading offer wall…</div> : wallUrl ? <iframe src={wallUrl} className="block h-full min-h-full w-full border-0 bg-white" title="Offer wall" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation allow-top-navigation-by-user-activation" /> : <div className="flex h-full items-center justify-center bg-background"><EmptyState title="Provider unavailable" description="This provider did not return a valid offerwall URL." icon={Zap} /></div>}</div></motion.div></motion.div>}</AnimatePresence>
+      <EmbeddedOfferDialog
+        open={Boolean(activeOffer)}
+        title={String(activeOffer?.offerName || activeOffer?.provider || 'Offer')}
+        subtitle={String(activeOffer?.provider || activeOffer?.category || 'Live offer')}
+        logoUrl={activeOffer?.imageUrl ? String(activeOffer.imageUrl) : undefined}
+        url={activeOffer?.clickUrl ? String(activeOffer.clickUrl) : undefined}
+        loading={false}
+        loadingLabel="Opening offer…"
+        openPageHref={activeOffer?.clickUrl ? String(activeOffer.clickUrl) : undefined}
+        emptyTitle="Offer unavailable"
+        emptyDescription="This offer did not return a valid provider URL."
+        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation allow-top-navigation-by-user-activation"
+        onClose={() => setActiveOffer(null)}
+        returnFocusRef={offerTriggerRef}
+      />
+      <EmbeddedOfferDialog
+        open={Boolean(activeWall)}
+        title={OFFER_WALLS.find((wall) => wall.id === activeWall)?.name || 'Offer wall'}
+        subtitle="Secure provider page"
+        logoUrl={OFFER_WALLS.find((wall) => wall.id === activeWall)?.logo || undefined}
+        url={wallUrl || undefined}
+        loading={wallUrlQuery.isFetching || (activeWall === OPINION_UNIVERSE_WALL_ID && !wallUrl)}
+        loadingLabel="Loading offer wall…"
+        openPageHref={activeWall ? `/offerwalls/${activeWall}` : undefined}
+        emptyTitle="Provider unavailable"
+        emptyDescription="This provider did not return a valid offerwall URL."
+        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation allow-top-navigation-by-user-activation"
+        onClose={() => { setActiveWall(null); setWallUrl(''); }}
+        returnFocusRef={wallTriggerRef}
+      />
       <div className="rv-dashboard-split">
         <WeeklyProgressPanel
           unavailable={weeklyDataUnavailable}
@@ -175,7 +208,7 @@ export default function HomePage() {
       </div>
       <PartnerDirectory
         statuses={wallStatusQuery.data}
-        onSelect={(wallId) => {
+        onSelect={(wallId, trigger) => {
           const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
           if (!user) {
             navigate('/login', { state: { from: '/offerwalls' } });
@@ -186,6 +219,7 @@ export default function HomePage() {
             navigate(`/offerwalls/${wallId}`);
             return;
           }
+          wallTriggerRef.current = trigger ?? null;
           setWallUrl('');
           setActiveWall(wallId);
         }}

@@ -29,8 +29,12 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
       className="cyber-card rounded-xl overflow-hidden"
     >
       <button
+        type="button"
+        id={`faq-question-${index}`}
+        aria-expanded={isOpen}
+        aria-controls={`faq-answer-${index}`}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-5 flex items-center justify-between hover:bg-green-500/3 transition-colors group"
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary w-full min-h-14 px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between hover:bg-green-500/3 transition-colors group"
       >
         <div className="flex items-center gap-3 text-left">
           <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isOpen ? "bg-green-500/15 text-green-400" : "bg-muted/50 text-muted-foreground"}`}>
@@ -38,11 +42,14 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
           </div>
           <span className={`font-semibold transition-colors ${isOpen ? "text-green-400" : "text-white group-hover:text-green-400/80"}`}>{question}</span>
         </div>
-        <ChevronDown className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-green-400" : ""}`} />
+        <ChevronDown aria-hidden="true" className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-green-400" : ""}`} />
       </button>
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id={`faq-answer-${index}`}
+            role="region"
+            aria-labelledby={`faq-question-${index}`}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -85,11 +92,11 @@ export default function FAQ() {
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-14">
-        <div className="text-center mb-14">
+        <div className="text-center mb-8 sm:mb-14">
           <div className="inline-flex items-center gap-2 tag-cyber mb-4">
             <Zap className="w-3 h-3" /> Support
           </div>
-          <h2 className="text-4xl font-extrabold mb-3">Frequently Asked <span className="text-gradient">Questions</span></h2>
+          <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Frequently Asked <span className="text-gradient">Questions</span></h2>
           <p className="text-muted-foreground">Find answers to common questions about RewardsVerse</p>
         </div>
 
