@@ -35,12 +35,13 @@ export function EmailVerificationGate({ email, onVerified }: Props) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <p className="rv-eyebrow text-amber-300">Email verification</p>
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
-                <Mail className="h-3 w-3" /> Required for withdrawals
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/25 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                <Mail className="h-3 w-3" /> Optional
               </span>
             </div>
-            <h2 className="mt-1 font-display text-base font-semibold">Verify your email to unlock payouts</h2>
+            <h2 className="mt-1 font-display text-base font-semibold">Verify your email if you choose</h2>
             <p className="mt-1 truncate text-sm text-muted-foreground">{email || "Add an email address to your account"}</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">Email verification is optional and is not required to request a withdrawal.</p>
           </div>
         </div>
         <button
@@ -50,7 +51,7 @@ export function EmailVerificationGate({ email, onVerified }: Props) {
           className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${resend.isPending ? "animate-spin" : ""}`} />
-          {resend.isPending ? "Sending…" : sent ? "Send again" : "Resend email"}
+          {resend.isPending ? "Sending…" : sent ? "Send again" : "Send verification email"}
         </button>
       </div>
       {sent && (

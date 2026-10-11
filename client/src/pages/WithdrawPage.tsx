@@ -1,5 +1,4 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, Clock3, LockKeyhole, ShieldCheck, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
@@ -24,7 +23,6 @@ function statusLabel(status: string) {
 
 export default function WithdrawPage() {
   const { profile, refreshProfile } = useAuth();
-  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('litecoin');
   const [address, setAddress] = useState('');
@@ -32,7 +30,6 @@ export default function WithdrawPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const balance = Number(profile?.balance || 0);
-  const emailVerified = Boolean(profile?.emailVerifiedAt);
   const amountValue = Number.parseFloat(amount);
   const validAmount = Number.isFinite(amountValue) && amountValue >= MIN_WITHDRAWAL && amountValue <= balance;
   const selected = paymentMethods.find((method) => method.id === selectedMethod) || paymentMethods[0];
@@ -74,11 +71,6 @@ export default function WithdrawPage() {
       toast.error('Enter a valid wallet address.');
       return;
     }
-    if (!emailVerified) {
-      toast.info('Please verify your email before submitting a withdrawal request.');
-      navigate('/profile', { state: { verificationRequired: true } });
-      return;
-    }
     setConfirmOpen(true);
   };
 
@@ -96,7 +88,7 @@ export default function WithdrawPage() {
       <SectionHeading
         eyebrow="Secure payouts"
         title="Withdraw your rewards"
-        description="Choose a supported payout method and submit a request from your verified balance."
+        description="Choose a supported payout method and submit a request from your available balance."
       />
 
       <div className="grid gap-4 sm:grid-cols-2">

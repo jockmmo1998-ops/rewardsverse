@@ -53,7 +53,7 @@ export default function ProfilePage() {
         eyebrow="Account identity"
         title="Profile"
         description="Manage your identity, email verification, and account details."
-        action={<span className={`unified-page-chip ${emailVerified ? '' : 'is-warning'}`}><span className="status-dot" />{emailVerified ? 'Email verified' : 'Verification needed'}</span>}
+        action={<span className="unified-page-chip"><span className="status-dot" />{emailVerified ? 'Email verified' : 'Email verification optional'}</span>}
       />
 
       <section className="profile-reward-overview" aria-label="Rewards overview">
@@ -94,7 +94,7 @@ export default function ProfilePage() {
               <div>
                 <label htmlFor="profile-email" className="unified-label">Email address</label>
                 <div className="relative"><Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input id="profile-email" type="email" value={user?.email || ''} disabled className="unified-input h-11 w-full pl-10 text-muted-foreground" /></div>
-                <p className={`mt-2 flex items-center gap-1.5 text-xs ${emailVerified ? 'text-primary' : 'text-amber-300'}`}>{emailVerified ? <><CheckCircle2 className="h-3.5 w-3.5" /> Email is verified</> : 'Email verification required before withdrawing'}</p>
+                <p className={`mt-2 flex items-center gap-1.5 text-xs ${emailVerified ? 'text-primary' : 'text-muted-foreground'}`}>{emailVerified ? <><CheckCircle2 className="h-3.5 w-3.5" /> Email is verified</> : 'Optional. Verify this address if you want to confirm email ownership.'}</p>
               </div>
               <div><label htmlFor="profile-display-name" className="unified-label">Display name</label><input id="profile-display-name" autoComplete="nickname" value={username} onChange={(event) => setUsername(event.target.value)} className="unified-input h-11 w-full" /></div>
               <button type="submit" disabled={updateMutation.isPending} className="unified-primary-button">{updateMutation.isPending ? 'Saving…' : 'Save changes'}</button>

@@ -541,9 +541,6 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const user = await db.getUserByOpenId(ctx.user.openId);
         if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-        if (!user.emailVerifiedAt) {
-          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Please verify your email before withdrawing." });
-        }
 
         const amount = Number(input.amount.toFixed(2));
         const walletAddress = input.walletAddress.trim();
