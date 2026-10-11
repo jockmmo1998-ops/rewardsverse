@@ -102,6 +102,7 @@ export default function AuthPage() {
             <img src="/rewardsverse-icon.png" alt="" />
             <span>REWARDSVERSE</span>
           </Link>
+          {isRegister && <img className="rv-auth-community-art" src="/rewardsverse-community-cutout-green.png" alt="RewardsVerse community holding branded reward devices" width="1672" height="941" decoding="async" />}
           <p className="rv-auth-kicker"><span /> YOUR REWARDS, CLEARLY</p>
           <h1>{isRegister ? <>Create your<br /><em>rewards space.</em></> : <>Your rewards<br /><em>start here.</em></>}</h1>
           <p className="rv-auth-description">Explore configured partners, track verified activity and keep your account details in one place.</p>
