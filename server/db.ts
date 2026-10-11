@@ -27,7 +27,7 @@ import {
   auditLogs,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
-import { getRevtooFeaturedOffers } from "./revtoo-offers";
+import { FEATURED_OFFERS_LIMIT, getRevtooFeaturedOffers } from "./revtoo-offers";
 import { POSTBACK_SECRETS } from "./offerwall-config";
 
 // Lazy-initialized DB instance — never imported at module load time so the
@@ -822,7 +822,7 @@ export async function resolvePendingOffer(id: number) {
 }
 
 
-export async function getFeaturedOffers(userId: string, limit = 24) {
+export async function getFeaturedOffers(userId: string, limit = FEATURED_OFFERS_LIMIT) {
   return getRevtooFeaturedOffers(userId, limit);
 }
 // ===== NOTIFICATIONS =====

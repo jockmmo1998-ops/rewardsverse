@@ -73,4 +73,19 @@ describe("Revtoo featured-offer loading", () => {
     expect(second).toEqual(first);
     expect(second[0]?.clickUrl).toBe("https://revtoo.example/offer-1");
   });
+
+  it("requests up to 48 real offers by default", async () => {
+    let requestedUrl = "";
+    const fetchMock = vi.fn(async (input: URL) => {
+      requestedUrl = String(input);
+      return response();
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { FEATURED_OFFERS_LIMIT, getRevtooFeaturedOffers } = await import("./revtoo-offers");
+    await getRevtooFeaturedOffers("member-3");
+
+    expect(FEATURED_OFFERS_LIMIT).toBe(48);
+    expect(new URL(requestedUrl).searchParams.get("limit")).toBe("48");
+  });
 });

@@ -1,5 +1,6 @@
 const REVTOO_OFFERS_ENDPOINT = "https://revtoo.com/api/offers/";
 const CACHE_TTL_MS = 60_000;
+export const FEATURED_OFFERS_LIMIT = 48;
 
 type RevtooOffer = {
   id?: number | string;
@@ -90,7 +91,7 @@ function orderFeaturedOffers(offers: FeaturedOffer[]): FeaturedOffer[] {
     .map(({ offer }) => offer);
 }
 
-export async function getRevtooFeaturedOffers(userId: string, limit = 24): Promise<FeaturedOffer[]> {
+export async function getRevtooFeaturedOffers(userId: string, limit = FEATURED_OFFERS_LIMIT): Promise<FeaturedOffer[]> {
   const normalizedUserId = userId.trim();
   if (!normalizedUserId) {
     throw new RevtooOffersError("Revtoo user_id is missing for the current user.");

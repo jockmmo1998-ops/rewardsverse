@@ -364,7 +364,7 @@ export const appRouter = router({
       const user = await db.getUserByOpenId(ctx.user.openId);
       if (!user) return [];
       const userId = user.username || user.name || `user_${user.id}`;
-      return db.getFeaturedOffers(userId, 24);
+      return db.getFeaturedOffers(userId);
     }),
 
     getDashboardSummary: protectedProcedure.query(async ({ ctx }) => {
