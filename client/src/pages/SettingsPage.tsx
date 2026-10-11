@@ -7,8 +7,10 @@ import { playBellSound } from '@/utils/bellSound';
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (value: boolean) => void; label: string }) {
   return (
-    <button type="button" role="switch" aria-label={label} aria-checked={checked} onClick={() => onChange(!checked)} className={`focus-ring relative h-6 w-11 rounded-md transition ${checked ? 'bg-primary' : 'bg-secondary'}`}>
-      <span className={`absolute top-1 h-4 w-4 rounded-md bg-white shadow transition ${checked ? 'left-6' : 'left-1'}`} />
+    <button type="button" role="switch" aria-label={label} aria-checked={checked} onClick={() => onChange(!checked)} className="focus-ring inline-flex h-11 w-14 shrink-0 items-center justify-center rounded-xl">
+      <span className={`relative h-6 w-11 rounded-md transition ${checked ? 'bg-primary' : 'bg-secondary'}`}>
+        <span className={`absolute top-1 h-4 w-4 rounded-md bg-white shadow transition ${checked ? 'left-6' : 'left-1'}`} />
+      </span>
     </button>
   );
 }
@@ -16,7 +18,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (val
 function PreferenceRow({ icon, title, description, children }: { icon?: React.ReactNode; title: string; description: string; children?: React.ReactNode }) {
   return (
     <div className="settings-preference-row">
-      <div className="flex min-w-0 items-center gap-3">{icon && <span className="settings-preference-icon">{icon}</span>}<div><p className="text-sm font-semibold text-foreground">{title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p></div></div>
+      <div className="flex min-w-0 items-center gap-3">{icon && <span className="settings-preference-icon">{icon}</span>}<div className="min-w-0 flex-1"><p className="text-sm font-semibold text-foreground">{title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p></div></div>
       {children}
     </div>
   );

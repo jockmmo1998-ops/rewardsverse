@@ -53,14 +53,29 @@ export default function LeaderboardPage() {
           <Surface className="unified-surface overflow-hidden p-5 sm:p-6">
             <div className="mb-5 flex items-center justify-between"><div><p className="rv-eyebrow">All rankings</p><h2 className="mt-1 font-display text-lg font-semibold">Community board</h2></div><span className="text-xs text-muted-foreground">{loading ? 'Loading' : `${users.length} members`}</span></div>
             {loading ? <LoadingRows count={5} /> : users.length ? (
-              <div className="overflow-x-auto">
+              <>
+                <div className="space-y-2 md:hidden">
+                  {users.map((member, index) => (
+                    <article key={member.id} className="flex min-h-14 min-w-0 items-center gap-3 rounded-xl border border-border/70 bg-background/25 p-3">
+                      <span className="w-7 shrink-0 text-center text-xs font-semibold text-muted-foreground">#{index + 1}</span>
+                      <UserAvatar userId={member.id} avatarId={member.avatarId ?? avatarDirectory.data?.find((entry: any) => String(entry.username || '').toLowerCase() === String(member.username || '').toLowerCase())?.avatarId} src={member.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full border border-primary/20" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-foreground">{member.username || 'Member'}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">Lv. {member.level || 1} · {member.completed_offers || 0} offers</p>
+                      </div>
+                      <p className="shrink-0 text-sm font-semibold text-primary">${Number(member.lifetime_earnings || 0).toFixed(2)}</p>
+                    </article>
+                  ))}
+                </div>
+                <div className="hidden overflow-x-auto md:block">
                 <table className="unified-table w-full min-w-[620px] text-left text-sm">
                   <thead><tr><th>Rank</th><th>Member</th><th>Level</th><th>Offers</th><th className="text-right">Lifetime earnings</th></tr></thead>
                   <tbody>{users.map((member, index) => (
                     <tr key={member.id}><td className="font-display font-semibold text-muted-foreground">#{index + 1}</td><td><div className="flex items-center gap-3"><UserAvatar userId={member.id} avatarId={member.avatarId ?? avatarDirectory.data?.find((entry: any) => String(entry.username || '').toLowerCase() === String(member.username || '').toLowerCase())?.avatarId} src={member.avatar_url} alt={`${member.username || 'Member'} avatar`} className="h-8 w-8 rounded-full" /><span className="font-medium text-foreground">{member.username || 'Member'}<small>Verified member</small></span></div></td><td className="text-muted-foreground">Lv. {member.level || 1}</td><td className="text-muted-foreground">{member.completed_offers || 0}</td><td className="text-right font-semibold text-primary">${Number(member.lifetime_earnings || 0).toFixed(2)}</td></tr>
                   ))}</tbody>
                 </table>
-              </div>
+                </div>
+              </>
             ) : <EmptyState title="No rankings yet" description="Complete an offer to join the community board." icon={Trophy} />}
           </Surface>
         </>

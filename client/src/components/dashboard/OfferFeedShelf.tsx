@@ -33,6 +33,11 @@ export function OfferCard({ offer, onSelect, compact = false }: { offer: any; on
   if (compact) {
     return (
       <button type="button" className="rv-offer-card rv-offer-card-compact" title={title} aria-label={`${title} from ${provider}; reward ${formatPoints(reward)}`} onClick={(event) => onSelect(offer, event.currentTarget)}>
+        {offer.imageUrl && (
+          <span className="rv-offer-card-art-glow" aria-hidden="true">
+            <img src={offer.imageUrl} alt="" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+          </span>
+        )}
         <span className="rv-offer-card-image">
           {offer.imageUrl ? <img src={offer.imageUrl} alt={`${title} offer artwork`} loading="lazy" decoding="async" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : <span className="rv-offer-card-image-empty">{provider}</span>}
         </span>
