@@ -1377,3 +1377,156 @@ body {
 .dashboard-page.dashboard-layout-grid > .dashboard-main-column > .rv-partner-directory {
   order: 3 !important;
 }
+
+
+/* Full-width workspace and compact, responsive offers. */
+.app-shell,
+.app-shell-content,
+.rv-main-content,
+.route-stage {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+.rv-main-content { padding-inline: 0 !important; }
+.rv-topbar-inner {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-inline: clamp(12px, 1.6vw, 28px) !important;
+}
+.dashboard-page.dashboard-layout-grid {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: clamp(18px, 1.8vw, 28px) clamp(12px, 1.55vw, 24px) 36px !important;
+}
+.dashboard-page.dashboard-layout-grid > .dashboard-main-column {
+  width: 100% !important;
+  max-width: none !important;
+  gap: clamp(14px, 1.25vw, 22px) !important;
+}
+
+/* Run the credits ticker edge-to-edge and modestly faster than the 1.1 default. */
+.live-activity-bar.rv-live-ticker {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 16px !important;
+}
+.rv-live-ticker-inner {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  border-radius: 0 !important;
+}
+.rv-live-ticker-feed .live-activity-items { animation-duration: 64s !important; }
+
+/* Keep the current-feed shelf compact while leaving it horizontally browsable. */
+.rv-offer-shelf-wide .rv-offer-shelf-track {
+  grid-auto-columns: minmax(190px, calc((100% - 50px) / 6)) !important;
+  gap: 10px !important;
+}
+.rv-offer-shelf-wide .rv-offer-card-image {
+  min-height: 105px !important;
+  aspect-ratio: 1.85 !important;
+}
+
+/* Exactly two rows; extra live results remain available by horizontal scrolling. */
+.rv-catalog-offer-grid {
+  display: grid !important;
+  grid-template-columns: none !important;
+  grid-template-rows: repeat(2, 220px) !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(0, calc((100% - 50px) / 6)) !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-x: contain;
+  padding: 2px 2px 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #6d6d6d #303030;
+}
+.rv-catalog-offer-grid::-webkit-scrollbar { height: 8px; }
+.rv-catalog-offer-grid::-webkit-scrollbar-track { border-radius: 8px; background: #303030; }
+.rv-catalog-offer-grid::-webkit-scrollbar-thumb { border-radius: 8px; background: #6d6d6d; }
+.rv-catalog-offer-grid .rv-offer-card {
+  width: 100% !important;
+  height: 220px !important;
+  min-height: 0 !important;
+}
+.rv-catalog-offer-grid .rv-offer-card-image {
+  height: 86px !important;
+  min-height: 86px !important;
+  flex: 0 0 86px !important;
+  aspect-ratio: auto !important;
+}
+.rv-catalog-offer-grid .rv-offer-card-meta { padding: 8px 10px 0 !important; font-size: 8px !important; }
+.rv-catalog-offer-grid .rv-offer-card > strong {
+  display: -webkit-box;
+  overflow: hidden;
+  padding: 6px 10px 0 !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.rv-catalog-offer-grid .rv-offer-card-description {
+  margin: 4px 10px 0 !important;
+  font-size: 9px !important;
+  line-height: 1.4 !important;
+  -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
+}
+.rv-catalog-offer-grid .rv-offer-card-action { padding: 8px 10px !important; font-size: 9px !important; }
+
+/* Provider colors come from OFFER_WALLS.accent; each card keeps the charcoal base. */
+.rv-partner-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr)) !important;
+  gap: 10px !important;
+}
+.rv-partner-card {
+  min-height: 154px !important;
+  border-color: color-mix(in srgb, var(--partner-accent, #82d63d) 44%, #484848) !important;
+  background:
+    radial-gradient(130% 140% at 100% 0%, color-mix(in srgb, var(--partner-accent, #82d63d) 17%, transparent), transparent 62%),
+    linear-gradient(145deg, #333333, #292929) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--partner-accent, #82d63d) 12%, transparent);
+}
+.rv-partner-card:hover:not(:disabled) {
+  border-color: var(--partner-accent, #82d63d) !important;
+  background:
+    radial-gradient(130% 140% at 100% 0%, color-mix(in srgb, var(--partner-accent, #82d63d) 25%, transparent), transparent 62%),
+    linear-gradient(145deg, #373737, #2b2b2b) !important;
+}
+.rv-partner-card:focus-visible { outline: 2px solid var(--partner-accent, #82d63d); outline-offset: 2px; }
+.rv-partner-logo {
+  border-color: color-mix(in srgb, var(--partner-accent, #82d63d) 55%, #484848) !important;
+  background: color-mix(in srgb, var(--partner-accent, #82d63d) 13%, #303030) !important;
+}
+.rv-partner-arrow,
+.rv-partner-category { color: var(--partner-accent, #b8e98b) !important; }
+
+@media (min-width: 1800px) {
+  .rv-catalog-offer-grid { grid-auto-columns: minmax(0, calc((100% - 70px) / 8)) !important; }
+}
+@media (min-width: 2400px) {
+  .rv-catalog-offer-grid { grid-auto-columns: minmax(0, calc((100% - 90px) / 10)) !important; }
+}
+@media (max-width: 1200px) {
+  .rv-offer-shelf-wide .rv-offer-shelf-track { grid-auto-columns: minmax(190px, calc((100% - 30px) / 4)) !important; }
+  .rv-catalog-offer-grid { grid-auto-columns: minmax(0, calc((100% - 30px) / 4)) !important; }
+}
+@media (max-width: 700px) {
+  .live-activity-bar.rv-live-ticker { margin: 0 0 12px !important; }
+  .dashboard-page.dashboard-layout-grid { padding: 14px 10px 28px !important; }
+  .rv-offer-shelf-wide .rv-offer-shelf-track { grid-auto-columns: minmax(220px, 82vw) !important; }
+  .rv-catalog-offer-grid {
+    grid-template-rows: repeat(2, 205px) !important;
+    grid-auto-columns: minmax(0, calc((100% - 7px) / 2)) !important;
+    gap: 7px !important;
+  }
+  .rv-catalog-offer-grid .rv-offer-card { height: 205px !important; }
+  .rv-catalog-offer-grid .rv-offer-card-image { height: 72px !important; min-height: 72px !important; flex-basis: 72px !important; }
+}

@@ -24,8 +24,13 @@ export function OfferCatalogResults({
 }: OfferCatalogResultsProps) {
   if (offers.length > 0) {
     return (
-      <div className="rv-catalog-offer-grid" aria-label={`${offers.length} verified offers`}>
-        {offers.slice(0, 20).map((offer, index) => (
+      <div
+        className="rv-catalog-offer-grid"
+        role="region"
+        tabIndex={0}
+        aria-label={`${offers.length} verified offers in two rows; scroll horizontally to browse the full feed`}
+      >
+        {offers.map((offer, index) => (
           <OfferCard
             key={`${offer.provider || 'offer'}-${offer.id || index}`}
             offer={offer}

@@ -79,9 +79,6 @@ export default function HomePage() {
     return offers.filter((offer: any) => categoryMatch(offer, activeFilter));
   }, [activeFilter, allOffers, search]);
 
-  const gamesAndApps = useMemo(() => allOffers.filter((offer: any) => categoryMatch(offer, 'games') || categoryMatch(offer, 'apps')), [allOffers]);
-  const surveysAndTasks = useMemo(() => allOffers.filter((offer: any) => categoryMatch(offer, 'surveys') || categoryMatch(offer, 'tasks')), [allOffers]);
-
   const displayName = profile?.username || profile?.name || user?.username || user?.name || 'Member';
   const totalEarned = summary.data?.totalEarned ?? Number(profile?.totalEarned ?? profile?.lifetime_earnings ?? 0);
   const pendingRewards = Number(summary.data?.pendingRewards || 0);
@@ -139,33 +136,6 @@ export default function HomePage() {
           onSelect={setActiveOffer}
           emptyCount={15}
         />
-        <div className="rv-offer-shelf-pair">
-          <OfferFeedShelf
-            eyebrow="GAMES & APPS"
-            title="Game and app offers."
-            description="A dedicated space for game and app offers from the real feed."
-            offers={gamesAndApps}
-            loading={featured.isLoading}
-            error={featured.isError}
-            visualPreview={visualPreview}
-            onSelect={setActiveOffer}
-            layout="grid"
-            emptyCount={5}
-          />
-          <OfferFeedShelf
-            eyebrow="SURVEYS & TASKS"
-            title="Surveys and easy tasks."
-            description="A separate space for surveys and quick tasks from the real feed."
-            offers={surveysAndTasks}
-            loading={featured.isLoading}
-            error={featured.isError}
-            visualPreview={visualPreview}
-            onSelect={setActiveOffer}
-            layout="grid"
-            emptyCount={5}
-          />
-        </div>
-
       <section className="offer-marketplace featured-primary">
         <div className="rv-verified-feed-heading">
           <div>
