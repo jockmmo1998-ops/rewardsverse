@@ -82,12 +82,10 @@ export default function HomePage() {
   }, [activeFilter, allOffers, search]);
 
   const displayName = profile?.username || profile?.name || user?.username || user?.name || 'Member';
-  const totalEarned = summary.data?.totalEarned ?? Number(profile?.totalEarned ?? profile?.lifetime_earnings ?? 0);
   const pendingRewards = Number(summary.data?.pendingRewards || 0);
   const startEarningPath = user ? '/offerwalls' : '/register';
   const visualPreview = import.meta.env.DEV && import.meta.env.VITE_VISUAL_PREVIEW === 'true';
   const previewDataUnavailable = visualPreview && !profile && !summary.data;
-  const totalEarnedLabel = previewDataUnavailable ? '—' : money(totalEarned);
   const completedOffersLabel = previewDataUnavailable ? '—' : (profile?.offersCompleted ?? profile?.completed_offers ?? 0);
   const todayEarningsLabel = previewDataUnavailable ? '—' : money(summary.data?.todayEarnings);
   const pendingRewardsLabel = previewDataUnavailable ? '—' : money(pendingRewards);
@@ -107,16 +105,9 @@ export default function HomePage() {
             <div className="dashboard-hero-actions"><Link to={startEarningPath} className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-105"><Zap className="h-4 w-4" /> {user ? 'Start earning' : 'Register now'} <ArrowRight className="h-4 w-4" /></Link><Link to="/history" className="dashboard-hero-secondary focus-ring"><Activity className="h-4 w-4" /> View activity</Link></div>
             <div className="dashboard-hero-proof"><span><CheckCircle2 className="h-3.5 w-3.5" /> Verified provider callbacks</span><span><ShieldCheck className="h-3.5 w-3.5" /> Server-validated payouts</span></div>
           </div>
-          <div className="dashboard-hero-visual" aria-label="RewardsVerse community and account snapshot">
+          <div className="dashboard-hero-visual" aria-label="RewardsVerse community artwork">
             <img className="dashboard-hero-art" src="/rewardsverse-community-cutout-green.png" alt="RewardsVerse community gathered around a branded laptop, holding green reward devices, on a transparent background" decoding="async" fetchPriority="high" />
             <div className="dashboard-hero-visual-shade" aria-hidden="true" />
-            <div className="hero-balance-overlay">
-              <div className="hero-balance-top"><span className="hero-balance-label">ACCOUNT SNAPSHOT</span><span className="hero-status">{user ? 'MEMBER' : 'PUBLIC VIEW'}</span></div>
-              <span className="hero-balance-caption">TOTAL EARNED</span>
-              <strong>{totalEarnedLabel}</strong>
-              <span className="hero-balance-note">Verified rewards earned to date</span>
-              <div className="hero-balance-footer"><span>Available balance <b>{user && profile?.balance != null ? money(profile.balance) : '—'}</b></span><span>Offers completed <b>{completedOffersLabel}</b></span></div>
-            </div>
           </div>
         </section>
 

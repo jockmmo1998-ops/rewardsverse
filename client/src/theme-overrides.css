@@ -2276,3 +2276,105 @@ body,
 .rv-verified-feed-heading {
   border-bottom: 0 !important;
 }
+
+
+/* The home Reward Network reuses the exact provider-card visual language from The Earn Center. */
+.rv-network-provider-grid.rv-partner-grid {
+  grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  padding: 0 !important;
+}
+.rv-network-provider-grid .provider-card {
+  aspect-ratio: 1.45 / 1 !important;
+  min-height: 100px !important;
+  border-radius: 12px !important;
+  padding: 7px !important;
+}
+.rv-network-provider-grid .provider-badge {
+  top: 5px !important;
+  right: 5px !important;
+  max-width: 75% !important;
+  padding: 2px 4px !important;
+  font-size: 6px !important;
+  letter-spacing: .045em !important;
+}
+.rv-network-provider-grid .provider-card > div:first-of-type > div:first-child {
+  height: 24px !important;
+  max-width: 100% !important;
+  margin-bottom: 3px !important;
+  flex: 0 0 24px !important;
+}
+.rv-network-provider-grid .provider-card-title {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+.rv-network-provider-grid .provider-card-stars {
+  margin-top: 2px !important;
+  gap: 1px !important;
+}
+.rv-network-provider-grid .provider-card-stars svg {
+  width: 7px !important;
+  height: 7px !important;
+}
+.rv-network-provider-grid .provider-logo-fallback { font-size: 14px !important; }
+.rv-network-provider-grid .provider-card-description {
+  right: 6px !important;
+  bottom: 4px !important;
+  left: 6px !important;
+  font-size: 6px !important;
+  letter-spacing: .035em !important;
+}
+
+@media (max-width: 1199px) {
+  .rv-network-provider-grid.rv-partner-grid { grid-template-columns: repeat(8, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 999px) {
+  .rv-network-provider-grid.rv-partner-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 759px) {
+  .rv-network-provider-grid.rv-partner-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 7px !important; }
+  .rv-network-provider-grid .provider-card { min-height: 96px !important; }
+}
+@media (max-width: 560px) {
+  .rv-network-provider-grid.rv-partner-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .rv-network-provider-grid .provider-card { min-height: 108px !important; }
+  .rv-network-provider-grid .provider-card-title { font-size: 10px !important; }
+  .rv-network-provider-grid .provider-card-description { font-size: 7px !important; }
+}
+
+/* Keep the hero cutout fluid and fully visible across desktop and mobile layouts. */
+.dashboard-page.dashboard-layout-grid .dashboard-hero-visual {
+  min-width: 0;
+  min-height: clamp(190px, 24vw, 340px);
+}
+.dashboard-page.dashboard-layout-grid .dashboard-hero-visual > img.dashboard-hero-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain !important;
+  object-position: right center !important;
+}
+@media (max-width: 700px) {
+  .dashboard-page.dashboard-layout-grid .dashboard-hero-visual { min-height: clamp(180px, 58vw, 280px); }
+  .dashboard-page.dashboard-layout-grid .dashboard-hero-visual > img.dashboard-hero-art { object-position: center !important; }
+}
+
+/* Registration-only community art fills the unused space directly under the logo. */
+.rv-auth-community-art {
+  display: block;
+  width: min(100%, 440px);
+  height: clamp(112px, 13vw, 164px);
+  margin: 12px 0 0;
+  object-fit: contain;
+  object-position: left center;
+}
+@media (max-width: 700px) {
+  .rv-auth-community-art {
+    width: min(100%, 320px);
+    height: clamp(104px, 32vw, 148px);
+    margin-top: 10px;
+    object-position: center;
+  }
+}
