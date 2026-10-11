@@ -2189,3 +2189,90 @@ body {
 .earn-center-hero .earn-center-grid {
   opacity: 0 !important;
 }
+
+
+/* A single graphite grid canvas prevents seams between body, shell, and route content. */
+html,
+body,
+#root {
+  background-color: #212121 !important;
+  background-image: none !important;
+}
+
+.app-shell,
+.app-shell-dashboard,
+.app-shell-content,
+.rv-main-content,
+.route-stage {
+  background: transparent !important;
+}
+
+.app-shell-background {
+  background-color: #212121 !important;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .022) 1px, transparent 1px) !important;
+  background-size: 58px 58px, 58px 58px !important;
+  background-position: 0 0, 0 0 !important;
+  background-attachment: fixed, fixed !important;
+  background-repeat: repeat, repeat !important;
+}
+
+/* Keep the dashboard hero integrated with the page canvas. */
+.dark .dashboard-page .welcome-panel.dashboard-hero::before,
+.dashboard-page .welcome-panel.dashboard-hero::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+.dashboard-page .welcome-panel.dashboard-hero {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.dashboard-page.dashboard-layout-grid .dashboard-hero-visual {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.dashboard-page .dashboard-hero-visual > img.dashboard-hero-art {
+  object-fit: contain !important;
+  object-position: right center !important;
+}
+
+.dashboard-page .dashboard-hero-visual-shade {
+  display: none !important;
+  background: none !important;
+}
+
+/* The Earn Center shell stays transparent; its legible provider count remains raised. */
+.dark .unified-page .earn-center-hero {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.earn-center-hero .earn-center-aurora,
+.earn-center-hero .earn-center-grid {
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+}
+
+/* Withdraw summary follows the page canvas rather than using a colored callout box. */
+.withdraw-page .withdraw-summary {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.withdraw-page .withdraw-summary-estimate {
+  border-top-color: transparent !important;
+}
+
+/* Remove the full-width-looking divider beneath the offers heading. */
+.rv-verified-feed-heading {
+  border-bottom: 0 !important;
+}
