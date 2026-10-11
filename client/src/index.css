@@ -41,42 +41,42 @@
 
 .dark {
   --background: #212121;
-  --foreground: #FAFAFA;
-  --card: #2B2B2B;
-  --card-foreground: #FAFAFA;
+  --foreground: #f5f5f5;
+  --card: #2b2b2b;
+  --card-foreground: #f5f5f5;
   --popover: #303030;
-  --popover-foreground: #FAFAFA;
+  --popover-foreground: #f5f5f5;
   --primary: #82d63d;
-  --primary-foreground: #06150d;
+  --primary-foreground: #11170d;
   --secondary: #303030;
-  --secondary-foreground: #FAFAFA;
-  --muted: #2B2B2B;
-  --muted-foreground: #BDBDBD;
-  --accent: #A8E86B;
-  --accent-foreground: #082116;
+  --secondary-foreground: #f5f5f5;
+  --muted: #303030;
+  --muted-foreground: #c8c8c8;
+  --accent: #383838;
+  --accent-foreground: #f5f5f5;
   --destructive: #f27676;
   --destructive-foreground: #fff7f7;
-  --border: #454545;
-  --input: #2B2B2B;
+  --border: #484848;
+  --input: #303030;
   --ring: #82d63d;
   --chart-1: #82d63d;
-  --chart-2: #A8E86B;
-  --chart-3: #A4DC72;
-  --chart-4: #D1F2B0;
+  --chart-2: #a8e86b;
+  --chart-3: #a4dc72;
+  --chart-4: #d1f2b0;
   --chart-5: #f27676;
-  --sidebar-background: #212121;
-  --sidebar-foreground: #C7C7C7;
+  --sidebar-background: #2b2b2b;
+  --sidebar-foreground: #eeeeee;
   --sidebar-primary: #82d63d;
-  --sidebar-primary-foreground: #06150d;
+  --sidebar-primary-foreground: #11170d;
   --sidebar-accent: #303030;
-  --sidebar-accent-foreground: #FAFAFA;
-  --sidebar-border: #454545;
+  --sidebar-accent-foreground: #f5f5f5;
+  --sidebar-border: #484848;
   --sidebar-ring: #82d63d;
 }
 
 @theme inline {
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Manrope, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: Manrope, ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -1711,10 +1711,10 @@
 }
 
 
-/* RewardsVerse charcoal + rewards-green visual system. */
+/* RewardsVerse near-black + RewardsVerse lime visual system. */
 .dark .hud-sidebar { box-shadow: 14px 0 34px rgba(0,0,0,.24); }
-.dark .hud-topbar { background: rgba(33,33,33,.94); }
-.dark .live-activity-bar { border-color: #454545; background: rgba(33,33,33,.97); }
+.dark .hud-topbar { background: rgba(5,5,5,.96); }
+.dark .live-activity-bar { border-color: #30352f; background: rgba(16,17,16,.97); }
 .dark .welcome-panel,
 .dark .hero-side-card,
 .dark .offer-marketplace,
@@ -1725,17 +1725,17 @@
 .dark .weekly-progress-panel,
 .dark .provider-rail,
 .dark .profile-reward-overview {
-  border-color: #454545;
-  background-color: #2B2B2B;
+  border-color: #30352f;
+  background-color: #101110;
   box-shadow: 0 14px 34px rgba(0,0,0,.24);
 }
 .dark .dashboard-hero .hero-side-card {
-  background: rgba(38,38,38,.82);
+  background: rgba(16,17,16,.91);
   backdrop-filter: blur(8px);
 }
 .dark .dashboard-hero .quick-stat {
   border-color: rgba(255,255,255,.12);
-  background: rgba(38,38,38,.78);
+  background: rgba(16,17,16,.88);
   backdrop-filter: blur(7px);
 }
 .dark .dashboard-hero .quick-stat-icon,

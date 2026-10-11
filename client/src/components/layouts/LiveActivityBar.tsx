@@ -4,7 +4,6 @@ import { Activity, ArrowDownToLine, CalendarDays, CircleDollarSign, Trophy, Wall
 import { trpc } from '@/lib/trpc';
 import { UserAvatar } from '@/components/AvatarSystem';
 import { useAuth } from '@/contexts/AuthContext';
-import { PaymentMethodLogo, resolvePaymentMethod } from '@/components/PaymentMethodLogo';
 
 function maskUsername(value: unknown) {
   const username = String(value || 'member').trim();
@@ -48,12 +47,6 @@ function activityLabel(type: unknown) {
   return 'Account activity';
 }
 
-function activityTone(type: unknown) {
-  if (type === 'withdrawal') return 'text-amber-500';
-  if (type === 'offer_complete' || type === 'reward') return 'text-emerald-600';
-  return 'text-slate-500';
-}
-
 function compactActivityDescription(value: unknown) {
   const description = String(value || 'completed a verified reward');
   const separator = ' — ';
@@ -80,7 +73,7 @@ function shortOfferName(item: any) {
     .replace(/[_-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  if (!offerName) return 'New offer';
+  if (!offerName) return 'Reward activity';
   const maxLength = 20;
   return offerName.length > maxLength
     ? `${offerName.slice(0, maxLength - 1).trimEnd()}…`
@@ -107,6 +100,7 @@ export function LiveActivityBar() {
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
   const { user } = useAuth();
+  const visualPreview = import.meta.env.DEV && import.meta.env.VITE_VISUAL_PREVIEW === 'true';
   const activities = trpc.user.getActivities.useQuery(undefined, {
     staleTime: 15_000,
     refetchInterval: 15_000,
@@ -123,8 +117,6 @@ export function LiveActivityBar() {
       return (!currentUserId || itemUserId !== currentUserId) && (!currentUsername || itemUsername !== currentUsername);
     })
     .slice(0, 30) as any[];
-  const recentCredits = items.filter((item: any) => item.type !== 'withdrawal');
-  const recentWithdrawals = items.filter((item: any) => item.type === 'withdrawal');
   const groupedUsers = useMemo(() => {
     const groups = new Map<string, any[]>();
     items.forEach((item) => {
@@ -174,7 +166,7 @@ export function LiveActivityBar() {
   };
 
   const renderItem = (item: any, duplicate = false) => {
-    const method = item.type === 'withdrawal' ? resolvePaymentMethod(withdrawalMethod(item)) : null;
+    const withdrawal = item.type === 'withdrawal';
     return (
     <button
       key={`${item.id}-${duplicate ? 'copy' : 'primary'}`}
@@ -188,12 +180,12 @@ export function LiveActivityBar() {
       data-live-user-key={userKey(item)}
       aria-label={`View full activity for ${maskUsername(item.username)}`}
     >
-      <UserAvatar userId={item.userId} avatarId={item.avatarId} alt="" className="h-7 w-7 shrink-0 rounded-full border border-primary/35 shadow-[0_0_10px_rgba(130,214,61,.13)]" />
-      {method ? <PaymentMethodLogo method={method} size="small" decorative /> : item.type === 'withdrawal' ? <ArrowDownToLine className="h-3.5 w-3.5 shrink-0 text-amber-300" /> : <Activity className={`h-3.5 w-3.5 shrink-0 ${activityTone(item.type)}`} />}
       <span className="live-activity-copy">
         <span className="live-activity-user">{maskUsername(item.username)}</span>
         <span className="live-activity-summary">
-          <span className="live-activity-amount">{formatAmount(item.amount) || 'Verified'}</span> <span>·</span> <span className={item.type === 'withdrawal' ? 'live-activity-withdrawal-label' : 'live-activity-offer-name'}>{shortOfferName(item)}</span>
+          {withdrawal && <em className="live-activity-type">WITHDRAWAL</em>}
+          <span className={withdrawal ? 'live-activity-withdrawal-label' : 'live-activity-offer-name'}>{withdrawal ? withdrawalMethod(item) : shortOfferName(item)}</span>
+          <b className="live-activity-amount">{formatAmount(item.amount) || '—'}</b>
         </span>
       </span>
     </button>
@@ -210,21 +202,17 @@ export function LiveActivityBar() {
   );
 
   return (
-    <section className="live-activity-bar relative" onPointerDownCapture={inspectFromLiveBar} onClickCapture={inspectFromLiveBar} aria-label="Live verified activity" aria-live="polite">
-      <div className="live-activity-stack">
-        <div className="live-activity-row live-activity-row-credits">
-          <div className="live-activity-row-label"><span className="live-activity-status-dot" aria-hidden="true" /><span>Recent credits</span></div>
-          {activities.isLoading ? <span className="live-activity-empty">Loading verified credits…</span> : recentCredits.length ? renderTrack(recentCredits) : <span className="live-activity-empty"><CircleDollarSign className="h-3.5 w-3.5" />No recent credits yet</span>}
-        </div>
-        <div className="live-activity-row live-activity-row-withdrawals">
-          <div className="live-activity-row-label"><span className="live-activity-status-dot" aria-hidden="true" /><span>Withdrawals</span></div>
-          {recentWithdrawals.length ? renderTrack(recentWithdrawals) : (
-            <div className="live-activity-methods" aria-label="Supported withdrawal methods">
-              <span className="live-activity-empty">No recent withdrawals</span>
-              <span className="live-activity-method-chip"><PaymentMethodLogo method="litecoin" size="small" decorative />Litecoin</span>
-              <span className="live-activity-method-chip"><PaymentMethodLogo method="binance" size="small" decorative />Binance</span>
-            </div>
-          )}
+    <section className="live-activity-bar rv-live-ticker relative" onPointerDownCapture={inspectFromLiveBar} onClickCapture={inspectFromLiveBar} aria-label="Live verified activity" aria-live="polite">
+      <div className="rv-live-ticker-inner">
+        <div className="live-activity-row-label rv-live-ticker-label"><span className="live-activity-status-dot" aria-hidden="true" /><span>Recent credits</span></div>
+        <div className="rv-live-ticker-feed">
+          {activities.isError
+            ? <span className="live-activity-empty">{visualPreview ? 'Live activity is not connected in this visual preview' : 'Public activity is temporarily unavailable'}</span>
+            : activities.isLoading
+            ? <span className="live-activity-empty">Loading verified activity…</span>
+            : items.length
+              ? renderTrack(items)
+              : <span className="live-activity-empty"><CircleDollarSign className="h-3.5 w-3.5" />No public activity yet</span>}
         </div>
       </div>
       {selectedUser && createPortal(
@@ -243,7 +231,7 @@ export function LiveActivityBar() {
               <div className="mt-3 space-y-2 border-t border-border/70 pt-3">
                 {selectedItems.filter((item) => item.type === 'offer_complete' || item.type === 'reward').slice(0, 6).map((item) => (
                   <div key={item.id} className="live-detail-card">
-                    <div className="flex min-w-0 items-start gap-2"><Activity className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-emerald-300">Offer completed</p><p className="mt-1 break-words text-xs font-semibold text-foreground">{shortOfferName(item)}</p><p className="mt-1 text-[10px] text-muted-foreground">Offer wall: <strong className="text-foreground">{providerName(item)}</strong> · {timeLabel(item.createdAt)}</p></div></div><strong className="shrink-0 text-xs text-emerald-300">+{formatAmount(item.amount) || 'Verified'}</strong>
+                    <div className="flex min-w-0 items-start gap-2"><Activity className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-emerald-300">Offer completed</p><p className="mt-1 break-words text-xs font-semibold text-foreground">{shortOfferName(item)}</p><p className="mt-1 text-[10px] text-muted-foreground">Offer wall: <strong className="text-foreground">{providerName(item)}</strong> · {timeLabel(item.createdAt)}</p></div></div><strong className="shrink-0 text-xs text-emerald-300">+{formatAmount(item.amount) || '—'}</strong>
                   </div>
                 ))}
                 {selectedItems.filter((item) => item.type === 'withdrawal').slice(0, 6).map((item) => (
