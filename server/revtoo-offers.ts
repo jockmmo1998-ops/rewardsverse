@@ -1,6 +1,6 @@
 const REVTOO_OFFERS_ENDPOINT = "https://revtoo.com/api/offers/";
 const CACHE_TTL_MS = 60_000;
-export const FEATURED_OFFERS_LIMIT = 48;
+export const FEATURED_OFFERS_LIMIT = 100;
 
 type RevtooOffer = {
   id?: number | string;
