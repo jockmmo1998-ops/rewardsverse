@@ -415,8 +415,10 @@ function extractSignature(params: Record<string, any>): string {
  * - GET  /api/postback/:provider          → Fallback for GET callbacks
  *
  * Xác thực theo từng provider:
- * - gemiwall / taskwall / gleamads / moustache / klink / admaxflow / buckswall:
+ * - taskwall / gleamads / moustache / klink / admaxflow / buckswall:
  *     token/password query field plain-matches the provider secret
+ * - gemiwall / gaintwall:
+ *     hash=sha256(userId + offerId + txid + secret)
  * - revtoo / cointo / adswedmedia:
  *     signature=md5(user + transaction + reward + secret)
  * - gaintwall:
@@ -427,7 +429,7 @@ function extractSignature(params: Record<string, any>): string {
  * Chi tiết param từng provider:
  * - revtoo:      subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
  * - cointo:      subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
- * - gemiwall:    sub_id=USERNAME   reward=AMOUNT    uuid=TXID
+ * - gemiwall:    userId=USERNAME   reward=AMOUNT    txid=TXID    hash=SHA256
  * - taskwall:    userid=USERNAME   user_amount=AMOUNT password=AUTH_PASSWORD
  * - gleamads:   subId=USERNAME    reward=AMOUNT    transId=TXID    status=1/0
  * - adswedmedia: subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
