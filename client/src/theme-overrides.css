@@ -2364,17 +2364,18 @@ body,
 /* Registration-only community art fills the unused space directly under the logo. */
 .rv-auth-community-art {
   display: block;
-  width: min(100%, 440px);
-  height: clamp(112px, 13vw, 164px);
-  margin: 12px 0 0;
+  width: min(calc(100% + 36px), 520px);
+  height: clamp(210px, 26vh, 290px);
+  flex: 0 0 auto;
+  margin: 14px 0 0 -18px;
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
 }
 @media (max-width: 700px) {
   .rv-auth-community-art {
-    width: min(100%, 320px);
-    height: clamp(104px, 32vw, 148px);
-    margin-top: 10px;
+    width: min(100%, 420px);
+    height: clamp(172px, 55vw, 246px);
+    margin: 12px auto 0;
     object-position: center;
   }
 }
