@@ -23,7 +23,7 @@ type RevtooResponse = {
 
 export type FeaturedOffer = {
   id: string;
-  provider: "Revtoo";
+  provider: string;
   offerName: string;
   description?: string;
   reward?: number | string;

@@ -305,12 +305,12 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     macros: ["subId", "transId", "reward", "offer_name", "offer_type", "payout", "userIp", "country", "status", "signature"],
   },
   gemiwall: {
-    user: "sub_id",
+    user: "userId",
     reward: "reward",
-    transaction: "uuid",
-    auth: "token",
+    transaction: "txid",
+    auth: "sha256",
     response: "json",
-    macros: ["sub_id", "reward", "uuid", "offer_name", "offer_id", "status"],
+    macros: ["userId", "offerId", "offerName", "eventId", "eventName", "payout", "reward", "txid", "status", "ip", "sub1", "sub2", "hash"],
   },
   revtoo: {
     user: "subId",
@@ -522,6 +522,25 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
     }
     return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
   }
+  if (provider === "gemiwall") {
+    const macros: Record<string, string> = {
+      userId: "USER_ID",
+      offerId: "OFFER_ID",
+      offerName: "OFFER_NAME",
+      eventId: "EVENT_ID",
+      eventName: "EVENT_NAME",
+      payout: "PAYOUT",
+      reward: "REWARD",
+      txid: "TXID",
+      status: "STATUS",
+      ip: "IPADDR",
+      sub1: "SUB1",
+      sub2: "SUB2",
+      hash: "HASH",
+    };
+    for (const [field, macro] of Object.entries(macros)) url.searchParams.set(field, `{${macro}}`);
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
+  }
   if (provider === "taskwall") {
     // Taskwall uses a fixed token for endpoint authentication and sends its
     // own password macro separately. Keep both parameters in the callback.
@@ -529,7 +548,7 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
   }
   if (spec.auth === "md5") {
     url.searchParams.set("signature", `{signature}`);
-  } else if (spec.auth !== "none") {
+  } else if (spec.auth !== "none" && spec.auth !== "sha256") {
     const authField = provider === "taskwall" ? "token" : (spec.authFields?.[0] || "token");
     if (provider !== "taskwall") url.searchParams.set(authField, secret);
   }
