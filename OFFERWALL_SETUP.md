@@ -19,7 +19,7 @@ Link hoàn chỉnh được tạo trong Admin Panel → **Postbacks** chỉ khi 
 | Offerwall | Giá trị cần lấy từ publisher dashboard | Điền vào Render | Endpoint |
 | --- | --- | --- | --- |
 | CPX Research | App ID và App Secure Hash trong Apps → Rewardsverse | `CPX_APP_ID`, `CPX_APP_SECURE_HASH` | `/api/postback/cpxresearch` |
-| Gemiwall | Placement ID và postback token/secret | `GEMIWALL_PLACEMENT_ID`, `GEMIWALL_POSTBACK_SECRET` | `/api/postback/gemiwall` |
+| Gemiwall | Placement ID và **Secret Key** trong Settings → Account Information. Nếu dashboard cấp API key riêng thì dùng khóa đó; nếu không, code dùng Secret Key làm API key fallback | `GEMIWALL_PLACEMENT_ID`, `GEMIWALL_POSTBACK_SECRET` (hoặc thêm `GEMIWALL_API_KEY`) | `/api/postback/gemiwall` |
 | Revtoo | API key/placement key và postback secret | `REVTOO_API_KEY` hoặc `REVTOO_PLACEMENT_ID`, `REVTOO_POSTBACK_SECRET` | `/api/postback/revtoo` |
 | Clickwall | Placement ID và postback token/secret | `CLICKWALL_PLACEMENT_ID`, `CLICKWALL_POSTBACK_SECRET` | `/api/postback/clickwall` |
 | Moustache Leads | Placement ID, API key nếu dashboard yêu cầu, và postback secret | `MOUSTACHE_PLACEMENT_ID`, `MOUSTACHE_API_KEY`, `MOUSTACHE_POSTBACK_SECRET` | `/api/postback/moustache` |
