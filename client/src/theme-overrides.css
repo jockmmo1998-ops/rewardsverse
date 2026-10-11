@@ -2165,3 +2165,27 @@ body {
 .dark .unified-page .provider-card img[src$="klink-transparent.png"] {
   mix-blend-mode: normal !important;
 }
+
+
+/* Site-wide transparent section shells; preserve raised cards and controls for readability. */
+.rv-surface:not(.rv-stat-tile):not(.rv-surface-soft):not(.dashboard-metric-card),
+.unified-surface,
+.dashboard-side-panel,
+.weekly-progress-panel,
+.rv-weekly-panel,
+.provider-rail,
+.profile-reward-overview,
+.earn-center-hero,
+.offer-marketplace,
+.offers-partners-panel,
+.rv-dashboard-split,
+.rv-community-activity,
+.rv-partner-directory,
+.dashboard-page .welcome-panel.dashboard-hero {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.earn-center-hero .earn-center-aurora,
+.earn-center-hero .earn-center-grid {
+  opacity: 0 !important;
+}

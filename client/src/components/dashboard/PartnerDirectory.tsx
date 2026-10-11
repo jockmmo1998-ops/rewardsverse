@@ -9,17 +9,17 @@ interface PartnerDirectoryProps {
 }
 
 export function PartnerDirectory({ statuses, onSelect }: PartnerDirectoryProps) {
-  const partners = OFFER_WALLS.slice(0, 6);
+  const partners = OFFER_WALLS;
 
   return (
-    <section className="rv-partner-directory" aria-label="Offer wall partners">
+    <section className="rv-partner-directory" aria-label="All offerwall partners">
       <header className="rv-partner-heading">
         <div>
           <p className="rv-eyebrow"><span className="section-dot" /> REWARD NETWORK</p>
           <h2>One network. More ways to explore.</h2>
-          <p>Configured providers from the live RewardsVerse partner list.</p>
+          <p>Every provider in the Offerwall catalog, gathered in one place.</p>
         </div>
-        <span className="rv-partner-count">{partners.length} featured partners</span>
+        <span className="rv-partner-count">{partners.length} offerwall partners</span>
       </header>
       <div className="rv-partner-grid">
         {partners.map((wall) => {
@@ -53,8 +53,8 @@ export function PartnerDirectory({ statuses, onSelect }: PartnerDirectoryProps) 
         })}
       </div>
       <footer className="rv-partner-footer">
-        <span>Provider descriptions are sourced from the current configuration.</span>
-        <Link to="/offerwalls">Explore all {OFFER_WALLS.length} partners <ArrowRight aria-hidden="true" /></Link>
+        <span>Select a configured provider to open its offerwall.</span>
+        <Link to="/offerwalls">Open Offerwall catalog <ArrowRight aria-hidden="true" /></Link>
       </footer>
     </section>
   );
