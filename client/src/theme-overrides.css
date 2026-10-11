@@ -1699,10 +1699,10 @@ body {
 .rv-catalog-offer-grid-compact .rv-offer-card-image-empty { color: #37443a !important; }
 .rv-catalog-offer-grid-compact .rv-offer-card-points { min-height: 17px; color: #b8f4ce !important; font-size: 11px !important; font-weight: 750 !important; line-height: 1.2 !important; }
 
-/* Ten-column live offer layout: keep dense coverage without shrinking brand marks. */
+/* Twenty-column live offer layout: three rows of twenty offers before Show more. */
 @media (min-width: 701px) {
   .rv-catalog-offer-grid.rv-catalog-offer-grid-compact {
-    grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(20, minmax(0, 1fr)) !important;
     grid-template-rows: none !important;
     grid-auto-flow: row !important;
     grid-auto-columns: auto !important;
@@ -1818,7 +1818,7 @@ body {
 }
 @media (min-width: 1600px) {
   .unified-page .offers-partners-panel .grid.grid-cols-2 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
-  .rv-catalog-offer-grid.rv-catalog-offer-grid-compact { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
+  .rv-catalog-offer-grid.rv-catalog-offer-grid-compact { grid-template-columns: repeat(20, minmax(0, 1fr)) !important; }
 }
 @media (max-width: 640px) {
   .rv-responsive-iframe-dialog {
