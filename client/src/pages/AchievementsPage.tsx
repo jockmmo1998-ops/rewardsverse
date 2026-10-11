@@ -22,14 +22,14 @@ export default function AchievementsPage() {
   ];
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="achievements-page unified-page mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <PageHeader title="Achievements" subtitle="Progress is calculated from your verified account activity." />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {achievements.map(achievement => {
           const progress = Math.min(100, (achievement.current / achievement.req) * 100);
           const unlocked = achievement.current >= achievement.req;
           return (
-            <GlassCard key={achievement.title} className={`p-6 flex flex-col ${!unlocked ? 'opacity-80' : ''}`}>
+            <GlassCard key={achievement.title} className={`achievement-card ${!unlocked ? 'is-locked' : ''} flex flex-col p-6`}>
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${unlocked ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
                   {unlocked ? <Award className="w-7 h-7" /> : <Lock className="w-6 h-6" />}
@@ -39,8 +39,8 @@ export default function AchievementsPage() {
               <h3 className="font-heading font-bold text-lg mb-1">{achievement.title}</h3>
               <p className="text-sm text-muted-foreground mb-6 flex-1">{achievement.description}</p>
               <div className="space-y-2 mt-auto">
-                <div className="flex justify-between text-xs font-medium"><span className="text-muted-foreground">Progress</span><span className={unlocked ? 'text-success' : 'text-foreground'}>{unlocked ? 'Complete' : `${achievement.format ? achievement.format(achievement.current) : achievement.current} / ${achievement.format ? achievement.format(achievement.req) : achievement.req}`}</span></div>
-                <ProgressBar value={progress} color={unlocked ? 'success' : 'primary'} className="h-1.5" />
+                <div className="achievement-progress-label flex justify-between text-xs font-medium"><span>Progress</span><span className={unlocked ? 'text-success' : 'text-foreground'}>{unlocked ? 'Complete' : `${achievement.format ? achievement.format(achievement.current) : achievement.current} / ${achievement.format ? achievement.format(achievement.req) : achievement.req}`}</span></div>
+                <ProgressBar value={progress} label={`${achievement.title} progress`} color={unlocked ? 'success' : 'primary'} className="h-1.5" />
               </div>
             </GlassCard>
           );

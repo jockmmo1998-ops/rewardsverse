@@ -38,7 +38,7 @@ function FooterColumn({ title, links }: { title: string; links: Array<{ label: s
 export function AppFooter() {
   return (
     <footer className="app-footer">
-      <div className="mx-auto grid w-full max-w-[1500px] gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))] lg:px-8 lg:py-12">
+      <div className="app-footer-content mx-auto grid w-full max-w-[1500px] gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))] lg:px-8 lg:py-12">
         <div className="max-w-xs">
           <Link to="/home" className="focus-ring inline-flex items-center gap-3"><BrandMark /></Link>
           <p className="mt-4 text-sm leading-6 text-muted-foreground">Earn rewards from verified surveys, apps, games and tasks.</p>
@@ -57,7 +57,7 @@ export function AppFooter() {
         </div>
       </div>
       <div className="border-t border-border/70">
-        <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-2 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="app-footer-content mx-auto flex w-full max-w-[1500px] flex-col gap-2 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} RewardsVerse. All rights reserved.</p>
           <p>Clear terms. Verified rewards. Responsible withdrawals.</p>
         </div>

@@ -42,13 +42,13 @@ export default function OnboardingPage() {
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="onboarding-page relative min-h-screen overflow-hidden bg-background">
       <div aria-hidden="true" className="pointer-events-none select-none blur-[1px] brightness-[0.52] saturate-[0.7]">
         <HomePage />
       </div>
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/65 p-3 backdrop-blur-[3px] sm:p-6" role="presentation">
-        <section role="dialog" aria-modal="true" aria-labelledby="onboarding-title" className="my-auto w-full max-w-3xl rounded-[1.75rem] border border-primary/30 bg-card/95 p-5 text-foreground shadow-2xl shadow-black/50 ring-1 ring-white/10 sm:p-8">
+      <div className="rv-modal-backdrop onboarding-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-6" role="presentation">
+        <section role="dialog" aria-modal="true" aria-labelledby="onboarding-title" className="onboarding-dialog my-auto w-full max-w-3xl rounded-[1.75rem] border border-primary/30 bg-card/95 p-5 text-foreground shadow-2xl shadow-black/50 ring-1 ring-white/10 sm:p-8">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/25"><Sparkles className="h-6 w-6" /></div>
             <p className="mt-4 text-[11px] font-bold uppercase tracking-[.18em] text-emerald-400">Welcome to RewardsVerse</p>

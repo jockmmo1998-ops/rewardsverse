@@ -10,6 +10,15 @@
   --rv-lime: #82d63d;
   --rv-lime-soft: #b8e98b;
   --rv-warm: #d4b16f;
+  --rv-bg: #212121;
+  --rv-sidebar: #2b2b2b;
+  --rv-surface: #2b2b2b;
+  --rv-surface-raised: #303030;
+  --rv-green: #82d63d;
+  --rv-green-soft: #b8e98b;
+  --rv-border: #484848;
+  --rv-text: #f5f5f5;
+  --rv-muted: #c8c8c8;
 }
 
 html,

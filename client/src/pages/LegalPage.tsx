@@ -43,7 +43,7 @@ export default function LegalPage() {
   const location = useLocation();
   const page = useMemo(() => pages[location.pathname] || pages['/faq'], [location.pathname]);
   return (
-    <div className="mx-auto w-full max-w-[1000px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className="unified-page legal-page mx-auto w-full max-w-[1000px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <SectionHeading eyebrow={page.eyebrow} title={page.title} description={page.intro} />
       <Surface className="divide-y divide-border/70 overflow-hidden">{page.sections.map((section) => <section key={section.title} className="p-5 sm:p-7"><div className="flex items-start gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><ShieldCheck className="h-4 w-4" /></span><div><h2 className="font-display text-lg font-semibold text-foreground">{section.title}</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">{section.body}</p></div></div></section>)}</Surface>
       <Surface className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"><div className="flex items-center gap-3"><FileText className="h-5 w-5 text-primary" /><p className="text-sm text-muted-foreground">Need help with an account or payout question?</p></div><a href="https://t.me/wilsonrobertul804" target="_blank" rel="noreferrer" className="focus-ring inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground">Contact Telegram support <ExternalLink className="h-3.5 w-3.5" /></a></Surface>
