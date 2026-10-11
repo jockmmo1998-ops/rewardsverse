@@ -1,7 +1,10 @@
 import { ArrowRight, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { EmptyState } from '@/components/shared/RewardUI';
 import { EmptySlot, OfferCard } from '@/components/dashboard/OfferFeedShelf';
+
+const OFFERS_PER_PAGE = 60;
 
 interface OfferCatalogResultsProps {
   allOffers: any[];
@@ -22,22 +25,42 @@ export function OfferCatalogResults({
   onSelect,
   onRetry,
 }: OfferCatalogResultsProps) {
+  const [visibleCount, setVisibleCount] = useState(OFFERS_PER_PAGE);
+
+  useEffect(() => {
+    setVisibleCount(OFFERS_PER_PAGE);
+  }, [offers]);
+
   if (offers.length > 0) {
+    const visibleOffers = offers.slice(0, visibleCount);
     return (
-      <div
-        className="rv-catalog-offer-grid rv-catalog-offer-grid-compact"
-        role="region"
-        tabIndex={0}
-        aria-label={`${offers.length} verified offers; browse the full offer grid`}
-      >
-        {offers.map((offer, index) => (
-          <OfferCard
-            key={`${offer.provider || 'offer'}-${offer.id || index}`}
-            offer={offer}
-            onSelect={onSelect}
-            compact
-          />
-        ))}
+      <div className="space-y-5">
+        <div
+          className="rv-catalog-offer-grid rv-catalog-offer-grid-compact"
+          role="region"
+          tabIndex={0}
+          aria-label={`${offers.length} verified offers; showing ${visibleOffers.length}`}
+        >
+          {visibleOffers.map((offer, index) => (
+            <OfferCard
+              key={`${offer.provider || 'offer'}-${offer.id || index}`}
+              offer={offer}
+              onSelect={onSelect}
+              compact
+            />
+          ))}
+        </div>
+        {visibleCount < offers.length && (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              className="rounded-xl border border-primary/40 bg-primary/10 px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-primary transition hover:bg-primary/20"
+              onClick={() => setVisibleCount((current) => Math.min(current + OFFERS_PER_PAGE, offers.length))}
+            >
+              Show more offers <span className="ml-1 opacity-70">({offers.length - visibleCount} remaining)</span>
+            </button>
+          </div>
+        )}
       </div>
     );
   }
