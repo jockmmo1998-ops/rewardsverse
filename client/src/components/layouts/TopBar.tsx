@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
@@ -28,6 +28,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSSE } from '@/hooks/useSSE';
 import { playBellSound, unlockBellSound } from '@/utils/bellSound';
 import { BrandMark } from '@/components/shared/RewardUI';
+import { UserAvatar } from '@/components/AvatarSystem';
 
 const primaryNavigation = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
@@ -37,11 +38,6 @@ const primaryNavigation = [
   { label: 'Referrals', to: '/referrals', icon: Users },
   { label: 'Withdraw', to: '/withdraw', icon: ArrowDownToLine },
 ];
-
-function getInitials(user: any) {
-  const value = String(user?.username || user?.name || user?.email || 'RV');
-  return value.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'RV';
-}
 
 function notificationTime(value: unknown) {
   if (!value) return 'Just now';
@@ -117,7 +113,6 @@ export function TopBar({
   });
   const markRead = trpc.notifications.markRead.useMutation({ onSuccess: refreshNotifications });
   const markAllRead = trpc.notifications.markAllRead.useMutation({ onSuccess: refreshNotifications });
-  const initials = useMemo(() => getInitials(user), [user]);
 
   useEffect(() => {
     let unlocked = false;
@@ -232,9 +227,7 @@ export function TopBar({
               aria-label="Open profile menu"
               aria-expanded={openMenu === 'profile'}
             >
-              <span className="rv-profile-avatar" aria-hidden="true">
-                <span>{initials}</span>
-              </span>
+              <UserAvatar userId={(profile as any)?.id ?? (user as any)?.id} avatarId={(profile as any)?.avatarId ?? (user as any)?.avatarId} src={(profile as any)?.avatarUrl ?? (user as any)?.avatarUrl} alt={`${displayName} avatar`} className="rv-profile-avatar" />
               <span className="rv-profile-name">{displayName}</span>
               <ChevronDown aria-hidden="true" />
             </button>
@@ -256,7 +249,7 @@ export function TopBar({
           </div>}
 
           {openMenu === 'profile' && user && <div className="rv-dropdown rv-profile-dropdown">
-            <div className="rv-profile-dropdown-heading"><p className="rv-profile-dropdown-name">{displayName}</p><p className="rv-profile-dropdown-email">{user.email || 'RewardsVerse member'}</p></div>
+            <div className="rv-profile-dropdown-heading"><div className="flex min-w-0 items-center gap-2"><UserAvatar userId={(profile as any)?.id ?? (user as any)?.id} avatarId={(profile as any)?.avatarId ?? (user as any)?.avatarId} alt="" className="h-8 w-8 shrink-0 rounded-full" /><div className="min-w-0"><p className="rv-profile-dropdown-name">{displayName}</p><p className="rv-profile-dropdown-email">{user.email || 'RewardsVerse member'}</p></div></div></div>
             <Link to="/profile" onClick={() => setOpenMenu(null)} className="dropdown-link"><UserRound aria-hidden="true" />Profile</Link>
             <Link to="/settings" onClick={() => setOpenMenu(null)} className="dropdown-link"><Settings aria-hidden="true" />Settings</Link>
             <Link to="/wallet" onClick={() => setOpenMenu(null)} className="dropdown-link"><WalletCards aria-hidden="true" />Wallet</Link>

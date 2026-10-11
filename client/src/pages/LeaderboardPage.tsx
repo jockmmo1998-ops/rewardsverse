@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { Award, Crown, Medal, Trophy } from 'lucide-react';
 import { fetchLeaderboard } from '@/api';
 import { UserAvatar } from '@/components/AvatarSystem';
+import { trpc } from '@/lib/trpc';
 import { EmptyState, LoadingRows, SectionHeading, Surface } from '@/components/shared/RewardUI';
 
 export default function LeaderboardPage() {
+  const avatarDirectory = trpc.user.getLeaderboard.useQuery(undefined, { staleTime: 60_000, retry: false, refetchOnWindowFocus: false });
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -37,7 +39,7 @@ export default function LeaderboardPage() {
               <div className="mt-8 grid items-end gap-3 sm:grid-cols-3">
                 {podium.map((member, index) => (
                   <div key={member.id} className={`unified-podium-card ${index === 0 ? 'is-first' : ''}`}>
-                    <UserAvatar userId={member.id} avatarId={member.avatarId} src={member.avatar_url} alt={`${member.username || 'Member'} avatar`} className="mx-auto h-14 w-14 rounded-full border border-primary/30 object-cover" />
+                    <UserAvatar userId={member.id} avatarId={member.avatarId ?? avatarDirectory.data?.find((entry: any) => String(entry.username || '').toLowerCase() === String(member.username || '').toLowerCase())?.avatarId} src={member.avatar_url} alt={`${member.username || 'Member'} avatar`} className="mx-auto h-14 w-14 rounded-full border border-primary/30 object-cover" />
                     <div className="mt-4 flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground"><span>#{index + 1}</span>{index === 0 ? <Trophy className="h-3.5 w-3.5 text-amber-300" /> : index === 1 ? <Medal className="h-3.5 w-3.5 text-slate-300" /> : <Award className="h-3.5 w-3.5 text-orange-300" />}</div>
                     <p className="mt-2 truncate text-sm font-semibold text-foreground">{member.username || 'Member'}</p>
                     <p className="mt-2 font-display text-xl font-semibold text-primary">${Number(member.lifetime_earnings || 0).toFixed(2)}</p>
@@ -55,7 +57,7 @@ export default function LeaderboardPage() {
                 <table className="unified-table w-full min-w-[620px] text-left text-sm">
                   <thead><tr><th>Rank</th><th>Member</th><th>Level</th><th>Offers</th><th className="text-right">Lifetime earnings</th></tr></thead>
                   <tbody>{users.map((member, index) => (
-                    <tr key={member.id}><td className="font-display font-semibold text-muted-foreground">#{index + 1}</td><td><div className="flex items-center gap-3"><UserAvatar userId={member.id} avatarId={member.avatarId} src={member.avatar_url} alt={`${member.username || 'Member'} avatar`} className="h-8 w-8 rounded-full" /><span className="font-medium text-foreground">{member.username || 'Member'}<small>Verified member</small></span></div></td><td className="text-muted-foreground">Lv. {member.level || 1}</td><td className="text-muted-foreground">{member.completed_offers || 0}</td><td className="text-right font-semibold text-primary">${Number(member.lifetime_earnings || 0).toFixed(2)}</td></tr>
+                    <tr key={member.id}><td className="font-display font-semibold text-muted-foreground">#{index + 1}</td><td><div className="flex items-center gap-3"><UserAvatar userId={member.id} avatarId={member.avatarId ?? avatarDirectory.data?.find((entry: any) => String(entry.username || '').toLowerCase() === String(member.username || '').toLowerCase())?.avatarId} src={member.avatar_url} alt={`${member.username || 'Member'} avatar`} className="h-8 w-8 rounded-full" /><span className="font-medium text-foreground">{member.username || 'Member'}<small>Verified member</small></span></div></td><td className="text-muted-foreground">Lv. {member.level || 1}</td><td className="text-muted-foreground">{member.completed_offers || 0}</td><td className="text-right font-semibold text-primary">${Number(member.lifetime_earnings || 0).toFixed(2)}</td></tr>
                   ))}</tbody>
                 </table>
               </div>

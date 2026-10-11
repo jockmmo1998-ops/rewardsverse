@@ -41,6 +41,16 @@ const SUPABASE_PUBLIC_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SU
 
 const AVATAR_MIN = 1;
 const AVATAR_MAX = 10;
+const AUTO_USERNAME_NAMES = ["Liam", "Noah", "Olivia", "Ava", "Mia", "Luna", "Grace", "Mateo", "Sofia", "Arjun", "Mira", "Zara", "Hiro", "Yuki", "Aiko", "Omar", "Amina", "Nour"];
+async function createAvailableUsername() {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const name = AUTO_USERNAME_NAMES[Math.floor(Math.random() * AUTO_USERNAME_NAMES.length)];
+    const candidate = `${name}${Math.floor(1000 + Math.random() * 9000)}`;
+    if (!(await db.getUserByUsername(candidate))) return candidate;
+  }
+  throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not create a username. Please try again." });
+}
+
 function resolveAvatarId(user: { id?: number | null; avatarId?: number | null }) {
   const stored = Number(user.avatarId);
   if (Number.isInteger(stored) && stored >= AVATAR_MIN && stored <= AVATAR_MAX) return stored;
@@ -69,10 +79,11 @@ export const appRouter = router({
           email: z.string().email().max(320),
           refCode: z.string().max(16).optional().default(""),
           termsAccepted: z.literal(true),
+          avatarId: z.number().int().min(AVATAR_MIN).max(AVATAR_MAX).optional().default(1),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const { password, email, refCode } = input;
+        const { password, email, refCode, avatarId } = input;
         const openId = `virtual_member_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
         const normalizedEmail = email.trim().toLowerCase();
 
@@ -80,6 +91,7 @@ export const appRouter = router({
         if (existingEmail) {
           throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
         }
+        const generatedUsername = await createAvailableUsername();
 
         let referredBy: string | null = null;
         if (refCode && refCode.length > 0) {
@@ -95,7 +107,7 @@ export const appRouter = router({
         const verification = createEmailVerificationToken();
         await db.upsertUser({
           openId,
-          username: null,
+          username: generatedUsername,
           email: normalizedEmail,
           emailVerificationTokenHash: verification.tokenHash,
           emailVerificationExpiresAt: verification.expiresAt,
@@ -104,8 +116,8 @@ export const appRouter = router({
           refCode: userRefCode,
           referredBy: referredBy || undefined,
           role: "user",
-          name: null,
-          avatarId: null,
+          name: generatedUsername,
+          avatarId,
           loginMethod: "virtual",
           balance: "0.00",
           xp: 0,
@@ -118,7 +130,7 @@ export const appRouter = router({
 
         // Create session token
         const sessionToken = await sdk.createSessionToken(openId, {
-          name: "Member",
+          name: generatedUsername,
           expiresInMs: 30 * 24 * 60 * 60 * 1000,
         });
         const cookieOptions = getSessionCookieOptions(ctx.req);

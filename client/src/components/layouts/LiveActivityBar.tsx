@@ -181,7 +181,7 @@ export function LiveActivityBar() {
       aria-label={`View full activity for ${maskUsername(item.username)}`}
     >
       <span className="live-activity-copy">
-        <span className="live-activity-user">{maskUsername(item.username)}</span>
+        <span className="live-activity-user-row"><UserAvatar userId={item.userId} avatarId={item.avatarId} alt="" className="live-activity-user-avatar" /><span className="live-activity-user">{maskUsername(item.username)}</span></span>
         <span className="live-activity-summary">
           {withdrawal && <em className="live-activity-type">WITHDRAWAL</em>}
           <span className={withdrawal ? 'live-activity-withdrawal-label' : 'live-activity-offer-name'}>{withdrawal ? withdrawalMethod(item) : shortOfferName(item)}</span>

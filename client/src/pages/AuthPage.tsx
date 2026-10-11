@@ -3,6 +3,9 @@ import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Check, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { AvatarPicker } from '@/components/AvatarSystem';
+import { AppLayout } from '@/components/layouts/AppLayout';
+import HomePage from './HomePage';
 
 const getFriendlyAuthError = (error: Error | null, isRegister: boolean): string => {
   const message = error?.message ?? '';
@@ -30,6 +33,7 @@ export default function AuthPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [refCode, setRefCode] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [avatarId, setAvatarId] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -75,14 +79,14 @@ export default function AuthPage() {
     setSubmitting(true);
     try {
       const result = isRegister
-        ? await register(password, email.trim().toLowerCase(), refCode.trim() || undefined, termsAccepted)
+        ? await register(password, email.trim().toLowerCase(), refCode.trim() || undefined, termsAccepted, avatarId)
         : await login(email.trim().toLowerCase(), password);
       if (result.error) {
         setError(getFriendlyAuthError(result.error, isRegister));
         return;
       }
-      setNotice(isRegister ? 'Account created. Complete your profile to continue.' : 'Login successful.');
-      navigate(isRegister ? '/onboarding' : '/dashboard', { replace: true });
+      setNotice(isRegister ? 'Account created. Your workspace is ready.' : 'Login successful.');
+      navigate('/dashboard', { replace: true });
     } finally {
       setSubmitting(false);
     }
@@ -90,6 +94,8 @@ export default function AuthPage() {
 
   return (
     <main className="rewards-auth-page rv-auth-page">
+      {isRegister && <div className="rv-auth-backdrop" aria-hidden="true"><AppLayout><HomePage /></AppLayout></div>}
+      {isRegister && <div className="rv-auth-backdrop-scrim" aria-hidden="true" />}
       <div className="rv-auth-card">
         <aside className="rv-auth-aside">
           <Link to="/home" className="rv-auth-brand" aria-label="RewardsVerse home">
@@ -116,7 +122,7 @@ export default function AuthPage() {
           <div className="rv-auth-heading">
             <p className="rv-eyebrow"><span className="section-dot" /> {isRegister ? 'CREATE YOUR ACCOUNT' : 'WELCOME BACK'}</p>
             <h2 id="rv-auth-title">{isRegister ? 'Join RewardsVerse.' : 'Good to see you.'}</h2>
-            <p>{isRegister ? 'Set up your account to continue to profile onboarding.' : 'Log in to pick up where your rewards left off.'}</p>
+            <p>{isRegister ? 'Choose your avatar. We’ll create a username and take you straight to your workspace.' : 'Log in to pick up where your rewards left off.'}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="rv-auth-form">
@@ -176,6 +182,10 @@ export default function AuthPage() {
                   <span>Referral code <i>(optional)</i></span>
                   <input id="refCode" value={refCode} onChange={(event) => setRefCode(event.target.value)} placeholder="Enter your code if you have one" />
                 </label>
+                <fieldset className="rv-auth-avatar-field">
+                  <legend>Choose your avatar <span>· change it anytime</span></legend>
+                  <AvatarPicker value={avatarId} onChange={setAvatarId} compact />
+                </fieldset>
                 <label className="rv-auth-terms">
                   <input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} />
                   <span>I agree to the <Link to="/terms" target="_blank">Terms of Service</Link> and understand the RewardsVerse policies.</span>

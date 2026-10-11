@@ -13,13 +13,33 @@ interface OfferFeedShelfProps {
   emptyCount?: number;
 }
 
-export function OfferCard({ offer, onSelect }: { offer: any; onSelect: (offer: any) => void }) {
+function formatPoints(value: unknown) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '—';
+  const match = raw.match(/^([\d,]+(?:\.\d+)?)\s*(?:pts?|points?)?$/i);
+  if (!match) return '—';
+  const parsed = Number(match[1].replaceAll(',', ''));
+  return Number.isFinite(parsed) ? `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(parsed)} pts` : '—';
+}
+
+export function OfferCard({ offer, onSelect, compact = false }: { offer: any; onSelect: (offer: any) => void; compact?: boolean }) {
   const title = String(offer.offerName || offer.title || 'Offer');
   const provider = String(offer.provider || 'Provider');
-  const rawReward = offer.rewardLabel ?? offer.rewardText ?? offer.reward ?? offer.payout ?? offer.rewardAmount;
+  const rawReward = offer.rewardLabel ?? offer.rewardText ?? offer.reward;
   const reward = rawReward && typeof rawReward === 'object'
     ? String(rawReward.label ?? rawReward.amount ?? '')
     : rawReward == null ? '' : String(rawReward);
+
+  if (compact) {
+    return (
+      <button type="button" className="rv-offer-card rv-offer-card-compact" title={title} aria-label={`${title} from ${provider}; reward ${formatPoints(reward)}`} onClick={() => onSelect(offer)}>
+        <span className="rv-offer-card-image">
+          {offer.imageUrl ? <img src={offer.imageUrl} alt={`${title} offer artwork`} loading="lazy" decoding="async" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : <span className="rv-offer-card-image-empty">{provider}</span>}
+        </span>
+        <span className="rv-offer-card-points">{formatPoints(reward)}</span>
+      </button>
+    );
+  }
 
   return (
     <button

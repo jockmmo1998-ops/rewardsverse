@@ -15,7 +15,7 @@ type AuthContextType = {
   isAdmin: boolean;
   refreshProfile: () => Promise<unknown>;
   logout: () => Promise<void>;
-  register: (password: string, email: string, refCode: string | undefined, termsAccepted: boolean) => Promise<AuthResult>;
+  register: (password: string, email: string, refCode: string | undefined, termsAccepted: boolean, avatarId?: number) => Promise<AuthResult>;
   login: (email: string, password: string) => Promise<AuthResult>;
   signUpWithUsername: (password: string, email: string, refCode: string | undefined, termsAccepted: boolean) => Promise<AuthResult>;
   signInWithUsername: (username: string, password: string) => Promise<AuthResult>;
@@ -75,7 +75,7 @@ export function useAuth(): AuthContextType {
   }, [coreAuth.refresh, profileQuery.refetch]);
 
   const register = useCallback(
-    async (password: string, email: string, refCode: string | undefined, termsAccepted: boolean): Promise<AuthResult> => {
+    async (password: string, email: string, refCode: string | undefined, termsAccepted: boolean, avatarId = 1): Promise<AuthResult> => {
       if (!termsAccepted) return { error: new Error("You must agree to the Terms of Service before creating an account.") };
       try {
         const data = await registerMutation.mutateAsync({
@@ -83,6 +83,7 @@ export function useAuth(): AuthContextType {
           email,
           refCode: refCode ?? "",
           termsAccepted: true,
+          avatarId,
         });
         try {
           sessionStorage.removeItem("rewardsverse-username");

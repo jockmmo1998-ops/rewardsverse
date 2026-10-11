@@ -39,15 +39,15 @@ export function UserAvatar({ userId, avatarId, src, alt = '', className }: { use
   return <img src={safeSource} alt={alt} className={cn('rv-avatar', `rv-avatar-tone-${id}`, 'object-cover', className)} loading="lazy" decoding="async" />;
 }
 
-export function AvatarPicker({ value, onChange }: { value?: number | null; onChange: (avatarId: number) => void }) {
+export function AvatarPicker({ value, onChange, compact = false }: { value?: number | null; onChange: (avatarId: number) => void; compact?: boolean }) {
   const selected = stableAvatarId('default', value);
-  return <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+  return <div className={cn('grid', compact ? 'grid-cols-5 gap-1.5 sm:gap-2' : 'grid-cols-2 gap-3 sm:grid-cols-5')}>
     {AVATAR_DEFINITIONS.map((avatar) => {
       const active = selected === avatar.id;
-      return <button key={avatar.id} type="button" aria-label={`Choose ${avatar.name} avatar`} aria-pressed={active} onClick={() => onChange(avatar.id)} className={cn('group relative overflow-hidden rounded-2xl border-2 bg-muted transition hover:-translate-y-0.5 hover:shadow-md', active ? 'border-primary ring-2 ring-primary/20' : 'border-border/60')}>
+      return <button key={avatar.id} type="button" aria-label={`Choose ${avatar.name} avatar`} aria-pressed={active} onClick={() => onChange(avatar.id)} className={cn('group relative overflow-hidden border-2 bg-muted transition', compact ? 'aspect-square rounded-lg' : 'rounded-2xl hover:-translate-y-0.5 hover:shadow-md', active ? 'border-primary ring-2 ring-primary/20' : 'border-border/60')}>
         <span className={cn('avatar-tile-image block aspect-square overflow-hidden', `rv-avatar-tone-${avatar.id}`)}><img src={avatarUrl(avatar.id)} alt={avatar.name} className="h-full w-full object-cover" loading="lazy" /></span>
-        <span className="block truncate px-2 py-2 text-left text-[10px] font-semibold text-foreground">{avatar.name}</span>
-        {active && <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow"><Check className="h-3 w-3" /></span>}
+        {!compact && <span className="block truncate px-2 py-2 text-left text-[10px] font-semibold text-foreground">{avatar.name}</span>}
+        {active && <span className={cn('absolute flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow', compact ? 'right-0.5 top-0.5 h-4 w-4' : 'right-1.5 top-1.5 h-5 w-5')}><Check className={compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} /></span>}
       </button>;
     })}
   </div>;

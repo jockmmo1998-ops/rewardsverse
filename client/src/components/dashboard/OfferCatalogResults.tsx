@@ -25,16 +25,17 @@ export function OfferCatalogResults({
   if (offers.length > 0) {
     return (
       <div
-        className="rv-catalog-offer-grid"
+        className="rv-catalog-offer-grid rv-catalog-offer-grid-compact"
         role="region"
         tabIndex={0}
-        aria-label={`${offers.length} verified offers in two rows; scroll horizontally to browse the full feed`}
+        aria-label={`${offers.length} verified offers; browse the full offer grid`}
       >
         {offers.map((offer, index) => (
           <OfferCard
             key={`${offer.provider || 'offer'}-${offer.id || index}`}
             offer={offer}
             onSelect={onSelect}
+            compact
           />
         ))}
       </div>

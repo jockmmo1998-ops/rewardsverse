@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserAvatar } from '@/components/AvatarSystem';
 import { EmptyState, Surface } from '@/components/shared/RewardUI';
-import { OfferFeedShelf } from '@/components/dashboard/OfferFeedShelf';
 import { OfferCatalogResults } from '@/components/dashboard/OfferCatalogResults';
 import { CommunityActivityPanel } from '@/components/dashboard/CommunityActivityPanel';
 import { PartnerDirectory } from '@/components/dashboard/PartnerDirectory';
@@ -99,7 +99,7 @@ export default function HomePage() {
       <div className="dashboard-main-column">
         <section className="welcome-panel dashboard-hero">
           <div className="dashboard-hero-copy">
-            <div className="dashboard-hero-kicker"><span className="hud-status-dot" /><span>REWARDSVERSE · WELCOME, {displayName}</span><span className="hero-public-tag">MEMBER SPACE</span></div>
+            <div className="dashboard-hero-kicker"><span className="hud-status-dot" />{user && <UserAvatar userId={profile?.id ?? user?.id} avatarId={profile?.avatarId ?? user?.avatarId} alt={`${displayName} avatar`} className="h-6 w-6 rounded-full border border-primary/40 object-cover" />}<span>REWARDSVERSE · WELCOME, {displayName}</span><span className="hero-public-tag">MEMBER SPACE</span></div>
             <h1 className="dashboard-hero-title">Your rewards space.<br /><span>Built for clarity.</span></h1>
             <p className="dashboard-hero-description">Progress, live offers, partner ratings and payout details—in one clear place.</p>
             <div className="dashboard-hero-actions"><Link to={startEarningPath} className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-105"><Zap className="h-4 w-4" /> {user ? 'Start earning' : 'Register now'} <ArrowRight className="h-4 w-4" /></Link><Link to="/history" className="dashboard-hero-secondary focus-ring"><Activity className="h-4 w-4" /> View activity</Link></div>
@@ -125,17 +125,6 @@ export default function HomePage() {
           <Surface className="dashboard-metric-card"><span className="dashboard-metric-icon"><Clock3 className="h-4 w-4" /></span><div className="dashboard-metric-copy"><p className="dashboard-kicker">Pending rewards</p><strong>{pendingRewardsLabel}</strong><small>Awaiting verification</small></div></Surface>
         </section>
 
-        <OfferFeedShelf
-          eyebrow="CURRENT FEED"
-          title="Offers in the feed."
-          description="Real provider cards will appear here when records are available."
-          offers={allOffers}
-          loading={featured.isLoading}
-          error={featured.isError}
-          visualPreview={visualPreview}
-          onSelect={setActiveOffer}
-          emptyCount={15}
-        />
       <section className="offer-marketplace featured-primary">
         <div className="rv-verified-feed-heading">
           <div>
