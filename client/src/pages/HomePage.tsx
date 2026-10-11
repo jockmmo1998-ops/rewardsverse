@@ -108,7 +108,7 @@ export default function HomePage() {
             <div className="dashboard-hero-proof"><span><CheckCircle2 className="h-3.5 w-3.5" /> Verified provider callbacks</span><span><ShieldCheck className="h-3.5 w-3.5" /> Server-validated payouts</span></div>
           </div>
           <div className="dashboard-hero-visual" aria-label="RewardsVerse community and account snapshot">
-            <img className="dashboard-hero-art" src="/rewardsverse-community-banner-matched.webp" alt="RewardsVerse chibi community gathered around a branded laptop" decoding="async" fetchPriority="high" />
+            <img className="dashboard-hero-art" src="/rewardsverse-community-cutout-green.png" alt="RewardsVerse community gathered around a branded laptop, holding green reward devices, on a transparent background" decoding="async" fetchPriority="high" />
             <div className="dashboard-hero-visual-shade" aria-hidden="true" />
             <div className="hero-balance-overlay">
               <div className="hero-balance-top"><span className="hero-balance-label">ACCOUNT SNAPSHOT</span><span className="hero-status">{user ? 'MEMBER' : 'PUBLIC VIEW'}</span></div>
