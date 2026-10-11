@@ -2361,20 +2361,22 @@ body,
   .dashboard-page.dashboard-layout-grid .dashboard-hero-visual > img.dashboard-hero-art { object-position: center !important; }
 }
 
-/* Registration-only community art fills the unused space directly under the logo. */
+/* Registration-only community art scales with the full width of the aside. */
 .rv-auth-community-art {
   display: block;
-  width: min(100%, 440px);
-  height: clamp(112px, 13vw, 164px);
-  margin: 12px 0 0;
+  width: min(calc(100% + clamp(56px, 8vw, 108px)), 720px);
+  max-width: none;
+  height: auto;
+  flex: 0 0 auto;
+  margin: 14px 0 0 clamp(-54px, -4vw, -28px);
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
 }
 @media (max-width: 700px) {
   .rv-auth-community-art {
-    width: min(100%, 320px);
-    height: clamp(104px, 32vw, 148px);
-    margin-top: 10px;
+    width: min(calc(100% + 44px), 560px);
+    height: auto;
+    margin: 12px -22px 0;
     object-position: center;
   }
 }
