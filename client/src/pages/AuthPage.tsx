@@ -94,15 +94,15 @@ export default function AuthPage() {
 
   return (
     <main className="rewards-auth-page rv-auth-page">
-      {isRegister && <div className="rv-auth-backdrop" aria-hidden="true"><AppLayout><HomePage /></AppLayout></div>}
-      {isRegister && <div className="rv-auth-backdrop-scrim" aria-hidden="true" />}
+      <div className="rv-auth-backdrop" aria-hidden="true"><AppLayout><HomePage /></AppLayout></div>
+      <div className="rv-auth-backdrop-scrim" aria-hidden="true" />
       <div className="rv-auth-card">
         <aside className="rv-auth-aside">
           <Link to="/home" className="rv-auth-brand" aria-label="RewardsVerse home">
             <img src="/rewardsverse-icon.png" alt="" />
             <span>REWARDSVERSE</span>
           </Link>
-          {isRegister && <img className="rv-auth-community-art" src="/rewardsverse-community-cutout-1280.webp" alt="RewardsVerse community holding branded reward devices" width="1280" height="720" decoding="async" />}
+          <img className="rv-auth-community-art" src="/rewardsverse-community-cutout-1280.webp" alt="RewardsVerse community holding branded reward devices" width="1280" height="720" decoding="async" />
           <p className="rv-auth-kicker"><span /> YOUR REWARDS, CLEARLY</p>
           <h1>{isRegister ? <>Create your<br /><em>rewards space.</em></> : <>Your rewards<br /><em>start here.</em></>}</h1>
           <p className="rv-auth-description">Explore configured partners, track verified activity and keep your account details in one place.</p>
