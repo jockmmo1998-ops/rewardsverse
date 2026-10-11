@@ -1002,7 +1002,7 @@ button:disabled {
   isolation: isolate;
   border: 1px solid rgba(232, 237, 245, .16);
   border-radius: 13px;
-  background: #111821 url('/rewardsverse-community-banner.webp') center 48% / cover no-repeat;
+  background: var(--rv-bg, #212121) url('/rewardsverse-community-banner-matched.webp') center 48% / cover no-repeat;
 }
 
 .dashboard-page.dashboard-layout-grid .dashboard-hero-visual > img.dashboard-hero-art {

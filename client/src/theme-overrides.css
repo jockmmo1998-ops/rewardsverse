@@ -1573,9 +1573,9 @@ body {
   grid-template-rows: minmax(0, 1fr) auto !important;
   gap: 6px !important;
   overflow: hidden !important;
-  border-color: #454b46 !important;
-  border-radius: 10px !important;
-  background: linear-gradient(150deg, #303430, #262a27) !important;
+  border-color: rgba(255,255,255,.15) !important;
+  border-radius: 15px !important;
+  background: linear-gradient(150deg, #34363a 0%, #292b2f 100%) !important;
   padding: 8px !important;
   text-align: center !important;
   transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
@@ -1873,17 +1873,15 @@ body {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(22, 163, 74, .34) !important;
-  background:
-    radial-gradient(ellipse at 0 0, rgba(22, 163, 74, .18), transparent 38%),
-    linear-gradient(140deg, #18221b 0%, #111713 52%, #171b18 100%) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 18px 48px rgba(0,0,0,.24) !important;
+  border: 1px solid rgba(255,255,255,.11) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .rv-verified-feed-heading {
   align-items: flex-end !important;
   gap: clamp(14px, 2.5vw, 30px) !important;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(152, 184, 161, .19);
+  border-bottom: 1px solid rgba(255,255,255,.11);
 }
 .rv-verified-feed-heading .rv-eyebrow {
   color: #82e5a4 !important;
@@ -1906,9 +1904,9 @@ body {
 }
 .rv-verified-feed-heading .offer-search {
   min-height: 44px !important;
-  border-color: rgba(137, 165, 144, .27) !important;
+  border-color: rgba(255,255,255,.14) !important;
   border-radius: 11px !important;
-  background: rgba(8, 14, 10, .76) !important;
+  background: rgba(43,43,43,.88) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
 }
 .rv-verified-feed-heading .offer-search:focus-within {
@@ -1955,12 +1953,12 @@ body {
   position: relative !important;
   isolation: isolate !important;
   overflow: hidden !important;
-  border: 1px solid rgba(115, 223, 148, .32) !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
   border-radius: 15px !important;
   background:
-    radial-gradient(ellipse at 14% 0%, rgba(22, 163, 74, .24), transparent 62%),
-    linear-gradient(155deg, #17221b 0%, #111612 100%) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 8px 20px rgba(0,0,0,.22) !important;
+    radial-gradient(ellipse at 50% -18%, rgba(255,255,255,.08), transparent 58%),
+    linear-gradient(155deg, #34363a 0%, #292b2f 66%, #25272b 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 9px 22px rgba(0,0,0,.24) !important;
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease !important;
 }
 .rv-offer-card-art-glow {
@@ -1978,7 +1976,7 @@ body {
   position: absolute;
   z-index: 1;
   inset: 0;
-  background: linear-gradient(180deg, rgba(8,13,10,.03) 0%, rgba(8,13,10,.13) 42%, rgba(8,13,10,.91) 100%);
+  background: linear-gradient(180deg, rgba(33,33,33,.02) 0%, rgba(33,33,33,.12) 42%, rgba(33,33,33,.88) 100%);
   content: '';
   pointer-events: none;
 }
@@ -1997,22 +1995,22 @@ body {
 .rv-catalog-offer-grid-compact .rv-offer-card-points {
   min-height: 25px !important;
   padding: 5px 10px !important;
-  border: 1px solid rgba(134, 239, 172, .35);
+  border: 1px solid rgba(74, 222, 128, .42);
   border-radius: 999px;
-  background: rgba(6, 16, 10, .92);
-  color: #c8f7d5 !important;
+  background: linear-gradient(90deg, rgba(22,163,74,.24), rgba(22,163,74,.12));
+  color: #d5f9df !important;
   font-size: 11px !important;
   font-weight: 800 !important;
-  box-shadow: 0 5px 14px rgba(0,0,0,.22);
+  box-shadow: 0 4px 12px rgba(0,0,0,.18);
 }
 .rv-catalog-offer-grid-compact .rv-offer-card-compact:hover,
 .rv-catalog-offer-grid-compact .rv-offer-card-compact:focus-visible {
   transform: translateY(-3px) !important;
-  border-color: rgba(134, 239, 172, .8) !important;
+  border-color: rgba(22,163,74,.78) !important;
   background:
-    radial-gradient(ellipse at 14% 0%, rgba(34, 197, 94, .34), transparent 62%),
-    linear-gradient(155deg, #1b2b20 0%, #121a15 100%) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.075), 0 13px 28px rgba(0,0,0,.3), 0 0 0 1px rgba(22,163,74,.14) !important;
+    radial-gradient(ellipse at 50% -18%, rgba(22,163,74,.18), transparent 60%),
+    linear-gradient(155deg, #393b3f 0%, #2d2f33 72%, #27292d 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 13px 28px rgba(0,0,0,.32), 0 0 0 1px rgba(22,163,74,.13) !important;
 }
 
 /* Featured partner tiles use each provider's real logo palette, not a generic green wash. */
@@ -2144,14 +2142,14 @@ body {
 }
 
 
-/* Blend the dashboard hero image into the same deep green-black surface as the brand. */
+/* Match the hero art background to the site's default graphite canvas. */
 .dashboard-page.dashboard-layout-grid .dashboard-hero-visual {
-  border-color: rgba(22,163,74,.25) !important;
+  border-color: rgba(255,255,255,.12) !important;
   border-radius: 16px !important;
-  background-color: #080d09 !important;
+  background-color: var(--rv-bg, #212121) !important;
 }
 .dashboard-hero-visual-shade {
-  background: linear-gradient(90deg, rgba(6,12,8,.2), transparent 56%), linear-gradient(0deg, rgba(6,12,8,.26), transparent 52%) !important;
+  background: linear-gradient(90deg, rgba(33,33,33,.12), transparent 56%), linear-gradient(0deg, rgba(33,33,33,.14), transparent 52%) !important;
 }
 
 /* Match opaque-white raster logos to each existing brand surface, regardless of theme wrapper depth. */
