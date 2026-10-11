@@ -5,6 +5,7 @@ import { httpBatchLink } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
+import { AppWrapper } from "@/components/common/PageMeta";
 import "./index.css";
 import "./performance.css";
 import "./rewardsverse-design.css";
@@ -80,7 +81,9 @@ createRoot(document.getElementById("root")!).render(
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark" switchable={false}>
-          <App />
+          <AppWrapper>
+            <App />
+          </AppWrapper>
         </ThemeProvider>
       </QueryClientProvider>
   </trpc.Provider>

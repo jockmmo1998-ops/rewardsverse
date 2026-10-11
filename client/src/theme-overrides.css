@@ -2447,3 +2447,29 @@ body,
     border-radius: 0 !important;
   }
 }
+
+
+/* Mobile optimization pass: keep the hero compact and small labels readable. */
+@media (max-width: 700px) {
+  .dashboard-page.dashboard-layout-grid .dashboard-hero-visual {
+    min-height: clamp(138px, 40vw, 184px) !important;
+  }
+  .dashboard-page .dashboard-metric-copy .dashboard-kicker {
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+  }
+  .dashboard-page .dashboard-metric-copy > small {
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+  }
+  .rv-network-provider-grid .provider-card-description {
+    font-size: 9px !important;
+    line-height: 1.35 !important;
+  }
+}
+
+.rv-network-provider-grid .provider-badge {
+  color: #f7fff9 !important;
+  background: #17221b !important;
+  border: 1px solid var(--provider-accent, #16a34a) !important;
+}

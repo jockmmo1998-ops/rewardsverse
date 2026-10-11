@@ -10,7 +10,7 @@ import { EmbeddedOfferDialog } from '@/components/dashboard/EmbeddedOfferDialog'
 import { CommunityActivityPanel } from '@/components/dashboard/CommunityActivityPanel';
 import { PartnerDirectory } from '@/components/dashboard/PartnerDirectory';
 import { WeeklyProgressPanel } from '@/components/dashboard/WeeklyProgressPanel';
-import { NEW_TAB_WALL_IDS, OFFER_WALLS, OPINION_UNIVERSE_URL, OPINION_UNIVERSE_WALL_ID } from './OfferWalls';
+import { NEW_TAB_WALL_IDS, OFFER_WALLS, OPINION_UNIVERSE_URL, OPINION_UNIVERSE_WALL_ID } from '@/lib/offerwallCatalog';
 
 const offerFilters = [
   { label: 'Featured', value: 'featured', icon: Sparkles },
@@ -86,9 +86,9 @@ export default function HomePage() {
   const startEarningPath = user ? '/offerwalls' : '/register';
   const visualPreview = import.meta.env.DEV && import.meta.env.VITE_VISUAL_PREVIEW === 'true';
   const previewDataUnavailable = visualPreview && !profile && !summary.data;
-  const completedOffersLabel = previewDataUnavailable ? '—' : (profile?.offersCompleted ?? profile?.completed_offers ?? 0);
-  const todayEarningsLabel = previewDataUnavailable ? '—' : money(summary.data?.todayEarnings);
-  const pendingRewardsLabel = previewDataUnavailable ? '—' : money(pendingRewards);
+  const completedOffersLabel = !user || previewDataUnavailable ? '—' : (profile?.offersCompleted ?? profile?.completed_offers ?? 0);
+  const todayEarningsLabel = !user || previewDataUnavailable ? '—' : money(summary.data?.todayEarnings);
+  const pendingRewardsLabel = !user || previewDataUnavailable ? '—' : money(pendingRewards);
   const weeklyDataUnavailable = previewDataUnavailable && !weeklyQuery.data;
   const weeklyTotalLabel = weeklyDataUnavailable ? '—' : money(weeklyTotal);
   const weeklyGoalLabel = weeklyDataUnavailable ? '—' : money(weeklyGoal);
@@ -99,14 +99,14 @@ export default function HomePage() {
       <div className="dashboard-main-column">
         <section className="welcome-panel dashboard-hero">
           <div className="dashboard-hero-copy">
-            <div className="dashboard-hero-kicker"><span className="hud-status-dot" />{user && <UserAvatar userId={profile?.id ?? user?.id} avatarId={profile?.avatarId ?? user?.avatarId} alt={`${displayName} avatar`} className="h-6 w-6 rounded-full border border-primary/40 object-cover" />}<span>REWARDSVERSE · WELCOME, {displayName}</span><span className="hero-public-tag">MEMBER SPACE</span></div>
+            <div className="dashboard-hero-kicker"><span className="hud-status-dot" />{user && <UserAvatar userId={profile?.id ?? user?.id} avatarId={profile?.avatarId ?? user?.avatarId} alt={`${displayName} avatar`} className="h-6 w-6 rounded-full border border-primary/40 object-cover" />}<span>{user ? `REWARDSVERSE · WELCOME, ${displayName}` : 'REWARDSVERSE · WELCOME'}</span><span className="hero-public-tag">{user ? 'MEMBER SPACE' : 'PUBLIC PREVIEW'}</span></div>
             <h1 className="dashboard-hero-title">Your rewards space.<br /><span>Built for clarity.</span></h1>
             <p className="dashboard-hero-description">Progress, live offers, partner ratings and payout details—in one clear place.</p>
             <div className="dashboard-hero-actions"><Link to={startEarningPath} className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-105"><Zap className="h-4 w-4" /> {user ? 'Start earning' : 'Register now'} <ArrowRight className="h-4 w-4" /></Link><Link to="/history" className="dashboard-hero-secondary focus-ring"><Activity className="h-4 w-4" /> View activity</Link></div>
             <div className="dashboard-hero-proof"><span><CheckCircle2 className="h-3.5 w-3.5" /> Verified provider callbacks</span><span><ShieldCheck className="h-3.5 w-3.5" /> Server-validated payouts</span></div>
           </div>
           <div className="dashboard-hero-visual" aria-label="RewardsVerse community artwork">
-            <img className="dashboard-hero-art" src="/rewardsverse-community-cutout-green.png" alt="RewardsVerse community gathered around a branded laptop, holding green reward devices, on a transparent background" decoding="async" fetchPriority="high" />
+            <img className="dashboard-hero-art" src="/rewardsverse-community-cutout-1280.webp" srcSet="/rewardsverse-community-cutout-640.webp 640w, /rewardsverse-community-cutout-1280.webp 1280w" sizes="(max-width: 700px) calc(100vw - 48px), 44vw" width="1672" height="941" alt="RewardsVerse community gathered around a branded laptop, holding green reward devices, on a transparent background" decoding="async" loading="eager" fetchPriority="high" />
             <div className="dashboard-hero-visual-shade" aria-hidden="true" />
           </div>
         </section>

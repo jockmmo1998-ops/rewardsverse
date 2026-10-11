@@ -1,8 +1,7 @@
 import type { CSSProperties } from 'react';
 import { ArrowRight, Star } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { OFFER_WALLS } from '@/pages/OfferWalls';
+import { OFFER_WALLS } from '@/lib/offerwallCatalog';
 
 interface PartnerDirectoryProps {
   statuses?: Array<{ provider: string; configured: boolean }>;
@@ -23,19 +22,16 @@ export function PartnerDirectory({ statuses, onSelect }: PartnerDirectoryProps) 
         <span className="rv-partner-count">{partners.length} offerwall partners</span>
       </header>
       <div className="rv-partner-grid rv-network-provider-grid unified-page">
-        {partners.map((wall, index) => {
+        {partners.map((wall) => {
           const status = statuses?.find((item) => item.provider === wall.id);
           const configured = status?.configured !== false;
           return (
-            <motion.button
+            <button
               key={wall.id}
               type="button"
               disabled={!configured}
               aria-label={`${wall.name}. ${wall.desc}. Rating ${wall.rating} out of 5. Earn ${wall.reward}. ${configured ? 'Available' : 'Setup required'}`}
               title={`${wall.name} · ${wall.desc} · Earn ${wall.reward}`}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * .025 }}
               onClick={(event) => onSelect(wall.id, event.currentTarget)}
               className={`group w-full min-w-0 text-left ${!configured ? 'cursor-not-allowed opacity-65' : ''}`}
             >
@@ -62,7 +58,7 @@ export function PartnerDirectory({ statuses, onSelect }: PartnerDirectoryProps) 
                 </div>
                 <p className="provider-card-description absolute bottom-1.5 left-2 right-2 z-[4] truncate text-[8px] font-medium uppercase tracking-[.08em] drop-shadow-sm">{wall.desc}</p>
               </div>
-            </motion.button>
+            </button>
           );
         })}
       </div>
