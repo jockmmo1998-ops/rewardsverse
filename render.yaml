@@ -106,8 +106,6 @@ services:
         sync: false
       - key: TIMEWALL_POINTS_PER_USD
         sync: false
-      - key: POCKETSFULL_SECURITY_HASH
-        sync: false
       - key: RADIENTWALL_PUBLIC_KEY
         value: Uv9Ix6
       - key: RADIENTWALL_SECRET_KEY

@@ -74,14 +74,11 @@ const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 const ADMAXFLOW_CURRENCY_RATE = 400;
 /** GleamAds callbacks return integer points; this integration uses 1000 = $1. */
 const GLEAMADS_CURRENCY_RATE = 1000;
-/** LootWalls site currency is configured as Points at 400 points per USD. */
-const LOOTWALLS_POINTS_PER_USD = 400;
 // RadientWall site 365 displays 400 points per $1 gross. Its callback reward
 // is already the user's displayed points, so convert those points to the
 // USD-denominated wallet without applying a second 40% reduction.
 const RADIENTWALL_POINTS_PER_USD = 400;
 const ADMAXFLOW_USER_SHARE = 0.40;
-const POCKETSFULL_USER_SHARE = 0.40;
 const GAINTWALL_USER_SHARE = 0.40;
 
 /** All parameter names that carry a transaction / conversion ID */
@@ -284,14 +281,6 @@ function verifyCpxResearchSignature(secret: string, params: Record<string, any>)
   if (!transaction || !signature) return false;
   const expected = crypto.createHash("md5").update(`${transaction}-${secret}`).digest("hex");
   return constantTimeEqual(expected, signature);
-}
-
-function verifyPocketsfullSignature(secret: string, params: Record<string, any>): boolean {
-  const transaction = pick(params, ["trans_id"]);
-  const provided = pick(params, ["hash"]).toLowerCase();
-  if (!transaction || !provided) return false;
-  const expected = crypto.createHash("md5").update(`${transaction}-${secret}`).digest("hex");
-  return constantTimeEqual(expected, provided);
 }
 
 function verifyTheoremReachSignature(secret: string, requestUrl: string): boolean {
@@ -609,12 +598,11 @@ async function handlePostback(req: Request, res: Response) {
     // ── 2. Authentication ───────────────────────────────────────────────────
     const spec = POSTBACK_PARAM_SPECS[provider];
     const expectedSecret = await db.getActivePostbackSecret(provider);
-    const supportedBackendProvider = provider === "pocketsfull";
-    if (!spec || (!(OFFER_WALL_IDS as readonly string[]).includes(provider) && !supportedBackendProvider)) {
+    if (!spec || !(OFFER_WALL_IDS as readonly string[]).includes(provider)) {
       return respond(404, {
         success: false,
         message: "Unknown offerwall provider",
-        supportedProviders: [...OFFER_WALL_IDS, "pocketsfull"],
+        supportedProviders: [...OFFER_WALL_IDS],
       }, "failed", 0, "", "", "", "unknown_provider");
     }
     if (spec.auth !== "none" && !expectedSecret) {
@@ -643,7 +631,7 @@ async function handlePostback(req: Request, res: Response) {
         || (provider === "adswedmedia" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, user: "subId", transaction: "transId", reward: "payout" }))
         || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "payout" }))
         || (provider === "cointo" && verifyProviderMd5Signature(expectedSecret, params, { ...spec, reward: "round_reward" }))
-        || (provider === "pocketsfull" && verifyPocketsfullSignature(expectedSecret, params));
+        ;
       if (!md5Valid) {
         console.error(`[Postback][${provider}] MD5 signature mismatch`);
         return respond(401, { success: false, message: "Invalid postback signature" },
@@ -851,14 +839,10 @@ async function handlePostback(req: Request, res: Response) {
       ? convertOfferwallMePointsToUsd(providerReward)
       : provider === "admaxflow"
       ? providerReward * ADMAXFLOW_USER_SHARE
-      : provider === "pocketsfull"
-      ? providerReward * POCKETSFULL_USER_SHARE
       : provider === "gaintwall"
       ? providerReward * GAINTWALL_USER_SHARE
       : provider === "radientwall"
       ? providerReward / RADIENTWALL_POINTS_PER_USD
-      : provider === "lootwalls"
-      ? providerReward / LOOTWALLS_POINTS_PER_USD
       : providerReward * USER_PAYOUT_SHARE;
 
     const timewallPlacement = provider === "timewall" ? resolveTimewallPlacement() : null;

@@ -394,7 +394,7 @@
 .provider-card-description { color: rgba(20,30,48,.78); text-shadow: 0 1px rgba(255,255,255,.14); }
 .provider-card-stars { color: #fff1a8; text-shadow: 0 1px 3px rgba(60,42,0,.3); }
 .provider-logo-fallback { text-shadow: none; }
-.provider-revtoo-logo { background: #111827; }
+.provider-revtoo-logo { background: transparent; }
 
 .dark .provider-card {
   border-color: color-mix(in srgb, var(--provider-accent, var(--provider-brand)) 38%, var(--rv-border)) !important;

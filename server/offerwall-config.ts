@@ -70,7 +70,6 @@ function appendUserId(baseUrl: string, userId: string): string | null {
 
 export const OFFER_WALL_IDS = [
   "radientwall",
-  "lootwalls",
   "gemiwall",
   "offerwallme",
   "revtoo",
@@ -87,12 +86,10 @@ export const OFFER_WALL_IDS = [
   "cpxresearch",
   "theoremreach",
   "timewall",
-  "pocketsfull",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
   radientwall: "RadientWall",
-  lootwalls: "LootWalls",
   gemiwall: "Gemiwall",
   offerwallme: "Offerwall.me",
   revtoo: "Revtoo",
@@ -109,7 +106,6 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   cpxresearch: "CPX Research",
   theoremreach: "TheoremReach",
   timewall: "TimeWall",
-  pocketsfull: "PocketFull",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -117,14 +113,6 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     const publicKey = env("RADIENTWALL_PUBLIC_KEY", "RADIENTWALL_SITE_KEY");
     if (!publicKey || !userId.trim()) return null;
     return `https://radientwall.com/offer/${encodeURIComponent(publicKey)}/${encodedUserId(userId)}`;
-  },
-  lootwalls: (userId) => {
-    const apiKey = env("LOOTWALLS_API_KEY") || "auDiZG6jgYsY4UonUOFH4soUDJ6pHiyu";
-    if (!apiKey || !userId.trim()) return null;
-    const url = new URL("https://www.lootwalls.com/wall");
-    url.searchParams.set("apiKey", apiKey);
-    url.searchParams.set("userId", userId);
-    return url.toString();
   },
   offerwallme: (userId) => {
     const publicKey = env("OFFERWALLME_PUBLIC_API_KEY");
@@ -229,20 +217,10 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     return url.toString();
   },
   timewall: (userId) => buildTimewallProfileUrl(userId),
-  pocketsfull: (userId) => {
-    const appId = env("POCKETSFULL_APP_ID") || "723";
-    const appKey = env("POCKETSFULL_APP_KEY") || "eadf1b09-02b0-4e05-a10b-b2751982e9e6";
-    const url = new URL("https://uf.pocketsfull.ai/earn");
-    url.searchParams.set("appId", appId);
-    url.searchParams.set("key", appKey);
-    url.searchParams.set("uid", userId);
-    return url.toString();
-  },
 };
 
 const secretEntries: Array<[string, string]> = [
   ["radientwall", env("RADIENTWALL_SECRET_KEY", "RADIENTWALL_SECRET")],
-  ["lootwalls", ""],
   ["offerwallme", env("OFFERWALLME_SECRET_KEY")],
   ["gemiwall", env("GEMIWALL_POSTBACK_SECRET")],
   // Revtoo's API key identifies the offerwall placement; its postback
@@ -262,7 +240,6 @@ const secretEntries: Array<[string, string]> = [
   ["cpxresearch", env("CPX_APP_SECURE_HASH")],
   ["theoremreach", env("THEOREMREACH_SECRET_KEY")],
   ["timewall", env("TIMEWALL_POSTBACK_SECRET")],
-  ["pocketsfull", env("POCKETSFULL_SECURITY_HASH")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -287,14 +264,6 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     auth: "md5",
     response: "ok",
     macros: ["subId", "transId", "reward", "payout", "status", "userIp", "offer_name", "country"],
-  },
-  lootwalls: {
-    user: "user_id",
-    reward: "payout",
-    transaction: "transaction_id",
-    auth: "none",
-    response: "ok",
-    macros: ["user_id", "payout", "status", "transaction_id", "offer_id", "offer_name", "website_id", "currency"],
   },
   offerwallme: {
     user: "subId",
@@ -429,15 +398,6 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["userid", "txid", "revenue", "currency", "hash", "ip", "type", "withdrawid", "reason", "offername", "offerdetail"],
   },
-  pocketsfull: {
-    // PocketFull app 723: hash is md5(trans_id-security_hash).
-    user: "user_id",
-    reward: "amount_usd",
-    transaction: "trans_id",
-    auth: "md5",
-    response: "json",
-    macros: ["status", "trans_id", "user_id", "amount_local", "amount_usd", "hash", "ip_click", "survey_id", "offer_id", "type", "subId1", "subId2"],
-  },
   offermintx: {
     user: "subid1",
     reward: "payout",
@@ -514,12 +474,6 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
     url.searchParams.set("transaction_id", "{transaction_id}");
     url.searchParams.set("offer_name", "{offer_name}");
     url.searchParams.set("status", "{status}");
-    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
-  }
-  if (provider === "pocketsfull") {
-    for (const field of ["status", "trans_id", "user_id", "amount_local", "amount_usd", "hash", "ip_click", "survey_id", "offer_id", "type", "subId1", "subId2"]) {
-      url.searchParams.set(field, `{${field}}`);
-    }
     return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
   }
   if (provider === "gemiwall") {

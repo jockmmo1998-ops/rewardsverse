@@ -597,7 +597,7 @@ export async function getOrCreatePostbackToken(provider: string, rotate = false)
  * never override the deployment secret used by the network.
  */
 export async function getActivePostbackSecret(provider: string): Promise<string> {
-  const signedProviders = new Set(["revtoo", "cointo", "adswedmedia", "gaintwall", "theoremreach", "timewall", "pocketsfull"]);
+  const signedProviders = new Set(["revtoo", "cointo", "adswedmedia", "gaintwall", "theoremreach", "timewall"]);
   if (signedProviders.has(provider) && POSTBACK_SECRETS[provider]) {
     return POSTBACK_SECRETS[provider];
   }
