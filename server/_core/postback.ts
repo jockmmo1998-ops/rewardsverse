@@ -87,6 +87,21 @@ function isAdlootIpAllowed(remoteIp: string): boolean {
   return normalized === ADLOOT_POSTBACK_IP;
 }
 
+function getRequestIpCandidates(req: Request): string[] {
+  const forwarded = String(req.headers["x-forwarded-for"] || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const cloudflareIp = req.headers["cf-ray"]
+    ? String(req.headers["cf-connecting-ip"] || "").trim()
+    : "";
+  return Array.from(new Set([
+    ...forwarded,
+    cloudflareIp,
+    String(req.socket.remoteAddress || "").trim(),
+  ].filter(Boolean)));
+}
+
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
   // camelCase (Klink)
@@ -500,7 +515,8 @@ function handleUnifiedPostback(req: Request, res: Response) {
 async function handlePostback(req: Request, res: Response) {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
-  const remoteIp = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown").split(",")[0].trim();
+  const requestIpCandidates = getRequestIpCandidates(req);
+  const remoteIp = requestIpCandidates[0] || "unknown";
   const provider = (req.params.provider || "").toLowerCase().trim();
   const requestUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
   const diagnostics: Record<string, unknown> = {
@@ -512,6 +528,8 @@ async function handlePostback(req: Request, res: Response) {
     balanceCredit: "FAIL",
     ledger: "FAIL",
     finalResult: "FAILED",
+    sourceIp: remoteIp,
+    sourceIpCandidates: requestIpCandidates,
     requestUrl: requestUrl.replace(/([?&](?:token|password|secret|signature|sig|hash|api_key|apikey)=)[^&]*/gi, "$1[REDACTED]"),
   };
 
@@ -623,8 +641,8 @@ async function handlePostback(req: Request, res: Response) {
       // AdMaxFlow's documented postback has no signature or token field.
       // User identity is carried in subid1 and payout is the USD amount.
     } else if (spec.auth === "ip") {
-      if (provider !== "adloot" || !isAdlootIpAllowed(remoteIp)) {
-        console.error(`[Postback][${provider}] Source IP is not allowlisted: ${remoteIp}`);
+      if (provider !== "adloot" || !requestIpCandidates.some(isAdlootIpAllowed)) {
+        console.error(`[Postback][${provider}] Source IP is not allowlisted: ${requestIpCandidates.join(", ") || remoteIp}`);
         return respond(403, { success: false, message: "Postback source IP is not allowlisted" },
           "failed", 0, "", "", "", "ip_not_allowed");
       }
