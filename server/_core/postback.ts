@@ -72,8 +72,8 @@ const REWARD_FIELDS = [
   "sale_amount", "commission",
 ];
 
-// The provider amount is the gross/original reward. Credit the configured provider share to the user.
-const USER_PAYOUT_SHARE = 0.5;
+// The provider amount is the gross/original reward. Credit 40% to the user and retain 60% for the platform.
+const USER_PAYOUT_SHARE = 0.4;
 const OFFERWALLME_POINTS_PER_USD = 1000;
 const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
@@ -873,11 +873,11 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // Provider reversal payloads may carry a negative payout/reward. Keep the
-    // amount positive, apply the 50% user share once, and let balanceDelta
+    // amount positive, apply the 40% user share once, and let balanceDelta
     // decide whether to credit or debit.
     const providerReward = Math.abs(parseFloat(rawAmount));
     // AdMaxFlow users receive 40% of the provider reward. GleamAds points are
-    // first converted to USD, then the user receives the existing 50% share.
+    // first converted to USD, then the user receives the configured 40% share.
     const reward = provider === "timewall"
       ? (() => {
           const placement = resolveTimewallPlacement();
