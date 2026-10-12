@@ -10,7 +10,7 @@ import { createHash, createHmac } from "crypto";
 
 type OfferWallUrlBuilder = (userId: string) => string | null;
 
-export type PostbackAuth = "none" | "token" | "md5" | "sha256" | "hmac_sha1";
+export type PostbackAuth = "none" | "token" | "md5" | "sha256" | "hmac_sha1" | "ip";
 export type PostbackResponse = "json" | "ok" | "dup";
 
 export type PostbackParamSpec = {
@@ -134,7 +134,10 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     return `${base.replace(/\/$/, "")}/${encodedUserId(userId)}/`;
   },
   adloot: (userId) => {
-    const placementId = env("ADLOOT_API_KEY", "ADLOOT_PLACEMENT_ID");
+    // This is a public placement/API key used by AdLoot's iframe. Keep the
+    // dashboard-created RewardsVerse placement as a fallback when Render has
+    // not yet populated the optional environment variable.
+    const placementId = env("ADLOOT_API_KEY", "ADLOOT_PLACEMENT_ID") || "e36b5df0-00c4-46d3-8b83-b5f6e8240118";
     if (!placementId || !userId.trim()) return null;
     const url = new URL("https://adloot.io/wall");
     url.searchParams.set("placementID", placementId);
@@ -292,18 +295,15 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["userId", "offerId", "offerName", "eventId", "eventName", "payout", "reward", "txid", "status", "ip", "sub1", "sub2", "hash"],
   },
-  // AdLoot documents a postback secret used during hashing, but its public
-  // documentation does not expose the canonical signature formula. Requiring
-  // an auth field keeps this provider fail-closed until an official test
-  // callback confirms the exact contract.
   adloot: {
     user: "user_id",
     reward: "reward",
     transaction: "transaction_id",
-    auth: "token",
+    // AdLoot's official Global Postback docs require source-IP validation,
+    // not a shared token or signature.
+    auth: "ip",
     response: "json",
-    authFields: ["hash", "signature", "token", "secret"],
-    macros: ["user_id", "reward", "transaction_id", "offer_id", "offer_name", "status", "hash", "signature"],
+    macros: ["user_id", "reward", "transaction_id", "offer_id", "offer_name", "status", "payout", "country", "event_time", "device", "ip", "currency"],
   },
   revtoo: {
     user: "subId",
@@ -440,8 +440,25 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
 export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride?: string): string | null => {
   const spec = POSTBACK_PARAM_SPECS[provider];
   const secret = secretOverride || POSTBACK_SECRETS[provider];
-  if (!spec || !baseUrl || (spec.auth !== "none" && !secret)) return null;
+  if (!spec || !baseUrl || (spec.auth !== "none" && spec.auth !== "ip" && !secret)) return null;
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/api/postback/${provider}`);
+  if (provider === "adloot") {
+    for (const [field, macro] of [
+      ["user_id", "{user_id}"],
+      ["reward", "{reward}"],
+      ["transaction_id", "{transaction_id}"],
+      ["offer_id", "{offer_id}"],
+      ["status", "{status}"],
+      ["payout", "{payout}"],
+      ["country", "{country}"],
+      ["offer_name", "{offer_name}"],
+      ["event_time", "{event_time}"],
+      ["device", "{device}"],
+      ["ip", "{ip}"],
+      ["currency", "{currency}"],
+    ] as const) url.searchParams.set(field, macro);
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
+  }
   if (provider === "gaintwall") {
     url.searchParams.set("userId", "{user_id}");
     url.searchParams.set("offerId", "{offer_id}");

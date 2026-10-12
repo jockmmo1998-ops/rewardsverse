@@ -80,6 +80,12 @@ const GLEAMADS_CURRENCY_RATE = 1000;
 const RADIENTWALL_POINTS_PER_USD = 400;
 const ADMAXFLOW_USER_SHARE = 0.40;
 const GAINTWALL_USER_SHARE = 0.40;
+const ADLOOT_POSTBACK_IP = "3.22.177.178";
+
+function isAdlootIpAllowed(remoteIp: string): boolean {
+  const normalized = remoteIp.replace(/^::ffff:/i, "").trim();
+  return normalized === ADLOOT_POSTBACK_IP;
+}
 
 /** All parameter names that carry a transaction / conversion ID */
 const TXID_FIELDS = [
@@ -605,7 +611,7 @@ async function handlePostback(req: Request, res: Response) {
         supportedProviders: [...OFFER_WALL_IDS],
       }, "failed", 0, "", "", "", "unknown_provider");
     }
-    if (spec.auth !== "none" && !expectedSecret) {
+    if (spec.auth !== "none" && spec.auth !== "ip" && !expectedSecret) {
       console.error(`[Postback][${provider}] Provider secret is not configured`);
       return respond(503, {
         success: false,
@@ -616,6 +622,12 @@ async function handlePostback(req: Request, res: Response) {
     if (spec.auth === "none") {
       // AdMaxFlow's documented postback has no signature or token field.
       // User identity is carried in subid1 and payout is the USD amount.
+    } else if (spec.auth === "ip") {
+      if (provider !== "adloot" || !isAdlootIpAllowed(remoteIp)) {
+        console.error(`[Postback][${provider}] Source IP is not allowlisted: ${remoteIp}`);
+        return respond(403, { success: false, message: "Postback source IP is not allowlisted" },
+          "failed", 0, "", "", "", "ip_not_allowed");
+      }
     } else if (spec.auth === "md5") {
       // CoinToMedia has used both reward (virtual coins) and payout (USD) in
       // its MD5 formula across dashboard versions. Accept either documented

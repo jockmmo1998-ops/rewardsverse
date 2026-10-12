@@ -29,6 +29,10 @@ services:
         value: ""
       - key: PUBLIC_APP_URL
         value: https://rewardsverse.online
+      # AdLoot placement/API key is public and is also kept as a code fallback
+      # for older deployments that have not synced this variable yet.
+      - key: ADLOOT_PLACEMENT_ID
+        value: e36b5df0-00c4-46d3-8b83-b5f6e8240118
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL
