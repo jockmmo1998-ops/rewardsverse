@@ -72,8 +72,8 @@ const REWARD_FIELDS = [
   "sale_amount", "commission",
 ];
 
-// The provider amount is the gross/original reward. Credit 40% to the user and retain 60% for the platform.
-const USER_PAYOUT_SHARE = 0.4;
+// The generic provider amount is the gross/original reward. Credit 50% to the user.
+const USER_PAYOUT_SHARE = 0.5;
 const OFFERWALLME_POINTS_PER_USD = 1000;
 const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
@@ -87,6 +87,8 @@ const GLEAMADS_CURRENCY_RATE = 1000;
 const RADIENTWALL_POINTS_PER_USD = 400;
 const ADMAXFLOW_USER_SHARE = 0.40;
 const GAINTWALL_USER_SHARE = 0.40;
+/** AdLoot-specific business split: user receives 40%, platform retains 60%. */
+const ADLOOT_USER_SHARE = 0.40;
 function isAdlootIpAllowed(remoteIp: string): boolean {
   return isOfficialAdlootIpAllowed(remoteIp);
 }
@@ -873,11 +875,11 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // Provider reversal payloads may carry a negative payout/reward. Keep the
-    // amount positive, apply the 40% user share once, and let balanceDelta
+    // amount positive, apply the provider-specific user share once, and let balanceDelta
     // decide whether to credit or debit.
     const providerReward = Math.abs(parseFloat(rawAmount));
-    // AdMaxFlow users receive 40% of the provider reward. GleamAds points are
-    // first converted to USD, then the user receives the configured 40% share.
+    // AdLoot, AdMaxFlow and GaintWall use provider-specific shares. GleamAds points are
+    // first converted to USD, then the generic provider share is applied.
     const reward = provider === "timewall"
       ? (() => {
           const placement = resolveTimewallPlacement();
@@ -888,6 +890,8 @@ async function handlePostback(req: Request, res: Response) {
       // USD at 1,000 Points = $1. Do not apply the generic 50% share.
       : provider === "offerwallme"
       ? convertOfferwallMePointsToUsd(providerReward)
+      : provider === "adloot"
+      ? providerReward * ADLOOT_USER_SHARE
       : provider === "admaxflow"
       ? providerReward * ADMAXFLOW_USER_SHARE
       : provider === "gaintwall"
