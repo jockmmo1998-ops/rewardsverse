@@ -6,6 +6,7 @@ import {
   varchar,
   numeric,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -180,6 +181,7 @@ export const postbacks = pgTable(
     providerIdx: index("postbacks_provider_idx").on(table.provider),
     externalIdIdx: index("postbacks_externalId_idx").on(table.externalId),
     providerExternalIdx: index("postbacks_provider_external_idx").on(table.provider, table.externalId),
+    providerExternalUnique: uniqueIndex("postbacks_provider_external_unique").on(table.provider, table.externalId),
   })
 );
 

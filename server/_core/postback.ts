@@ -16,6 +16,12 @@ import {
   resolveTimewallPlacement,
   verifyTimewallHash,
 } from "./timewall";
+import {
+  isAdlootChargebackStatus,
+  isAdlootCompletedStatus,
+  isAdlootIpAllowed as isOfficialAdlootIpAllowed,
+  parseAdlootAmount,
+} from "../adloot-postback";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UNIVERSAL PARAMETER MAPS
@@ -80,13 +86,8 @@ const GLEAMADS_CURRENCY_RATE = 1000;
 const RADIENTWALL_POINTS_PER_USD = 400;
 const ADMAXFLOW_USER_SHARE = 0.40;
 const GAINTWALL_USER_SHARE = 0.40;
-// AdLoot has used more than one egress IP. Keep the legacy address while
-// allowing the currently observed production callback address.
-const ADLOOT_POSTBACK_IPS = new Set(["3.22.177.178", "162.0.225.34"]);
-
 function isAdlootIpAllowed(remoteIp: string): boolean {
-  const normalized = remoteIp.replace(/^::ffff:/i, "").trim();
-  return ADLOOT_POSTBACK_IPS.has(normalized);
+  return isOfficialAdlootIpAllowed(remoteIp);
 }
 
 function getRequestIpCandidates(req: Request): string[] {
@@ -102,6 +103,10 @@ function getRequestIpCandidates(req: Request): string[] {
     cloudflareIp,
     String(req.socket.remoteAddress || "").trim(),
   ].filter(Boolean)));
+}
+
+function getPeerIp(req: Request): string {
+  return String(req.socket.remoteAddress || "").trim();
 }
 
 /** All parameter names that carry a transaction / conversion ID */
@@ -138,6 +143,7 @@ const OFFER_NAME_FIELDS = [
 const COMPLETED_STATUSES = new Set([
   "approved", "approve",
   "complete", "completed",
+  "credited",
   "success", "succeeded",
   "confirmed", "confirm",
   "conversion",            // KlinkLabs eventType value used as status
@@ -518,6 +524,7 @@ async function handlePostback(req: Request, res: Response) {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
   const requestIpCandidates = getRequestIpCandidates(req);
+  const peerIp = getPeerIp(req);
   const remoteIp = requestIpCandidates[0] || "unknown";
   const provider = (req.params.provider || "").toLowerCase().trim();
   const requestUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
@@ -643,7 +650,9 @@ async function handlePostback(req: Request, res: Response) {
       // AdMaxFlow's documented postback has no signature or token field.
       // User identity is carried in subid1 and payout is the USD amount.
     } else if (spec.auth === "ip") {
-      if (provider !== "adloot" || !requestIpCandidates.some(isAdlootIpAllowed)) {
+      // AdLoot authentication uses only the direct peer. Forwarded headers
+      // remain diagnostic data until the trusted proxy chain is verified.
+      if (provider !== "adloot" || !isAdlootIpAllowed(peerIp)) {
         console.error(`[Postback][${provider}] Source IP is not allowlisted: ${requestIpCandidates.join(", ") || remoteIp}`);
         return respond(403, { success: false, message: "Postback source IP is not allowlisted" },
           "failed", 0, "", "", "", "ip_not_allowed");
@@ -724,7 +733,8 @@ async function handlePostback(req: Request, res: Response) {
     // GleamAds documents status=0 as a chargeback and status=1 as a
     // conversion. Keep this provider-specific so other networks' status
     // semantics and duplicate protection remain unchanged.
-    const isChargeback = (provider === "gleamads" && statusNorm === "0")
+    const isChargeback = (provider === "adloot" && isAdlootChargebackStatus(statusNorm))
+      || (provider === "gleamads" && statusNorm === "0")
       || (provider === "timewall" && isTimewallChargeback(statusNorm))
       || CHARGEBACK_STATUSES.has(statusNorm)
       || theoremReversal;
@@ -735,11 +745,15 @@ async function handlePostback(req: Request, res: Response) {
     const timewallStatusInvalid = provider === "timewall"
       && !isTimewallCredit(statusNorm)
       && !isChargeback;
-    const genericStatusInvalid = provider !== "timewall"
+    const genericStatusInvalid = provider !== "timewall" && provider !== "adloot"
       && statusNorm !== ""
       && !COMPLETED_STATUSES.has(statusNorm)
       && !isChargeback;
-    if (timewallStatusInvalid || genericStatusInvalid) {
+    const adlootStatusInvalid = provider === "adloot"
+      && statusNorm !== ""
+      && !isAdlootCompletedStatus(statusNorm)
+      && !isChargeback;
+    if (timewallStatusInvalid || genericStatusInvalid || adlootStatusInvalid) {
       console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed or chargeback value — skipping`);
       return respond(200, {
         success: true,
@@ -778,6 +792,13 @@ async function handlePostback(req: Request, res: Response) {
       ? pickSignedNumeric(params, ["amount_usd"])
       : provider === "theoremreach"
       ? pickSignedNumeric(params, ["currency", "reward"])
+      : provider === "adloot"
+      // AdLoot documents payout as the offer payout in USD. The reward field
+      // may be virtual points, so only use it as a compatibility fallback.
+      ? (() => {
+          const amount = parseAdlootAmount(params);
+          return amount === null ? "" : String(amount);
+        })()
       : provider === "revtoo"
       ? pickSignedNumeric(params, ["payout", "reward"])
       : provider === "gaintwall"
@@ -1106,96 +1127,49 @@ async function handlePostback(req: Request, res: Response) {
       }
     }
 
-    // ── 12. Credit user (wrapped — critical path) ─────────────────────────
+    // ── 12. Claim and credit atomically ────────────────────────────────────
     const balanceDelta = isChargeback ? -reward : reward;
+    const creditLabel = offerName ? `[${provider}] ${offerName}` : `[${provider}] Offer`;
     console.log(`[Postback][${provider}] ${isChargeback ? "Reversing" : "Crediting"} $${reward.toFixed(2)} ${isChargeback ? "from" : "to"} ${user.username} (id=${user.id})`);
-
     try {
-      await db.addBalance(user.id, balanceDelta);
+      const result = await db.applyPostbackAtomically({
+        provider,
+        externalId: eventKey,
+        userId: user.id,
+        username: user.username || "User",
+        amount: reward,
+        offerName,
+        status: isChargeback ? "failed" : "completed",
+        description: isChargeback
+          ? `Reward reversed $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`
+          : `Earned $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
+        notificationTitle: isChargeback ? `Reward Reversed: $${reward.toFixed(2)}` : `Reward Received: $${reward.toFixed(2)}`,
+        notificationMessage: isChargeback
+          ? `A ${provider} reward${offerName ? ` — ${offerName}` : ""} was reversed. Your balance was adjusted.`
+          : `You earned $${reward.toFixed(2)} from ${provider}${offerName ? ` — ${offerName}` : ""}. Balance updated.`,
+        walletType: isChargeback ? "debit" : "credit",
+      });
+      if (result.duplicate) {
+        diagnostics.duplicateCheck = "FAIL";
+        return respond(200, { success: true, message: "Duplicate transaction — already processed", duplicate: true }, "duplicate", user.id, rawAmount, txid, offerName, undefined, eventKey);
+      }
       diagnostics.balanceCredit = "PASS";
-      console.log(`[Postback][${provider}] Balance updated OK`);
+      diagnostics.ledger = "PASS";
     } catch (err: any) {
-      console.error(`[Postback][${provider}] CRITICAL: addBalance FAILED:`, err?.message);
-      console.error(`[Postback] DATABASE_URL present:`, !!process.env.DATABASE_URL);
-      await respond(500, {
+      console.error(`[Postback][${provider}] CRITICAL: atomic credit failed:`, err?.message);
+      return respond(500, {
         success: false,
         message: isChargeback ? "Failed to reverse reward — database error" : "Failed to credit user — database error",
         error: err?.message,
-        hint: "Check DATABASE_URL env var and run migrations (0002_add_wallet_offer_notifications.sql)",
-      }, "failed", user.id, rawAmount, txid, offerName, err?.message);
-      return res;
+        hint: "Check DATABASE_URL and the postback migration before retrying",
+      }, "failed", user.id, rawAmount, txid, offerName, err?.message, eventKey);
     }
 
-    // ── 13. Non-critical side-effects (fire and log, never crash) ─────────
-    const creditLabel = offerName ? `[${provider}] ${offerName}` : `[${provider}] Offer`;
-
-    if (isChargeback) {
-      const ledgerResults = await Promise.allSettled([
-        db.addWalletTransaction({
-          userId: user.id,
-          type: "debit",
-          amount: reward.toFixed(2),
-          description: `Reward reversed $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
-          source: provider,
-        }),
-        db.addOfferHistory({
-          userId: user.id,
-          provider,
-          offerName: offerName || undefined,
-          amount: reward.toFixed(2),
-          externalId: eventKey,
-          status: "failed",
-        }),
-        db.addNotification({
-          userId: user.id,
-          title: `Reward Reversed: $${reward.toFixed(2)}`,
-          message: `A ${provider} reward${offerName ? ` — ${offerName}` : ""} was reversed. Your balance was adjusted.`,
-          type: "reward",
-          isRead: 0,
-        }),
-      ]);
-      diagnostics.ledger = ledgerResults.every(result => result.status === "fulfilled") ? "PASS" : "FAIL";
-    } else {
-      const ledgerResults = await Promise.allSettled([
-        db.addXP(user.id, 15),
-        db.incrementOffers(user.id),
-        db.addEarning({ userId: user.id, amount: reward.toFixed(2), type: "offer", source: creditLabel }),
-        db.addActivity({
-          userId: user.id,
-          username: user.username || "User",
-          type: "offer_complete",
-          description: `earned $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
-          amount: reward.toFixed(2),
-        }),
-        db.addWalletTransaction({
-          userId: user.id,
-          type: "credit",
-          amount: reward.toFixed(2),
-          description: `Earned $${reward.toFixed(2)} on ${provider}${offerName ? ` — ${offerName}` : ""}`,
-          source: provider,
-        }),
-        db.addOfferHistory({
-          userId: user.id,
-          provider,
-          offerName: offerName || undefined,
-          amount: reward.toFixed(2),
-          externalId: eventKey,
-          status: "completed",
-        }),
-        db.addNotification({
-          userId: user.id,
-          title: `Reward Received: $${reward.toFixed(2)}`,
-          message: `You earned $${reward.toFixed(2)} from ${provider}${offerName ? ` — ${offerName}` : ""}. Balance updated.`,
-          type: "reward",
-          isRead: 0,
-        }),
-        // Update leaderboard after a short re-fetch to get updated totalEarned
-        db.getUserById(user.id).then((u) => {
-          if (u?.username) db.updateLeaderboard(u.id, u.username, parseFloat(u.totalEarned || "0")).catch(() => {});
-        }),
-      ]);
-      diagnostics.ledger = ledgerResults.every(result => result.status === "fulfilled") ? "PASS" : "FAIL";
-    }
+    // Non-critical cache update occurs after the atomic ledger transaction.
+    db.addXP(user.id, 15).catch(() => {});
+    db.getUserById(user.id).then((u) => {
+      if (u?.username) db.updateLeaderboard(u.id, u.username, parseFloat(u.totalEarned || "0")).catch(() => {});
+    }).catch(() => {});
 
     // ── 14. SSE real-time push ────────────────────────────────────────────
     try {

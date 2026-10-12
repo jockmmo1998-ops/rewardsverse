@@ -281,6 +281,95 @@ export async function addBalance(userId: number, amount: number) {
     .where(eq(users.id, userId));
 }
 
+export type AtomicPostbackCredit = {
+  provider: string;
+  externalId: string;
+  userId: number;
+  username: string;
+  amount: number;
+  offerName?: string;
+  status: "completed" | "failed";
+  description: string;
+  notificationTitle: string;
+  notificationMessage: string;
+  walletType: "credit" | "debit";
+};
+
+/**
+ * Claim and apply a postback in one database transaction.
+ *
+ * The advisory lock closes the check-then-insert race on legacy databases that
+ * do not yet have the planned unique constraint. The migration should still
+ * add a unique (provider, externalId) constraint before production rollout.
+ */
+export async function applyPostbackAtomically(data: AtomicPostbackCredit): Promise<{ duplicate: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error("[DB] Database not available — cannot apply postback");
+
+  return db.transaction(async (tx) => {
+    const lockKey = `${data.provider}:${data.externalId}`;
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+    const existing = await tx
+      .select({ id: postbacks.id })
+      .from(postbacks)
+      .where(and(eq(postbacks.provider, data.provider), eq(postbacks.externalId, data.externalId)))
+      .limit(1);
+    if (existing.length > 0) return { duplicate: true };
+
+    const signedAmount = data.walletType === "debit" ? -Math.abs(data.amount) : Math.abs(data.amount);
+    await tx.update(users).set({
+      balance: sql`balance + ${signedAmount}`,
+      totalEarned: sql`"totalEarned" + ${signedAmount}`,
+      offersCompleted: data.walletType === "credit" ? sql`"offersCompleted" + 1` : sql`"offersCompleted"`,
+    }).where(eq(users.id, data.userId));
+    await tx.insert(postbacks).values({
+      provider: data.provider,
+      externalId: data.externalId,
+      userId: data.userId,
+      amount: Math.abs(data.amount).toFixed(2),
+      offerName: data.offerName || null,
+      status: data.status,
+    });
+    await tx.insert(earnings).values({
+      userId: data.userId,
+      amount: signedAmount.toFixed(2),
+      type: data.walletType === "credit" ? "offer" : "reversal",
+      source: data.description,
+    });
+    await tx.insert(walletTransactions).values({
+      userId: data.userId,
+      type: data.walletType,
+      amount: Math.abs(data.amount).toFixed(2),
+      description: data.description,
+      source: data.provider,
+    });
+    await tx.insert(offerHistory).values({
+      userId: data.userId,
+      provider: data.provider,
+      offerName: data.offerName || null,
+      amount: Math.abs(data.amount).toFixed(2),
+      externalId: data.externalId,
+      status: data.status,
+    });
+    await tx.insert(activities).values({
+      userId: data.userId,
+      username: data.username,
+      type: data.walletType === "credit" ? "offer_complete" : "offer_reversal",
+      description: data.description,
+      amount: signedAmount.toFixed(2),
+    });
+    await tx.insert(notifications).values({
+      userId: data.userId,
+      title: data.notificationTitle,
+      message: data.notificationMessage,
+      type: "reward",
+      isRead: 0,
+    });
+    return { duplicate: false };
+  });
+}
+
 export async function refundBalance(userId: number, amount: number) {
   const db = await getDb();
   if (!db) throw new Error("[DB] Database not available — cannot refund withdrawal balance");
