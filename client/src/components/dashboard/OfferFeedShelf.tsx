@@ -13,13 +13,16 @@ interface OfferFeedShelfProps {
   emptyCount?: number;
 }
 
-function formatPoints(value: unknown) {
+function formatReward(value: unknown, currency = 'USD') {
   const raw = String(value ?? '').trim();
   if (!raw) return '—';
   const match = raw.match(/^([\d,]+(?:\.\d+)?)\s*(?:pts?|points?)?$/i);
-  if (!match) return '—';
+  if (!match) return raw || '—';
   const parsed = Number(match[1].replaceAll(',', ''));
-  return Number.isFinite(parsed) ? `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(parsed)} pts` : '—';
+  if (!Number.isFinite(parsed)) return '—';
+  return currency.toUpperCase() === 'USD'
+    ? `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parsed)}`
+    : `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(parsed)} ${currency}`;
 }
 
 export function OfferCard({ offer, onSelect, compact = false }: { offer: any; onSelect: (offer: any, trigger?: HTMLButtonElement) => void; compact?: boolean }) {
@@ -32,7 +35,7 @@ export function OfferCard({ offer, onSelect, compact = false }: { offer: any; on
 
   if (compact) {
     return (
-      <button type="button" className="rv-offer-card rv-offer-card-compact" title={title} aria-label={`${title} from ${provider}; reward ${formatPoints(reward)}`} onClick={(event) => onSelect(offer, event.currentTarget)}>
+      <button type="button" className="rv-offer-card rv-offer-card-compact" title={title} aria-label={`${title} from ${provider}; reward ${formatReward(reward, offer.currency || 'USD')}`} onClick={(event) => onSelect(offer, event.currentTarget)}>
         {offer.imageUrl && (
           <span className="rv-offer-card-art-glow" aria-hidden="true">
             <img src={offer.imageUrl} alt="" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
@@ -41,7 +44,7 @@ export function OfferCard({ offer, onSelect, compact = false }: { offer: any; on
         <span className="rv-offer-card-image">
           {offer.imageUrl ? <img src={offer.imageUrl} alt={`${title} offer artwork`} loading="lazy" decoding="async" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : <span className="rv-offer-card-image-empty">{provider}</span>}
         </span>
-        <span className="rv-offer-card-points">{formatPoints(reward)}</span>
+        <span className="rv-offer-card-points">{formatReward(reward, offer.currency || 'USD')}</span>
       </button>
     );
   }

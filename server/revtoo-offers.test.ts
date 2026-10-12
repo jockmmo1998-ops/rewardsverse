@@ -74,7 +74,7 @@ describe("Revtoo featured-offer loading", () => {
     expect(second[0]?.clickUrl).toBe("https://revtoo.example/offer-1");
   });
 
-  it("requests up to 48 real offers by default", async () => {
+  it("requests up to 100 real offers by default", async () => {
     let requestedUrl = "";
     const fetchMock = vi.fn(async (input: URL) => {
       requestedUrl = String(input);
@@ -85,7 +85,7 @@ describe("Revtoo featured-offer loading", () => {
     const { FEATURED_OFFERS_LIMIT, getRevtooFeaturedOffers } = await import("./revtoo-offers");
     await getRevtooFeaturedOffers("member-3");
 
-    expect(FEATURED_OFFERS_LIMIT).toBe(48);
-    expect(new URL(requestedUrl).searchParams.get("limit")).toBe("48");
+    expect(FEATURED_OFFERS_LIMIT).toBe(100);
+    expect(new URL(requestedUrl).searchParams.get("limit")).toBe("100");
   });
 });

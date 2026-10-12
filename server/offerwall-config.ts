@@ -71,6 +71,7 @@ function appendUserId(baseUrl: string, userId: string): string | null {
 export const OFFER_WALL_IDS = [
   "radientwall",
   "gemiwall",
+  "adloot",
   "offerwallme",
   "revtoo",
   "gleamads",
@@ -91,6 +92,7 @@ export const OFFER_WALL_IDS = [
 export const OFFER_WALL_LABELS: Record<string, string> = {
   radientwall: "RadientWall",
   gemiwall: "Gemiwall",
+  adloot: "AdLoot",
   offerwallme: "Offerwall.me",
   revtoo: "Revtoo",
   gleamads: "GleamAds",
@@ -130,6 +132,14 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     const legacyPlacement = env("GEMIWALL_PLACEMENT_ID");
     const base = env("GEMIWALL_OFFERWALL_URL") || (legacyPlacement ? `https://gemiwall.com/${encodeURIComponent(legacyPlacement)}` : "https://gemiwall.com/6987046ad95123da06330801");
     return `${base.replace(/\/$/, "")}/${encodedUserId(userId)}/`;
+  },
+  adloot: (userId) => {
+    const placementId = env("ADLOOT_API_KEY", "ADLOOT_PLACEMENT_ID");
+    if (!placementId || !userId.trim()) return null;
+    const url = new URL("https://adloot.io/wall");
+    url.searchParams.set("placementID", placementId);
+    url.searchParams.set("sid", userId);
+    return url.toString();
   },
   // Revtoo calls this value an API key in its current web integration docs.
   // REVTOO_PLACEMENT_ID is kept for backwards compatibility with Render.
@@ -223,6 +233,7 @@ const secretEntries: Array<[string, string]> = [
   ["radientwall", env("RADIENTWALL_SECRET_KEY", "RADIENTWALL_SECRET")],
   ["offerwallme", env("OFFERWALLME_SECRET_KEY")],
   ["gemiwall", env("GEMIWALL_POSTBACK_SECRET")],
+  ["adloot", env("ADLOOT_POSTBACK_SECRET")],
   // Revtoo's API key identifies the offerwall placement; its postback
   // signature uses the separate Secret Key from the placement settings.
   ["revtoo", env("REVTOO_POSTBACK_SECRET", "REVTOO_SECRET_KEY", "REVTOO_SECRET")],
@@ -281,6 +292,19 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["userId", "offerId", "offerName", "eventId", "eventName", "payout", "reward", "txid", "status", "ip", "sub1", "sub2", "hash"],
   },
+  // AdLoot documents a postback secret used during hashing, but its public
+  // documentation does not expose the canonical signature formula. Requiring
+  // an auth field keeps this provider fail-closed until an official test
+  // callback confirms the exact contract.
+  adloot: {
+    user: "user_id",
+    reward: "reward",
+    transaction: "transaction_id",
+    auth: "token",
+    response: "json",
+    authFields: ["hash", "signature", "token", "secret"],
+    macros: ["user_id", "reward", "transaction_id", "offer_id", "offer_name", "status", "hash", "signature"],
+  },
   revtoo: {
     user: "subId",
     reward: "reward",
@@ -295,19 +319,20 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     user: "subId",
     reward: "reward",
     transaction: "transId",
-    // GleamAds authenticates callbacks by source IP, not a query token.
-    auth: "none",
+    // Fail closed until a provider credential or trusted signed callback is configured.
+    auth: "token",
     response: "json",
+    authFields: ["token", "password", "secret", "apikey", "api_key", "key"],
     macros: ["subId", "transId", "reward", "payout", "offer_name", "userIp", "country", "status"],
   },
   moustache: {
     user: "user_id",
     reward: "payout",
     transaction: "transaction_id",
-    // MoustacheLeads' placement postback builder sends signed-free callbacks;
-    // its API key is only used to authorize the iframe integration.
-    auth: "none",
+    // Do not credit unsigned callbacks; configure a provider token before enabling.
+    auth: "token",
     response: "json",
+    authFields: ["token", "password", "secret", "apikey", "api_key", "key"],
     macros: ["user_id", "payout", "transaction_id", "offer_name", "status"],
   },
   taskwall: {
@@ -351,8 +376,9 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     user: "subid1",
     reward: "payout",
     transaction: null,
-    auth: "none",
+    auth: "token",
     response: "json",
+    authFields: ["token", "password", "secret", "apikey", "api_key", "key"],
     macros: ["subid1", "payout", "currency_amount", "currency_name", "offer_name", "ip_address", "status", "subid2", "placement_id"],
   },
   gaintwall: {
@@ -370,8 +396,9 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     user: "subid1",
     reward: "payout",
     transaction: null,
-    auth: "none",
+    auth: "token",
     response: "json",
+    authFields: ["token", "password", "secret", "apikey", "api_key", "key"],
     macros: ["subid1", "payout", "currency_amount", "currency_name", "offer_name", "ip_address", "status", "subid2", "event_id", "event_name"],
   },
   cpxresearch: {

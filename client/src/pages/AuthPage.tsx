@@ -46,6 +46,12 @@ export default function AuthPage() {
     }
   }, [loading, navigate, user]);
 
+  useEffect(() => {
+    if (!isRegister) return;
+    const referral = new URLSearchParams(location.search).get('ref')?.trim() || '';
+    if (referral) setRefCode(referral.slice(0, 64));
+  }, [isRegister, location.search]);
+
   const switchMode = (registerMode: boolean) => {
     setError('');
     setNotice('');

@@ -29,6 +29,7 @@ import {
 import { ENV } from "./_core/env";
 import { FEATURED_OFFERS_LIMIT, getRevtooFeaturedOffers } from "./revtoo-offers";
 import { getGemiWallFeaturedOffers } from "./gemiwall-offers";
+import { getAdLootFeaturedOffers } from "./adloot-offers";
 import { POSTBACK_SECRETS } from "./offerwall-config";
 
 // Lazy-initialized DB instance — never imported at module load time so the
@@ -824,17 +825,19 @@ export async function resolvePendingOffer(id: number) {
 
 
 export async function getFeaturedOffers(userId: string, limit = FEATURED_OFFERS_LIMIT) {
-  const [revtooResult, gemiWallResult] = await Promise.allSettled([
+  const [revtooResult, gemiWallResult, adLootResult] = await Promise.allSettled([
     getRevtooFeaturedOffers(userId, limit),
     getGemiWallFeaturedOffers(userId, limit),
+    getAdLootFeaturedOffers(userId, limit),
   ]);
   const revtooOffers = revtooResult.status === "fulfilled" ? revtooResult.value : [];
   const gemiWallOffers = gemiWallResult.status === "fulfilled" ? gemiWallResult.value : [];
+  const adLootOffers = adLootResult.status === "fulfilled" ? adLootResult.value : [];
   if (revtooResult.status === "rejected") {
     console.warn(`[FeaturedOffers] provider=Revtoo unavailable: ${revtooResult.reason instanceof Error ? revtooResult.reason.message : String(revtooResult.reason)}`);
   }
   const seen = new Set<string>();
-  return [...revtooOffers, ...gemiWallOffers]
+  return [...revtooOffers, ...gemiWallOffers, ...adLootOffers]
     .filter((offer) => {
       const key = `${offer.provider}:${offer.id}`;
       if (seen.has(key)) return false;
