@@ -21,6 +21,7 @@ import {
   isAdlootCompletedStatus,
   isAdlootIpAllowed as isOfficialAdlootIpAllowed,
   parseAdlootAmount,
+  trustedCloudflareClientIp,
 } from "../adloot-postback";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -91,22 +92,19 @@ function isAdlootIpAllowed(remoteIp: string): boolean {
 }
 
 function getRequestIpCandidates(req: Request): string[] {
-  const forwarded = String(req.headers["x-forwarded-for"] || "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
   const cloudflareIp = req.headers["cf-ray"]
-    ? String(req.headers["cf-connecting-ip"] || "").trim()
+    ? trustedCloudflareClientIp({
+        "cf-ray": String(req.headers["cf-ray"] || ""),
+        "cdn-loop": String(req.headers["cdn-loop"] || ""),
+        "cf-connecting-ip": String(req.headers["cf-connecting-ip"] || ""),
+        "true-client-ip": String(req.headers["true-client-ip"] || ""),
+        "x-forwarded-for": String(req.headers["x-forwarded-for"] || ""),
+      }) || ""
     : "";
   return Array.from(new Set([
-    ...forwarded,
     cloudflareIp,
     String(req.socket.remoteAddress || "").trim(),
   ].filter(Boolean)));
-}
-
-function getPeerIp(req: Request): string {
-  return String(req.socket.remoteAddress || "").trim();
 }
 
 /** All parameter names that carry a transaction / conversion ID */
@@ -524,7 +522,6 @@ async function handlePostback(req: Request, res: Response) {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
   const requestIpCandidates = getRequestIpCandidates(req);
-  const peerIp = getPeerIp(req);
   const remoteIp = requestIpCandidates[0] || "unknown";
   const provider = (req.params.provider || "").toLowerCase().trim();
   const requestUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
@@ -650,9 +647,10 @@ async function handlePostback(req: Request, res: Response) {
       // AdMaxFlow's documented postback has no signature or token field.
       // User identity is carried in subid1 and payout is the USD amount.
     } else if (spec.auth === "ip") {
-      // AdLoot authentication uses only the direct peer. Forwarded headers
-      // remain diagnostic data until the trusted proxy chain is verified.
-      if (provider !== "adloot" || !isAdlootIpAllowed(peerIp)) {
+      // AdLoot may use the direct peer or a Cloudflare client IP only after
+      // CF-Ray, CDN-Loop, CF-Connecting-IP, True-Client-IP and the first XFF
+      // hop all agree. The query-string `ip` field is never considered.
+      if (provider !== "adloot" || !requestIpCandidates.some(isAdlootIpAllowed)) {
         console.error(`[Postback][${provider}] Source IP is not allowlisted: ${requestIpCandidates.join(", ") || remoteIp}`);
         return respond(403, { success: false, message: "Postback source IP is not allowlisted" },
           "failed", 0, "", "", "", "ip_not_allowed");
