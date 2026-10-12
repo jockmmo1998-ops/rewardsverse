@@ -550,7 +550,7 @@ async function handlePostback(req: Request, res: Response) {
     if (errorMsg) diagnostics.error = errorMsg;
     const diagnosticResult = JSON.stringify({ diagnostics, provider, offerId: pick(params, ["offerId", "offer_id", "company_id", "campaign_id", "app_id"]), rawParameterKeys: Object.keys(params), upstreamResult: payload });
     // Log to detailed postback_logs table (non-critical — never crash on failure)
-    db.logPostbackDetail({
+    await db.logPostbackDetail({
       provider,
       ip: remoteIp,
       method: req.method,
@@ -565,7 +565,7 @@ async function handlePostback(req: Request, res: Response) {
       result: diagnosticResult,
       errorMessage: errorMsg || String(diagnostics.error || ""),
       processingMs: ms,
-    }).catch((e) => console.warn("[Postback] logPostbackDetail failed:", e?.message));
+    });
 
     // Keep legacy postbacks table in sync
     if (resolvedUserId && logStatus !== "duplicate") {

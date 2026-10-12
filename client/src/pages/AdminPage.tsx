@@ -52,6 +52,11 @@ export default function AdminPage() {
   const ensureTestUser = trpc.admin.ensurePostbackTestUser.useMutation({ onSuccess: r => toast.success(`Sandbox user ready: ${r.username} (#${r.id}). No production balance is used.`), onError: e => toast.error(e.message) });
 
   useEffect(() => { if (!loading && !user) navigate("/login", { replace: true }); else if (!loading && user && !isAdmin) { toast.error("Admin access required."); navigate("/dashboard", { replace: true }); } }, [loading, user, isAdmin, navigate]);
+  useEffect(() => {
+    if (selectedPostbackLog !== null && postbackLogDetailQuery.error) {
+      toast.error(`Could not load postback log #${selectedPostbackLog}: ${postbackLogDetailQuery.error.message}`);
+    }
+  }, [selectedPostbackLog, postbackLogDetailQuery.error]);
   const users = (usersQuery.data ?? []) as any[];
   const filteredUsers = useMemo(() => { const q = search.trim().toLowerCase(); return q ? users.filter(u => `${u.id} ${u.username || ""} ${u.name || ""} ${u.email || ""}`.toLowerCase().includes(q)) : users; }, [users, search]);
   if (loading || !user || !isAdmin) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
