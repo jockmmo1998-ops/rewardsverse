@@ -80,11 +80,13 @@ const GLEAMADS_CURRENCY_RATE = 1000;
 const RADIENTWALL_POINTS_PER_USD = 400;
 const ADMAXFLOW_USER_SHARE = 0.40;
 const GAINTWALL_USER_SHARE = 0.40;
-const ADLOOT_POSTBACK_IP = "3.22.177.178";
+// AdLoot has used more than one egress IP. Keep the legacy address while
+// allowing the currently observed production callback address.
+const ADLOOT_POSTBACK_IPS = new Set(["3.22.177.178", "162.0.225.34"]);
 
 function isAdlootIpAllowed(remoteIp: string): boolean {
   const normalized = remoteIp.replace(/^::ffff:/i, "").trim();
-  return normalized === ADLOOT_POSTBACK_IP;
+  return ADLOOT_POSTBACK_IPS.has(normalized);
 }
 
 function getRequestIpCandidates(req: Request): string[] {
