@@ -37,10 +37,10 @@ export function PartnerDirectory({ statuses, onSelect, sectionRef }: PartnerDire
 	              className={`group w-full min-w-0 text-left ${!configured ? 'cursor-not-allowed opacity-65' : ''}`}
 	            >
 	              <div
-	                className="rv-provider-card-flat relative flex aspect-[1.76/1] min-h-[144px] w-full flex-col items-center overflow-hidden rounded-[15px] border p-3 text-center"
-	                style={{ background: wall.border, backgroundColor: wall.border, backgroundImage: 'none', boxShadow: 'none', filter: 'none', borderColor: wall.border, '--provider-accent': wall.accent, '--provider-brand': wall.border } as CSSProperties}
+	                className="rv-provider-card-flat relative flex aspect-[1.55/1] min-h-[124px] w-full flex-col items-center overflow-hidden rounded-[14px] border p-3 text-center"
+	                style={{ '--provider-accent': wall.accent, '--provider-brand': wall.border, '--provider-logo-color': wall.brandColor } as CSSProperties}
 	              >
-	                <span className="provider-badge absolute right-2.5 top-2.5 z-[4] rounded-md px-2 py-1 text-[9px] font-extrabold uppercase tracking-wide" style={{ '--provider-badge': wall.accent, boxShadow: 'none', textShadow: 'none' } as CSSProperties}>{wall.tag}</span>
+	                <span className="provider-badge absolute right-2.5 top-2.5 z-[4] rounded-md px-2 py-1 text-[9px] font-extrabold uppercase tracking-wide" style={{ '--provider-badge': wall.accent } as CSSProperties}>{wall.tag}</span>
                 <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center pt-2">
                   <div className={`mb-2 flex h-10 w-full max-w-[148px] items-center justify-center ${wall.id === 'revtoo' ? 'provider-revtoo-logo rounded-md px-3 py-1' : ''}`}>
                     {wall.logo

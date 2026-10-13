@@ -1002,3 +1002,110 @@
   text-shadow: none !important;
   box-shadow: none !important;
 }
+
+
+/* Reward Network redesign: restrained graphite cards with clear brand accents. */
+.unified-page .rv-network-provider-grid .rv-provider-card-flat {
+  aspect-ratio: 1.55 / 1 !important;
+  min-height: 124px !important;
+  padding: 12px !important;
+  border: 1px solid color-mix(in srgb, var(--provider-accent, #42B883) 42%, #36423B) !important;
+  border-radius: 14px !important;
+  background: color-mix(in srgb, var(--provider-brand, #16A34A) 22%, #1A211F) !important;
+  background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 22%, #1A211F) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: #E8F2EB !important;
+  transition: background-color .2s ease, border-color .2s ease, transform .2s ease !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat:hover:not(:disabled),
+.unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible {
+  border-color: color-mix(in srgb, var(--provider-accent, #42B883) 72%, #A9B9AE) !important;
+  background: color-mix(in srgb, var(--provider-brand, #16A34A) 30%, #1A211F) !important;
+  background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 30%, #1A211F) !important;
+  box-shadow: none !important;
+  transform: translateY(-2px) !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--provider-accent, #42B883) 68%, transparent) !important;
+  outline-offset: 2px !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat > div:first-of-type {
+  padding-top: 4px !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat > div:first-of-type > div:first-child {
+  width: 100% !important;
+  max-width: 160px !important;
+  height: 44px !important;
+  flex: 0 0 44px !important;
+  margin-bottom: 8px !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat img {
+  max-width: 100% !important;
+  max-height: 44px !important;
+  object-fit: contain !important;
+  filter: none !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-logo-fallback {
+  color: var(--provider-logo-color, var(--provider-accent, #42B883)) !important;
+  font-size: 24px !important;
+  filter: none !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-title {
+  max-width: 92% !important;
+  color: #F1F7F2 !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  text-shadow: none !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-stars {
+  margin-top: 4px !important;
+  color: var(--provider-accent, #86E8AD) !important;
+  gap: 2px !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-stars svg {
+  width: 9px !important;
+  height: 9px !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-badge {
+  top: 9px !important;
+  right: 9px !important;
+  border: 1px solid color-mix(in srgb, var(--provider-accent, #42B883) 48%, #344038) !important;
+  border-radius: 999px !important;
+  background: #202A25 !important;
+  padding: 3px 6px !important;
+  color: #DCEBE0 !important;
+  font-size: 7px !important;
+  letter-spacing: .06em !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-description {
+  right: 10px !important;
+  bottom: 8px !important;
+  left: 10px !important;
+  color: #AAB8AE !important;
+  font-size: 8px !important;
+  letter-spacing: .04em !important;
+  line-height: 1.25 !important;
+  text-shadow: none !important;
+}
+@media (max-width: 759px) {
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat {
+    min-height: 112px !important;
+    padding: 9px !important;
+  }
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat > div:first-of-type > div:first-child {
+    height: 34px !important;
+    flex-basis: 34px !important;
+    margin-bottom: 5px !important;
+  }
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat img { max-height: 34px !important; }
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-title { font-size: 10px !important; }
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-description { font-size: 7px !important; }
+}
+@media (max-width: 560px) {
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat {
+    min-height: 122px !important;
+  }
+}
