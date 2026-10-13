@@ -30,7 +30,8 @@ export const users = pgTable(
     accountStatus: text("accountStatus").default("active").notNull(),
     suspensionReason: text("suspensionReason"),
     username: varchar("username", { length: 64 }).unique(),
-    password: varchar("password", { length: 256 }),
+    // Bcrypt hash only; never expose this field through public API responses.
+    passwordHash: varchar("password_hash", { length: 256 }),
     // ISO 3166-1 alpha-2 country detected from the signup IP. The raw IP is
     // deliberately not stored in the user profile.
     countryCode: varchar("countryCode", { length: 2 }),
@@ -55,6 +56,7 @@ export const users = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+export type PublicUser = Omit<User, "passwordHash">;
 
 /** Immutable server-side record of sensitive administrator actions. */
 export const auditLogs = pgTable(

@@ -971,7 +971,7 @@ async function handlePostback(req: Request, res: Response) {
     }
 
     // ── 10. Resolve user ──────────────────────────────────────────────────
-    let user: Awaited<ReturnType<typeof db.getUserByUsername>> | null = null;
+    let user: Awaited<ReturnType<typeof db.getUserByUsername>> | Awaited<ReturnType<typeof db.getUserByOpenId>> | null = null;
     const identifiers = uniqueValues([rawUserId, normalizedUserId]);
 
     // 10a. Resolve exact username/openId for every provider. Provider callback

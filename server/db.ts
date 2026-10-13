@@ -81,10 +81,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 
   try {
-    const values: InsertUser = { openId: user.openId, username: user.username ?? user.openId.slice(0, 64), password: user.password ?? "$2b$10$7EqJtq98hPqEX7fNZaFWoOeYfL1v1s8t6R1f5l7y2jM0Q0mYwQ0eG", refCode: user.refCode ?? `RV${user.openId.slice(-14)}` };
+    const values: InsertUser = { openId: user.openId, username: user.username ?? user.openId.slice(0, 64), passwordHash: user.passwordHash ?? "$2b$10$7EqJtq98hPqEX7fNZaFWoOeYfL1v1s8t6R1f5l7y2jM0Q0mYwQ0eG", refCode: user.refCode ?? `RV${user.openId.slice(-14)}` };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "avatar", "email", "loginMethod", "username", "countryCode", "refCode", "referredBy", "password", "emailVerificationTokenHash"] as const;
+    const textFields = ["name", "avatar", "email", "loginMethod", "username", "countryCode", "refCode", "referredBy", "passwordHash", "emailVerificationTokenHash"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
@@ -151,7 +151,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
 
     const safeLogValues = { ...values } as Record<string, unknown>;
-    delete safeLogValues.password;
+    delete safeLogValues.passwordHash;
     console.log("[Database] upsertUser values:", JSON.stringify(safeLogValues));
     await db.insert(users).values(values).onConflictDoUpdate({ target: users.openId, set: updateSet });
   } catch (error) {
@@ -164,14 +164,18 @@ export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (result.length === 0) return undefined;
+  const { passwordHash: _passwordHash, ...safeUser } = result[0];
+  return safeUser;
 }
 
 export async function getUserById(userId: number) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (result.length === 0) return undefined;
+  const { passwordHash: _passwordHash, ...safeUser } = result[0];
+  return safeUser;
 }
 
 export async function getUserByEmailVerificationToken(tokenHash: string) {

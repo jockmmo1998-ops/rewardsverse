@@ -112,7 +112,7 @@ export const appRouter = router({
           emailVerificationTokenHash: verification.tokenHash,
           emailVerificationExpiresAt: verification.expiresAt,
           emailVerificationSentAt: new Date(),
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           refCode: userRefCode,
           referredBy: referredBy || undefined,
           role: "user",
@@ -209,7 +209,7 @@ export const appRouter = router({
         }
 
         // Verify password
-        const valid = await verifyPassword(input.password, user.password || "");
+        const valid = await verifyPassword(input.password, user.passwordHash || "");
         if (!valid) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Incorrect password" });
         }
