@@ -2687,3 +2687,24 @@ body,
   .rv-network-provider-grid .provider-card { min-height: 112px !important; }
   .rv-network-provider-grid .provider-card > div:first-of-type > div:first-child { height: 38px !important; flex-basis: 38px !important; }
 }
+
+/* Final offer-card chrome: a single low-contrast hairline, with no layered edge. */
+.rv-catalog-offer-grid-compact .rv-offer-card-compact {
+  border: 1px solid rgba(255, 255, 255, .055) !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-compact::after {
+  display: none !important;
+  content: none !important;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-compact:hover,
+.rv-catalog-offer-grid-compact .rv-offer-card-compact:focus-visible {
+  border-color: rgba(74, 222, 128, .24) !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-art-glow {
+  opacity: .2 !important;
+  filter: blur(14px) saturate(1.35) !important;
+}
