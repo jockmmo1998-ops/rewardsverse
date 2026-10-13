@@ -2627,3 +2627,24 @@ body,
   padding: 0 !important;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .22)) !important;
 }
+
+/* Minimal chrome: keep only a quiet separator around each offer tile. */
+.rv-catalog-offer-grid-compact .rv-offer-card-compact {
+  border-color: rgba(148, 163, 184, .11) !important;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-image {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-points {
+  border: 0 !important;
+  background: rgba(22, 163, 74, .1) !important;
+  box-shadow: none !important;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-compact:hover,
+.rv-catalog-offer-grid-compact .rv-offer-card-compact:focus-visible {
+  border-color: rgba(74, 222, 128, .42) !important;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .16) !important;
+}
