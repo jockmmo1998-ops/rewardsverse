@@ -2754,3 +2754,23 @@ body,
     max-height: 58dvh;
   }
 }
+
+
+/* Live offer logos: artwork-first treatment with a quiet hairline and restrained shadow. */
+.rv-catalog-offer-grid-compact .rv-offer-card-image {
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.rv-catalog-offer-grid-compact .rv-offer-card-image img {
+  padding: 0 !important;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .14)) !important;
+}
+
+.rv-catalog-offer-grid-compact .rv-offer-card-art-glow {
+  opacity: .08 !important;
+  filter: blur(12px) saturate(1.15) !important;
+}
