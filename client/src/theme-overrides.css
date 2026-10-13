@@ -2872,3 +2872,16 @@ body,
 .rv-partner-directory {
   box-shadow: none !important;
 }
+
+
+/* Absolute final card surface: use the provider color itself, never a dark mix. */
+.rv-network-provider-grid .provider-card,
+.rv-network-provider-grid .provider-card:hover,
+.rv-network-provider-grid .provider-card:focus-visible {
+  background: var(--provider-brand, #16A34A) !important;
+  background-color: var(--provider-brand, #16A34A) !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
