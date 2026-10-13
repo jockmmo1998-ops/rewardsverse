@@ -64,6 +64,15 @@ async function runMigrations() {
 
 async function startServer() {
   const app = express();
+  app.disable("x-powered-by");
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    if (_req.secure) res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    next();
+  });
   // Render terminates TLS at the proxy. Trust the first proxy so Express
   // correctly reports HTTPS when issuing the Secure session cookie.
   app.set("trust proxy", 1);
@@ -78,6 +87,7 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   app.use("/api/trpc/auth", createRateLimiter({ windowMs: 60_000, max: 30 }));
+  app.get("/api/health", (_req, res) => res.status(200).json({ ok: true, service: "rewardsverse", version: "2.0" }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   registerPostbackRoutes(app, createRateLimiter({
