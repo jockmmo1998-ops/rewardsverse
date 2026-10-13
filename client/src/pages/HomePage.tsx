@@ -220,26 +220,25 @@ export default function HomePage() {
         />
         <CommunityActivityPanel enabled={lowerPanelsVisible} />
       </div>
-      <div ref={partnerSectionRef} className="rv-dashboard-lazy-zone">
-        <PartnerDirectory
-          statuses={wallStatusQuery.data}
-          onSelect={(wallId, trigger) => {
-            const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
-            if (!user) {
-              navigate('/login', { state: { from: '/offerwalls' } });
-              return;
-            }
-            if (status && !status.configured) return;
-            if (NEW_TAB_WALL_IDS.has(wallId)) {
-              navigate(`/offerwalls/${wallId}`);
-              return;
-            }
-            wallTriggerRef.current = trigger ?? null;
-            setWallUrl('');
-            setActiveWall(wallId);
-          }}
-        />
-      </div>
+      <PartnerDirectory
+        sectionRef={partnerSectionRef}
+        statuses={wallStatusQuery.data}
+        onSelect={(wallId, trigger) => {
+          const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
+          if (!user) {
+            navigate('/login', { state: { from: '/offerwalls' } });
+            return;
+          }
+          if (status && !status.configured) return;
+          if (NEW_TAB_WALL_IDS.has(wallId)) {
+            navigate(`/offerwalls/${wallId}`);
+            return;
+          }
+          wallTriggerRef.current = trigger ?? null;
+          setWallUrl('');
+          setActiveWall(wallId);
+        }}
+      />
       </div>
 
     </div>

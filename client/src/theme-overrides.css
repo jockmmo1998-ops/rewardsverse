@@ -2817,3 +2817,21 @@ body,
   content-visibility: auto;
   contain-intrinsic-size: 1px 520px;
 }
+
+
+/* Reward Network cards: keep the provider background visible without dark drop shadows. */
+.rv-network-provider-grid .provider-card,
+.rv-network-provider-grid .provider-card:hover,
+.rv-network-provider-grid .provider-card:focus-visible {
+  box-shadow: none !important;
+}
+.rv-network-provider-grid .provider-card-title,
+.rv-network-provider-grid .provider-card-stars,
+.rv-network-provider-grid .provider-card-description,
+.rv-network-provider-grid .provider-badge {
+  filter: none !important;
+  text-shadow: none !important;
+}
+.rv-network-provider-grid .provider-card .provider-badge {
+  box-shadow: none !important;
+}

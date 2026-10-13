@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, Ref } from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { OFFER_WALLS } from '@/lib/offerwallCatalog';
@@ -6,13 +6,14 @@ import { OFFER_WALLS } from '@/lib/offerwallCatalog';
 interface PartnerDirectoryProps {
   statuses?: Array<{ provider: string; configured: boolean }>;
   onSelect: (wallId: string, trigger?: HTMLButtonElement) => void;
+  sectionRef?: Ref<HTMLElement>;
 }
 
-export function PartnerDirectory({ statuses, onSelect }: PartnerDirectoryProps) {
+export function PartnerDirectory({ statuses, onSelect, sectionRef }: PartnerDirectoryProps) {
   const partners = OFFER_WALLS;
 
   return (
-    <section className="rv-partner-directory" aria-label="All offerwall partners">
+    <section ref={sectionRef} className="rv-partner-directory rv-dashboard-lazy-zone" aria-label="All offerwall partners">
       <header className="rv-partner-heading">
         <div>
           <p className="rv-eyebrow"><span className="section-dot" /> REWARD NETWORK</p>
