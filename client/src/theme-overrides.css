@@ -2615,3 +2615,15 @@ body,
 @media (prefers-reduced-motion: reduce) {
   .rv-catalog-show-more { transition: none; }
 }
+
+/* Keep the offer artwork clean: no white plaque or white outline around logos. */
+.rv-catalog-offer-grid-compact .rv-offer-card-image {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.rv-catalog-offer-grid-compact .rv-offer-card-image img {
+  padding: 0 !important;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .22)) !important;
+}
