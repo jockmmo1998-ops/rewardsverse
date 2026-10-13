@@ -54,7 +54,7 @@ export function OfferCatalogResults({
           <div className="flex justify-center">
             <button
               type="button"
-              className="rounded-xl border border-primary/40 bg-primary/10 px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-primary transition hover:bg-primary/20"
+              className="rv-catalog-show-more focus-ring"
               onClick={() => setVisibleCount((current) => Math.min(current + OFFERS_PER_PAGE, offers.length))}
             >
               Show more offers <span className="ml-1 opacity-70">({offers.length - visibleCount} remaining)</span>
