@@ -1,0 +1,28 @@
+name: Keep Render service awake
+
+on:
+  schedule:
+    # Render Free may sleep after inactivity; ping the lightweight health route.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  keep-awake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping production health endpoint
+        env:
+          HEALTH_URL: https://rewardsverse.online/api/health
+        run: |
+          set -eu
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          http_code="$(curl --fail --silent --show-error --location \
+            --max-time 25 --retry 2 --retry-delay 3 \
+            --output "$response_file" --write-out '%{http_code}' "$HEALTH_URL")"
+          echo "Health endpoint returned HTTP $http_code"
+          cat "$response_file"
+          echo
