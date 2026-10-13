@@ -941,3 +941,35 @@
 @media (prefers-reduced-motion: reduce) {
   .rv-loader, .animate-spin { animation: none !important; }
 }
+
+
+/* Definitive provider-card surface override: higher specificity than all legacy unified rules. */
+.unified-page .rv-network-provider-grid .provider-card,
+.unified-page .rv-network-provider-grid .provider-card:hover,
+.unified-page .rv-network-provider-grid .provider-card:focus-visible {
+  background: var(--provider-brand, #16A34A) !important;
+  background-color: var(--provider-brand, #16A34A) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.unified-page .rv-network-provider-grid .provider-card::before,
+.unified-page .rv-network-provider-grid .provider-card::after,
+.unified-page .rv-network-provider-grid .provider-card > .provider-border-side {
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+.unified-page .rv-network-provider-grid .provider-card img,
+.unified-page .rv-network-provider-grid .provider-logo-fallback,
+.unified-page .rv-network-provider-grid .provider-card-title,
+.unified-page .rv-network-provider-grid .provider-card-stars,
+.unified-page .rv-network-provider-grid .provider-card-description,
+.unified-page .rv-network-provider-grid .provider-badge {
+  filter: none !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
