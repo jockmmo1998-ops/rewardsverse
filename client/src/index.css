@@ -973,3 +973,32 @@
   text-shadow: none !important;
   box-shadow: none !important;
 }
+
+
+/* Rebuilt flat provider cards: intentionally isolated from all legacy .provider-card rules. */
+.unified-page .rv-network-provider-grid .rv-provider-card-flat,
+.unified-page .rv-network-provider-grid .rv-provider-card-flat:hover,
+.unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible {
+  background: var(--provider-brand, #16A34A) !important;
+  background-color: var(--provider-brand, #16A34A) !important;
+  background-image: none !important;
+  border-color: color-mix(in srgb, var(--provider-brand, #16A34A) 78%, white) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat::before,
+.unified-page .rv-network-provider-grid .rv-provider-card-flat::after {
+  display: none !important;
+  content: none !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat img,
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-logo-fallback,
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-title,
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-stars,
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-card-description,
+.unified-page .rv-network-provider-grid .rv-provider-card-flat .provider-badge {
+  filter: none !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
