@@ -10,6 +10,8 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { sseManager } from "./sse";
+import { sdk } from "./sdk";
+import { createRateLimiter } from "./rateLimit";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -75,28 +77,34 @@ async function startServer() {
   // Cấu hình body parser với giới hạn lớn hơn cho file upload
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.use("/api/trpc/auth", createRateLimiter({ windowMs: 60_000, max: 30 }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
-  registerPostbackRoutes(app);
+  registerPostbackRoutes(app, createRateLimiter({
+    windowMs: 60_000,
+    max: 180,
+    key: req => `${req.params.provider || req.query.provider || "unknown"}:${req.ip || req.socket.remoteAddress || "unknown"}`,
+  }));
 
   // SSE endpoint cho real-time notifications
-  app.get("/api/sse/subscribe", (req, res) => {
-    const userId = req.query.userId as string;
-
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required" });
+  app.get("/api/sse/subscribe", createRateLimiter({ windowMs: 60_000, max: 10 }), async (req, res) => {
+    let authenticatedUser;
+    try {
+      authenticatedUser = await sdk.authenticateRequest(req);
+    } catch {
+      return res.status(401).json({ error: "Authentication required" });
     }
-
-    const userIdNum = parseInt(userId);
-    if (isNaN(userIdNum)) {
-      return res.status(400).json({ error: "Invalid userId" });
+    const userRecord = await (await import("../db")).getUserByOpenId(authenticatedUser.openId);
+    if (!userRecord) return res.status(401).json({ error: "Authenticated user not found" });
+    const userIdNum = userRecord.id;
+    if (sseManager.getConnectionCount(userIdNum) >= 3) {
+      return res.status(429).json({ error: "Too many realtime connections" });
     }
 
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
-    res.setHeader("Access-Control-Allow-Origin", "*");
 
     // Gửi tin nhắn kết nối ban đầu
     res.write(`data: ${JSON.stringify({ type: "connected", message: "SSE connection established" })}\n\n`);

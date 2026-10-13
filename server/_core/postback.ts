@@ -1,4 +1,4 @@
-import { Express, Request, Response } from "express";
+import { Express, Request, Response, type RequestHandler } from "express";
 import * as crypto from "crypto";
 import * as db from "../db";
 import {
@@ -23,6 +23,7 @@ import {
   parseAdlootAmount,
   trustedCloudflareClientIp,
 } from "../adloot-postback";
+import { grossUsdFromProviderAmount, getRewardPolicy, requiresManualReview, userRewardUsd } from "../reward-policy";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UNIVERSAL PARAMETER MAPS
@@ -72,10 +73,7 @@ const REWARD_FIELDS = [
   "sale_amount", "commission",
 ];
 
-// The generic provider amount is the gross/original reward. Credit 50% to the user.
-const USER_PAYOUT_SHARE = 0.5;
 const OFFERWALLME_POINTS_PER_USD = 1000;
-const PENDING_REWARD_THRESHOLD_POINTS = 4000;
 
 /** AdMaxFlow Placement points per USD. This Placement is fixed at 400 = $1. */
 const ADMAXFLOW_CURRENCY_RATE = 400;
@@ -85,10 +83,6 @@ const GLEAMADS_CURRENCY_RATE = 1000;
 // is already the user's displayed points, so convert those points to the
 // USD-denominated wallet without applying a second 40% reduction.
 const RADIENTWALL_POINTS_PER_USD = 400;
-const ADMAXFLOW_USER_SHARE = 0.40;
-const GAINTWALL_USER_SHARE = 0.40;
-/** AdLoot-specific business split: user receives 40%, platform retains 60%. */
-const ADLOOT_USER_SHARE = 0.40;
 function isAdlootIpAllowed(remoteIp: string): boolean {
   return isOfficialAdlootIpAllowed(remoteIp);
 }
@@ -462,7 +456,7 @@ function extractSignature(params: Record<string, any>): string {
 // ROUTE REGISTRATION
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function registerPostbackRoutes(app: Express) {
+export function registerPostbackRoutes(app: Express, rateLimiter?: RequestHandler) {
   // Health / info
   app.get("/api/postback", async (_req, res) => {
     const configured = await Promise.all(OFFER_WALL_IDS.map(async (provider) => {
@@ -493,14 +487,14 @@ export function registerPostbackRoutes(app: Express) {
   // Unified entry point. The provider is still required and is authenticated
   // by its own adapter rules inside the shared processor; it cannot bypass
   // credentials by choosing an arbitrary provider name.
-  app.post("/api/postback/unified", handleUnifiedPostback);
-  app.get("/api/postback/unified", handleUnifiedPostback);
-  app.post("/api/postback/unified/:provider", handleUnifiedPostback);
-  app.get("/api/postback/unified/:provider", handleUnifiedPostback);
+  app.post("/api/postback/unified", rateLimiter || ((_req, _res, next) => next()), handleUnifiedPostback);
+  app.get("/api/postback/unified", rateLimiter || ((_req, _res, next) => next()), handleUnifiedPostback);
+  app.post("/api/postback/unified/:provider", rateLimiter || ((_req, _res, next) => next()), handleUnifiedPostback);
+  app.get("/api/postback/unified/:provider", rateLimiter || ((_req, _res, next) => next()), handleUnifiedPostback);
 
   // Universal handler — both GET and POST, any provider name
-  app.post("/api/postback/:provider", handlePostback);
-  app.get("/api/postback/:provider", handlePostback);
+  app.post("/api/postback/:provider", rateLimiter || ((_req, _res, next) => next()), handlePostback);
+  app.get("/api/postback/:provider", rateLimiter || ((_req, _res, next) => next()), handlePostback);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -878,8 +872,7 @@ async function handlePostback(req: Request, res: Response) {
     // amount positive, apply the provider-specific user share once, and let balanceDelta
     // decide whether to credit or debit.
     const providerReward = Math.abs(parseFloat(rawAmount));
-    // AdLoot, AdMaxFlow and GaintWall use provider-specific shares. GleamAds points are
-    // first converted to USD, then the generic provider share is applied.
+    // Provider-specific units and user shares are defined centrally in reward-policy.ts.
     const reward = provider === "timewall"
       ? (() => {
           const placement = resolveTimewallPlacement();
@@ -890,15 +883,9 @@ async function handlePostback(req: Request, res: Response) {
       // USD at 1,000 Points = $1. Do not apply the generic 50% share.
       : provider === "offerwallme"
       ? convertOfferwallMePointsToUsd(providerReward)
-      : provider === "adloot"
-      ? providerReward * ADLOOT_USER_SHARE
-      : provider === "admaxflow"
-      ? providerReward * ADMAXFLOW_USER_SHARE
-      : provider === "gaintwall"
-      ? providerReward * GAINTWALL_USER_SHARE
       : provider === "radientwall"
       ? providerReward / RADIENTWALL_POINTS_PER_USD
-      : providerReward * USER_PAYOUT_SHARE;
+      : userRewardUsd(provider, providerReward);
 
     const timewallPlacement = provider === "timewall" ? resolveTimewallPlacement() : null;
     const timewallConversion = provider === "timewall" && timewallPlacement
@@ -968,7 +955,7 @@ async function handlePostback(req: Request, res: Response) {
     diagnostics.offerId = offerId;
     diagnostics.offerName = offerName;
 
-    console.log(`[Postback][${provider}] Parsed → user="${rawUserId}" gross=${providerReward} userShare=${USER_PAYOUT_SHARE} reward=${reward} txid="${txid}" offer="${offerName}"`);
+    console.log(`[Postback][${provider}] Parsed → user="${rawUserId}" gross=${providerReward} userShare=${getRewardPolicy(provider).userShare} reward=${reward} txid="${txid}" offer="${offerName}"`);
 
     // ── 9. Duplicate check ────────────────────────────────────────────────
     const existing = await db.checkPostbackDuplicate(provider, eventKey);
@@ -1089,7 +1076,8 @@ async function handlePostback(req: Request, res: Response) {
     // The provider reward is the offerwall's points value. Offers strictly
     // above 4,000 points remain pending and do not change the user's balance
     // until an administrator approves them.
-    if (!isChargeback && providerReward > PENDING_REWARD_THRESHOLD_POINTS) {
+    const reviewAmountUsd = provider === "timewall" ? reward : grossUsdFromProviderAmount(provider, providerReward);
+    if (!isChargeback && Number.isFinite(reviewAmountUsd) && requiresManualReview(provider, providerReward)) {
       try {
         await db.addOfferHistory({
           userId: user.id,
@@ -1102,7 +1090,7 @@ async function handlePostback(req: Request, res: Response) {
         await db.addNotification({
           userId: user.id,
           title: "Reward pending review",
-          message: `Your ${provider} offer reward is pending verification before it is added to your balance.`,
+          message: `Your ${provider} offer reward of $${reviewAmountUsd.toFixed(2)} is pending verification before it is added to your balance.`,
           type: "reward",
           isRead: 0,
         });
@@ -1115,7 +1103,7 @@ async function handlePostback(req: Request, res: Response) {
           detectedUser: rawUserId,
           detectedReward: rawAmount,
           creditedReward: "0.00",
-          thresholdPoints: PENDING_REWARD_THRESHOLD_POINTS,
+          thresholdUsd: getRewardPolicy(provider).pendingThresholdUsd,
           transactionId: txid,
           offerId,
           offerName,
@@ -1150,6 +1138,7 @@ async function handlePostback(req: Request, res: Response) {
           ? `A ${provider} reward${offerName ? ` — ${offerName}` : ""} was reversed. Your balance was adjusted.`
           : `You earned $${reward.toFixed(2)} from ${provider}${offerName ? ` — ${offerName}` : ""}. Balance updated.`,
         walletType: isChargeback ? "debit" : "credit",
+        originalExternalId: isChargeback ? txid : undefined,
       });
       if (result.duplicate) {
         diagnostics.duplicateCheck = "FAIL";

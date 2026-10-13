@@ -293,6 +293,7 @@ export type AtomicPostbackCredit = {
   notificationTitle: string;
   notificationMessage: string;
   walletType: "credit" | "debit";
+  originalExternalId?: string;
 };
 
 /**
@@ -316,6 +317,22 @@ export async function applyPostbackAtomically(data: AtomicPostbackCredit): Promi
       .where(and(eq(postbacks.provider, data.provider), eq(postbacks.externalId, data.externalId)))
       .limit(1);
     if (existing.length > 0) return { duplicate: true };
+
+    if (data.walletType === "debit") {
+      if (!data.originalExternalId) throw new Error("Chargeback is missing the original transaction id");
+      const original = await tx
+        .select({ id: postbacks.id, amount: postbacks.amount })
+        .from(postbacks)
+        .where(and(
+          eq(postbacks.provider, data.provider),
+          eq(postbacks.externalId, data.originalExternalId),
+        ))
+        .limit(1);
+      if (original.length === 0) throw new Error("Chargeback rejected: original transaction was not found");
+      if (Number(original[0].amount || 0) < Math.abs(data.amount)) {
+        throw new Error("Chargeback rejected: amount exceeds original credited amount");
+      }
+    }
 
     const signedAmount = data.walletType === "debit" ? -Math.abs(data.amount) : Math.abs(data.amount);
     await tx.update(users).set({
@@ -500,20 +517,22 @@ export async function getPendingWithdrawalByDetails(userId: number, amount: stri
   }
 }
 
-export async function getAllWithdrawals(status?: string) {
+export async function getAllWithdrawals(status?: string, page = 1, pageSize = 100) {
   const db = await getDb();
   if (!db) return [];
+  const safePage = Math.max(1, Math.floor(page));
+  const safePageSize = Math.max(1, Math.min(100, Math.floor(pageSize)));
   if (status && status !== "all") {
     return db
       .select()
       .from(withdrawals)
       .where(eq(withdrawals.status, status as any))
-      .orderBy(desc(withdrawals.createdAt));
+      .orderBy(desc(withdrawals.createdAt)).limit(safePageSize).offset((safePage - 1) * safePageSize);
   }
   return db
     .select()
     .from(withdrawals)
-    .orderBy(desc(withdrawals.createdAt));
+    .orderBy(desc(withdrawals.createdAt)).limit(safePageSize).offset((safePage - 1) * safePageSize);
 }
 
 export async function updateWithdrawalStatus(id: number, status: "approved" | "rejected", adminNote?: string) {
@@ -717,13 +736,15 @@ export async function logPostback(data: InsertPostback) {
   return result[0];
 }
 
-export async function getAllPostbacks() {
+export async function getAllPostbacks(page = 1, pageSize = 100) {
   const db = await getDb();
   if (!db) return [];
+  const safePage = Math.max(1, Math.floor(page));
+  const safePageSize = Math.max(1, Math.min(100, Math.floor(pageSize)));
   return db
     .select()
     .from(postbacks)
-    .orderBy(desc(postbacks.createdAt));
+    .orderBy(desc(postbacks.createdAt)).limit(safePageSize).offset((safePage - 1) * safePageSize);
 }
 
 export async function getUserByUsernamePassword(username: string) {
@@ -735,9 +756,11 @@ export async function getUserByUsernamePassword(username: string) {
 
 // ===== ADMIN =====
 
-export async function getAllUsers() {
+export async function getAllUsers(page = 1, pageSize = 100) {
   const db = await getDb();
   if (!db) return [];
+  const safePage = Math.max(1, Math.floor(page));
+  const safePageSize = Math.max(1, Math.min(100, Math.floor(pageSize)));
   return db.select({
     id: users.id,
     username: users.username,
@@ -752,7 +775,7 @@ export async function getAllUsers() {
     refEarnings: users.refEarnings,
     createdAt: users.createdAt,
     lastSignedIn: users.lastSignedIn,
-  }).from(users).orderBy(desc(users.createdAt));
+  }).from(users).orderBy(desc(users.createdAt)).limit(safePageSize).offset((safePage - 1) * safePageSize);
 }
 
 export async function getPlatformStats() {
@@ -1002,14 +1025,15 @@ export async function logPostbackDetail(data: InsertPostbackLog) {
   }
 }
 
-export async function getPostbackLogs(limit = 100) {
+export async function getPostbackLogs(limit = 100, offset = 0) {
   const db = await getDb();
   if (!db) return [];
   return db
     .select()
     .from(postbackLogs)
     .orderBy(desc(postbackLogs.createdAt))
-    .limit(limit);
+    .limit(Math.max(1, Math.min(limit, 200)))
+    .offset(Math.max(0, offset));
 }
 
 export async function getPostbackLogById(id: number) {

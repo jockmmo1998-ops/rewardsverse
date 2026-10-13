@@ -699,8 +699,8 @@ export const appRouter = router({
 
   // ===== ADMIN =====
   admin: router({
-    getUsers: adminProcedure.query(async () => {
-      return db.getAllUsers();
+    getUsers: adminProcedure.input(z.object({ page: z.number().int().positive().optional(), pageSize: z.number().int().min(1).max(100).optional() }).optional()).query(async ({ input }) => {
+      return db.getAllUsers(input?.page ?? 1, input?.pageSize ?? 100);
     }),
     getUserDetail: adminProcedure.input(z.object({ id: z.number().int().positive() })).query(({ input }) => db.getAdminUserDetail(input.id)),
     resendUserVerificationEmail: adminProcedure
@@ -752,16 +752,16 @@ export const appRouter = router({
       return { success: true };
     }),
 
-    getWithdrawals: adminProcedure.query(async () => {
-      return db.getAllWithdrawals();
+    getWithdrawals: adminProcedure.input(z.object({ page: z.number().int().positive().optional(), pageSize: z.number().int().min(1).max(100).optional() }).optional()).query(async ({ input }) => {
+      return db.getAllWithdrawals(undefined, input?.page ?? 1, input?.pageSize ?? 100);
     }),
 
     getStats: adminProcedure.query(async () => {
       return db.getPlatformStats();
     }),
 
-    getPostbacks: adminProcedure.query(async () => {
-      return db.getAllPostbacks();
+    getPostbacks: adminProcedure.input(z.object({ page: z.number().int().positive().optional(), pageSize: z.number().int().min(1).max(100).optional() }).optional()).query(async ({ input }) => {
+      return db.getAllPostbacks(input?.page ?? 1, input?.pageSize ?? 100);
     }),
 
     getPendingOffers: adminProcedure.query(async () => {
@@ -783,8 +783,10 @@ export const appRouter = router({
         return { success: true, offer };
       }),
 
-    getPostbackLogs: adminProcedure.query(async () => {
-      return db.getPostbackLogs(200);
+    getPostbackLogs: adminProcedure.input(z.object({ page: z.number().int().positive().optional(), pageSize: z.number().int().min(1).max(200).optional() }).optional()).query(async ({ input }) => {
+      const page = input?.page ?? 1;
+      const pageSize = input?.pageSize ?? 200;
+      return db.getPostbackLogs(pageSize, (page - 1) * pageSize);
     }),
 
     getPostbackLogDetail: adminProcedure
