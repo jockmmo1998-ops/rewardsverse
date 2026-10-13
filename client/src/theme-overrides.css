@@ -2774,3 +2774,39 @@ body,
   opacity: .08 !important;
   filter: blur(12px) saturate(1.15) !important;
 }
+
+
+/* Final live-offer refinement: ultra-quiet card hairline, rounded artwork, exactly two rows. */
+.rv-catalog-offer-grid-compact .rv-offer-card-compact {
+  border: 1px solid rgba(255, 255, 255, .028) !important;
+  box-shadow: none !important;
+}
+
+.rv-catalog-offer-grid-compact .rv-offer-card-compact:hover,
+.rv-catalog-offer-grid-compact .rv-offer-card-compact:focus-visible {
+  border-color: rgba(74, 222, 128, .16) !important;
+  box-shadow: none !important;
+}
+
+.rv-catalog-offer-grid-compact .rv-offer-card-image {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.rv-catalog-offer-grid-compact .rv-offer-card-image img {
+  border-radius: 10px !important;
+}
+
+/* The grid has 4, 8, 12, or 20 columns by breakpoint; keep exactly two rows. */
+@media (max-width: 700px) {
+  .rv-catalog-offer-grid-compact .rv-offer-card-compact:nth-child(n + 5) { display: none !important; }
+}
+@media (min-width: 701px) and (max-width: 1199px) {
+  .rv-catalog-offer-grid-compact .rv-offer-card-compact:nth-child(n + 9) { display: none !important; }
+}
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .rv-catalog-offer-grid-compact .rv-offer-card-compact:nth-child(n + 17) { display: none !important; }
+}
+@media (min-width: 1600px) and (max-width: 2399px) {
+  .rv-catalog-offer-grid-compact .rv-offer-card-compact:nth-child(n + 25) { display: none !important; }
+}

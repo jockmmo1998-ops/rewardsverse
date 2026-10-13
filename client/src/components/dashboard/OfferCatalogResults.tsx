@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { EmptyState } from '@/components/shared/RewardUI';
 import { EmptySlot, OfferCard } from '@/components/dashboard/OfferFeedShelf';
 
-const OFFERS_VISIBLE_IN_TWO_ROWS = 30;
+const OFFERS_VISIBLE_IN_TWO_ROWS = 40;
 
 interface OfferCatalogResultsProps {
  allOffers: any[];
