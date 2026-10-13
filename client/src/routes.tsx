@@ -2,27 +2,47 @@ import React, { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layouts/AppLayout';
 
-const HomePage         = lazy(() => import('./pages/HomePage'));
-const AuthPage         = lazy(() => import('./pages/AuthPage'));
-const OnboardingPage   = lazy(() => import('./pages/OnboardingPage'));
-const OfferWallPage    = lazy(() => import('./pages/OfferWallFullPage'));
-const PasswordRecoveryPage = lazy(() => import('./pages/PasswordRecoveryPage'));
-const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
-const DashboardPage    = lazy(() => import('./pages/DashboardPage'));
-const OfferwallsPage   = lazy(() => import('./pages/OfferWalls'));
-const LeaderboardPage  = lazy(() => import('./pages/LeaderboardPage'));
-const AchievementsPage = lazy(() => import('./pages/AchievementsPage'));
-const HistoryPage      = lazy(() => import('./pages/HistoryPage'));
-const ReferralsPage    = lazy(() => import('./pages/ReferralsPage'));
-const WithdrawPage     = lazy(() => import('./pages/WithdrawPage'));
-const WalletPage       = lazy(() => import('./pages/WalletPage'));
-const ProfilePage      = lazy(() => import('./pages/ProfilePage'));
-const SettingsPage     = lazy(() => import('./pages/SettingsPage'));
-const SupportPage      = lazy(() => import('./pages/SupportPage'));
-const PreviewPage      = lazy(() => import('./pages/PreviewPage'));
-const AdminPage        = lazy(() => import('./pages/AdminPage'));
-const AdminAccessPage  = lazy(() => import('./pages/AdminAccessPage'));
-const LegalPage        = lazy(() => import('./pages/LegalPage'));
+const CHUNK_RELOAD_KEY = 'rewardsverse:chunk-reload';
+
+function lazyWithChunkRecovery<T extends React.ComponentType<any>>(loader: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      const module = await loader();
+      try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch { /* storage may be unavailable */ }
+      return module;
+    } catch (error) {
+      let alreadyRetried = false;
+      try { alreadyRetried = sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1'; } catch { /* storage may be unavailable */ }
+      if (!alreadyRetried) {
+        try { sessionStorage.setItem(CHUNK_RELOAD_KEY, '1'); } catch { /* storage may be unavailable */ }
+        window.location.reload();
+      }
+      throw error;
+    }
+  });
+}
+
+const HomePage         = lazyWithChunkRecovery(() => import('./pages/HomePage'));
+const AuthPage         = lazyWithChunkRecovery(() => import('./pages/AuthPage'));
+const OnboardingPage   = lazyWithChunkRecovery(() => import('./pages/OnboardingPage'));
+const OfferWallPage    = lazyWithChunkRecovery(() => import('./pages/OfferWallFullPage'));
+const PasswordRecoveryPage = lazyWithChunkRecovery(() => import('./pages/PasswordRecoveryPage'));
+const VerifyEmailPage = lazyWithChunkRecovery(() => import('./pages/VerifyEmailPage'));
+const DashboardPage    = lazyWithChunkRecovery(() => import('./pages/DashboardPage'));
+const OfferwallsPage   = lazyWithChunkRecovery(() => import('./pages/OfferWalls'));
+const LeaderboardPage  = lazyWithChunkRecovery(() => import('./pages/LeaderboardPage'));
+const AchievementsPage = lazyWithChunkRecovery(() => import('./pages/AchievementsPage'));
+const HistoryPage      = lazyWithChunkRecovery(() => import('./pages/HistoryPage'));
+const ReferralsPage    = lazyWithChunkRecovery(() => import('./pages/ReferralsPage'));
+const WithdrawPage     = lazyWithChunkRecovery(() => import('./pages/WithdrawPage'));
+const WalletPage       = lazyWithChunkRecovery(() => import('./pages/WalletPage'));
+const ProfilePage      = lazyWithChunkRecovery(() => import('./pages/ProfilePage'));
+const SettingsPage     = lazyWithChunkRecovery(() => import('./pages/SettingsPage'));
+const SupportPage      = lazyWithChunkRecovery(() => import('./pages/SupportPage'));
+const PreviewPage      = lazyWithChunkRecovery(() => import('./pages/PreviewPage'));
+const AdminPage        = lazyWithChunkRecovery(() => import('./pages/AdminPage'));
+const AdminAccessPage  = lazyWithChunkRecovery(() => import('./pages/AdminAccessPage'));
+const LegalPage        = lazyWithChunkRecovery(() => import('./pages/LegalPage'));
 
 const PageFallback = () => <div className="rv-page-loader" role="status" aria-label="Loading"><span className="rv-loader" /></div>;
 
