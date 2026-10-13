@@ -2835,3 +2835,40 @@ body,
 .rv-network-provider-grid .provider-card .provider-badge {
   box-shadow: none !important;
 }
+
+
+/* Final flat-card pass: no dark gradient, inset highlight, pseudo overlay, or logo shadow. */
+.rv-network-provider-grid .provider-card,
+.rv-network-provider-grid .provider-card:hover,
+.rv-network-provider-grid .provider-card:focus-visible {
+  background: color-mix(in srgb, var(--provider-brand, #16A34A) 42%, #292929) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.rv-network-provider-grid .provider-card::before,
+.rv-network-provider-grid .provider-card::after,
+.rv-network-provider-grid .provider-card > .provider-border-side {
+  display: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+.rv-network-provider-grid .provider-card img,
+.rv-network-provider-grid .provider-card .provider-logo-fallback {
+  filter: none !important;
+  text-shadow: none !important;
+}
+.rv-network-provider-grid .provider-card > div:first-of-type > div:first-child {
+  box-shadow: none !important;
+}
+.rv-network-provider-grid .provider-badge,
+.rv-network-provider-grid .provider-card-title,
+.rv-network-provider-grid .provider-card-stars,
+.rv-network-provider-grid .provider-card-description {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+.rv-partner-directory {
+  box-shadow: none !important;
+}
