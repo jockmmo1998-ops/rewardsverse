@@ -33,12 +33,13 @@ function timeLabel(value: unknown) {
     : date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
-export function CommunityActivityPanel() {
+export function CommunityActivityPanel({ enabled = true }: { enabled?: boolean }) {
   const { user } = useAuth();
   const visualPreview = import.meta.env.DEV && import.meta.env.VITE_VISUAL_PREVIEW === 'true';
   const query = trpc.user.getActivities.useQuery(undefined, {
+    enabled,
     staleTime: 15_000,
-    refetchInterval: 15_000,
+    refetchInterval: enabled ? 15_000 : false,
     refetchOnWindowFocus: false,
     retry: false,
   });

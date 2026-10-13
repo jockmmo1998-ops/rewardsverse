@@ -2810,3 +2810,10 @@ body,
 @media (min-width: 1600px) and (max-width: 2399px) {
   .rv-catalog-offer-grid-compact .rv-offer-card-compact:nth-child(n + 25) { display: none !important; }
 }
+
+
+/* Defer below-the-fold dashboard work until it is close to the viewport. */
+.rv-dashboard-lazy-zone {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 520px;
+}

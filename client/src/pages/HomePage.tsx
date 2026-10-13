@@ -41,6 +41,28 @@ function offerSortValue(offer: any) {
   return Number.isFinite(value) ? value : 0;
 }
 
+function useNearViewport<T extends HTMLElement>(rootMargin = '600px') {
+  const ref = useRef<T | null>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || visible) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }, { rootMargin });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [rootMargin, visible]);
+  return [ref, visible] as const;
+}
+
 export default function HomePage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -50,11 +72,13 @@ export default function HomePage() {
   const [activeWall, setActiveWall] = useState<string | null>(null);
   const offerTriggerRef = useRef<HTMLElement | null>(null);
   const wallTriggerRef = useRef<HTMLElement | null>(null);
+  const [lowerPanelsRef, lowerPanelsVisible] = useNearViewport<HTMLDivElement>();
+  const [partnerSectionRef, partnerSectionVisible] = useNearViewport<HTMLDivElement>();
   const [wallUrl, setWallUrl] = useState('');
   const featured = trpc.user.getFeaturedOffers.useQuery(undefined, { staleTime: 60_000, gcTime: 5 * 60_000, placeholderData: (previousData) => previousData, refetchOnWindowFocus: false, retry: false });
   const summary = trpc.user.getDashboardSummary.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
   const weeklyQuery = trpc.user.getWeeklyProgress.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
-  const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
+  const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(profile?.id && partnerSectionVisible), staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
   const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && activeWall !== OPINION_UNIVERSE_WALL_ID && user?.id), retry: false, refetchOnWindowFocus: false });
 
   useEffect(() => {
@@ -185,7 +209,7 @@ export default function HomePage() {
         onClose={() => { setActiveWall(null); setWallUrl(''); }}
         returnFocusRef={wallTriggerRef}
       />
-      <div className="rv-dashboard-split">
+      <div ref={lowerPanelsRef} className="rv-dashboard-split rv-dashboard-lazy-zone">
         <WeeklyProgressPanel
           unavailable={weeklyDataUnavailable}
           percent={weeklyPercent}
@@ -194,26 +218,28 @@ export default function HomePage() {
           goalLabel={weeklyGoalLabel}
           streak={Number(weeklyQuery.data?.streak ?? 0)}
         />
-        <CommunityActivityPanel />
+        <CommunityActivityPanel enabled={lowerPanelsVisible} />
       </div>
-      <PartnerDirectory
-        statuses={wallStatusQuery.data}
-        onSelect={(wallId, trigger) => {
-          const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
-          if (!user) {
-            navigate('/login', { state: { from: '/offerwalls' } });
-            return;
-          }
-          if (status && !status.configured) return;
-          if (NEW_TAB_WALL_IDS.has(wallId)) {
-            navigate(`/offerwalls/${wallId}`);
-            return;
-          }
-          wallTriggerRef.current = trigger ?? null;
-          setWallUrl('');
-          setActiveWall(wallId);
-        }}
-      />
+      <div ref={partnerSectionRef} className="rv-dashboard-lazy-zone">
+        <PartnerDirectory
+          statuses={wallStatusQuery.data}
+          onSelect={(wallId, trigger) => {
+            const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
+            if (!user) {
+              navigate('/login', { state: { from: '/offerwalls' } });
+              return;
+            }
+            if (status && !status.configured) return;
+            if (NEW_TAB_WALL_IDS.has(wallId)) {
+              navigate(`/offerwalls/${wallId}`);
+              return;
+            }
+            wallTriggerRef.current = trigger ?? null;
+            setWallUrl('');
+            setActiveWall(wallId);
+          }}
+        />
+      </div>
       </div>
 
     </div>
