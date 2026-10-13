@@ -281,6 +281,48 @@ export async function addBalance(userId: number, amount: number) {
     .where(eq(users.id, userId));
 }
 
+/** Apply an admin balance change and its ledger rows as one atomic operation. */
+export async function applyAdminBalanceChange(data: {
+  userId: number;
+  amount: number;
+  type: "credit" | "debit";
+  description: string;
+  source: string;
+  recordEarning?: boolean;
+}): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("[DB] Database not available — cannot apply admin balance change");
+  const balanceDelta = data.type === "credit" ? Math.abs(data.amount) : -Math.abs(data.amount);
+  const totalEarnedDelta = data.recordEarning || data.type === "credit" ? Math.abs(data.amount) : 0;
+  return db.transaction(async (tx) => {
+    const result = await tx.update(users).set({
+      balance: sql`balance + ${balanceDelta}`,
+      totalEarned: sql`"totalEarned" + ${totalEarnedDelta}`,
+    }).where(and(
+      eq(users.id, data.userId),
+      data.type === "debit" ? sql`balance >= ${Math.abs(data.amount)}` : sql`true`,
+    ));
+    const affected = Number((result as any).count ?? (result as any)[0]?.affectedRows ?? 0);
+    if (affected !== 1) return false;
+    await tx.insert(walletTransactions).values({
+      userId: data.userId,
+      type: data.type,
+      amount: Math.abs(data.amount).toFixed(2),
+      description: data.description,
+      source: data.source,
+    });
+    if (data.recordEarning) {
+      await tx.insert(earnings).values({
+        userId: data.userId,
+        amount: Math.abs(data.amount).toFixed(2),
+        type: "offer",
+        source: data.description,
+      });
+    }
+    return true;
+  });
+}
+
 export type AtomicPostbackCredit = {
   provider: string;
   externalId: string;

@@ -736,18 +736,16 @@ export const appRouter = router({
     addReward: adminProcedure.input(z.object({ userId: z.number().int().positive(), amount: z.number().positive().max(100000), reason: z.string().min(3).max(500), reference: z.string().max(128).optional() })).mutation(async ({ ctx, input }) => {
       const target = await db.getUserById(input.userId);
       if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-      await db.addBalance(input.userId, input.amount);
-      await db.addEarning({ userId: input.userId, amount: input.amount.toFixed(2), type: "offer", source: `Manual reward: ${input.reason}` });
-      await db.addWalletTransaction({ userId: input.userId, type: "credit", amount: input.amount.toFixed(2), description: input.reason, source: input.reference || "admin_manual_reward" });
+      const applied = await db.applyAdminBalanceChange({ userId: input.userId, amount: input.amount, type: "credit", description: input.reason, source: input.reference || "admin_manual_reward", recordEarning: true });
+      if (!applied) throw new TRPCError({ code: "CONFLICT", message: "User balance could not be updated." });
       await db.addAuditLog({ adminUserId: ctx.user.id, action: "manual_reward", targetType: "user", targetId: String(input.userId), details: JSON.stringify({ amount: input.amount, reason: input.reason, reference: input.reference || null }) });
       return { success: true };
     }),
     adjustBalance: adminProcedure.input(z.object({ userId: z.number().int().positive(), amount: z.number().positive().max(100000), type: z.enum(["credit", "debit"]), reason: z.string().min(3).max(500), reference: z.string().max(128).optional() })).mutation(async ({ ctx, input }) => {
       const target = await db.getUserById(input.userId);
       if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-      if (input.type === "debit" && Number(target.balance || 0) < input.amount) throw new TRPCError({ code: "BAD_REQUEST", message: "Adjustment would create a negative balance" });
-      if (input.type === "credit") await db.addBalance(input.userId, input.amount); else await db.deductBalance(input.userId, input.amount);
-      await db.addWalletTransaction({ userId: input.userId, type: input.type, amount: input.amount.toFixed(2), description: input.reason, source: input.reference || "admin_balance_adjustment" });
+      const applied = await db.applyAdminBalanceChange({ userId: input.userId, amount: input.amount, type: input.type, description: input.reason, source: input.reference || "admin_balance_adjustment" });
+      if (!applied) throw new TRPCError({ code: "CONFLICT", message: "Adjustment would create a negative balance or the user changed." });
       await db.addAuditLog({ adminUserId: ctx.user.id, action: "balance_adjustment", targetType: "user", targetId: String(input.userId), details: JSON.stringify({ amount: input.amount, type: input.type, reason: input.reason, reference: input.reference || null }) });
       return { success: true };
     }),
