@@ -2648,3 +2648,42 @@ body,
   border-color: rgba(74, 222, 128, .42) !important;
   box-shadow: 0 5px 14px rgba(0, 0, 0, .16) !important;
 }
+
+/* Reward Network: nine balanced partner cards on desktop with larger brand marks. */
+.rv-network-provider-grid.rv-partner-grid {
+  grid-template-columns: repeat(9, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+}
+.rv-network-provider-grid .provider-card {
+  min-height: 116px !important;
+  aspect-ratio: 1.45 / 1 !important;
+  padding: 8px !important;
+}
+.rv-network-provider-grid .provider-card > div:first-of-type > div:first-child {
+  height: 38px !important;
+  flex-basis: 38px !important;
+  max-width: 96% !important;
+  margin-bottom: 5px !important;
+}
+.rv-network-provider-grid .provider-card > div:first-of-type > div:first-child img {
+  width: auto !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+}
+.rv-network-provider-grid .provider-logo-fallback { font-size: 21px !important; }
+
+@media (min-width: 760px) and (max-width: 1199px) {
+  .rv-network-provider-grid.rv-partner-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+  .rv-network-provider-grid .provider-card { min-height: 112px !important; }
+}
+@media (max-width: 759px) {
+  .rv-network-provider-grid.rv-partner-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 8px !important; }
+  .rv-network-provider-grid .provider-card { min-height: 102px !important; padding: 7px !important; }
+  .rv-network-provider-grid .provider-card > div:first-of-type > div:first-child { height: 32px !important; flex-basis: 32px !important; }
+}
+@media (max-width: 560px) {
+  .rv-network-provider-grid.rv-partner-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .rv-network-provider-grid .provider-card { min-height: 112px !important; }
+  .rv-network-provider-grid .provider-card > div:first-of-type > div:first-child { height: 38px !important; flex-basis: 38px !important; }
+}
