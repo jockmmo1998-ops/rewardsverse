@@ -1009,7 +1009,7 @@
   aspect-ratio: 1.55 / 1 !important;
   min-height: 124px !important;
   padding: 12px !important;
-  border: 1px solid color-mix(in srgb, var(--provider-accent, #42B883) 42%, #36423B) !important;
+  border: 1px solid color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 62%, #82958A) !important;
   border-radius: 14px !important;
   background: color-mix(in srgb, var(--provider-brand, #16A34A) 22%, #1A211F) !important;
   background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 22%, #1A211F) !important;
@@ -1020,11 +1020,11 @@
 }
 .unified-page .rv-network-provider-grid .rv-provider-card-flat:hover:not(:disabled),
 .unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible {
-  border-color: color-mix(in srgb, var(--provider-accent, #42B883) 72%, #A9B9AE) !important;
+  border-color: color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 88%, white) !important;
   background: color-mix(in srgb, var(--provider-brand, #16A34A) 30%, #1A211F) !important;
   background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 30%, #1A211F) !important;
-  box-shadow: none !important;
-  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 26%, transparent), 0 0 0 1px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 22%, transparent) !important;
+  transform: translateY(-4px) scale(1.015) !important;
 }
 .unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--provider-accent, #42B883) 68%, transparent) !important;
@@ -1089,6 +1089,20 @@
   letter-spacing: .04em !important;
   line-height: 1.25 !important;
   text-shadow: none !important;
+}
+.unified-page .rv-network-provider-grid .rv-provider-card-flat:active:not(:disabled) {
+  transform: translateY(-1px) scale(.99) !important;
+  transition-duration: .1s !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat,
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat:hover,
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible,
+  .unified-page .rv-network-provider-grid .rv-provider-card-flat:active {
+    transform: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
 }
 @media (max-width: 759px) {
   .unified-page .rv-network-provider-grid .rv-provider-card-flat {
