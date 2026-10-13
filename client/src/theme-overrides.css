@@ -2708,3 +2708,49 @@ body,
   opacity: .2 !important;
   filter: blur(14px) saturate(1.35) !important;
 }
+
+/* Admin logs: compact list with an independent scroll area and locked detail viewer. */
+.admin-postback-log-scroll {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(134, 239, 172, .35) transparent;
+}
+.admin-postback-log-list thead {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+}
+.admin-postback-log-list tbody tr {
+  height: 44px;
+}
+.admin-postback-log-list td,
+.admin-postback-log-list th {
+  white-space: nowrap;
+}
+.admin-postback-log-list td:nth-child(5) {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-log-viewer {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(134, 239, 172, .35) transparent;
+}
+.admin-log-viewer-header {
+  flex: 0 0 auto;
+}
+.admin-log-viewer pre {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(134, 239, 172, .35) transparent;
+}
+@media (max-width: 640px) {
+  .admin-log-viewer {
+    max-height: 92dvh !important;
+    padding: 16px !important;
+  }
+  .admin-postback-log-scroll {
+    max-height: 58dvh;
+  }
+}
