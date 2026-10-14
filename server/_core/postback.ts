@@ -88,7 +88,9 @@ function isAdlootIpAllowed(remoteIp: string): boolean {
 }
 // Wannads documents a single source IP for Global Postback requests.
 function isWannadsIpAllowed(remoteIp: string): boolean {
-  return remoteIp === "3.22.177.178" || remoteIp === "::ffff:3.22.177.178";
+  return ["3.22.177.178", "1.53.17.254"].some((ip) =>
+    remoteIp === ip || remoteIp === `::ffff:${ip}`
+  );
 }
 
 function getRequestIpCandidates(req: Request): string[] {
