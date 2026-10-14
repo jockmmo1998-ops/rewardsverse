@@ -8,7 +8,7 @@ import { createHash, createHmac } from "crypto";
  * commits.
  */
 
-type OfferWallUrlBuilder = (userId: string) => string | null;
+type OfferWallUrlBuilder = (userId: string, countryCode?: string | null) => string | null;
 
 export type PostbackAuth = "none" | "token" | "md5" | "sha256" | "hmac_sha1" | "hmac_sha256" | "ip";
 export type PostbackResponse = "json" | "ok" | "dup";
@@ -232,14 +232,15 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     return url.toString();
   },
   timewall: (userId) => buildTimewallProfileUrl(userId),
-  mooffers: (userId) => {
+  mooffers: (userId, countryCode) => {
     const appId = env("MOOFFERS_APP_ID") || "app_57767c1f84d80017";
     const normalizedUserId = userId.trim();
     if (!appId || !normalizedUserId) return null;
     const url = new URL(`https://wall.mooffers.com/offerwall/${encodeURIComponent(appId)}`);
     url.searchParams.set("uid", normalizedUserId);
     url.searchParams.set("platform", "web");
-    url.searchParams.set("country", "US");
+    const normalizedCountry = String(countryCode || "US").trim().toUpperCase();
+    url.searchParams.set("country", /^[A-Z]{2}$/.test(normalizedCountry) ? normalizedCountry : "US");
     url.searchParams.set("source", "rewardsverse");
     return url.toString();
   },

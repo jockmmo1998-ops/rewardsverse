@@ -32,6 +32,24 @@ Link hoàn chỉnh được tạo trong Admin Panel → **Postbacks** chỉ khi 
 | OpinionUniverse | Publisher ID và App ID được cấp trong placement; cấu hình iFrame dùng trực tiếp trong client | `4078` / `ID_95cdecb90aad77eaa007a2a89e6661d9` | Provider callback cần cấu hình riêng |
 | BucksWall | Offerwall URL/placement URL và postback secret | `BUCKSWALL_OFFERWALL_URL`, `BUCKSWALL_POSTBACK_SECRET` | `/api/postback/buckswall` |
 
+## MoOffers: cấu hình RewardsVerse
+
+RewardsVerse mở Wall H5 của MoOffers trong trang **Offerwalls** bằng URL server-side:
+
+```text
+https://wall.mooffers.com/offerwall/{MOOFFERS_APP_ID}?uid={username}&platform=web&country={country}&source=rewardsverse
+```
+
+`MOOFFERS_APP_ID` là App ID public của ứng dụng MoOffers (đã có giá trị fallback trong code để giữ tương thích placement hiện tại). Không đưa callback secret vào client hoặc commit.
+
+Trong MoOffers Console → **My Apps → app → Callback/Postback**, đặt callback URL tới:
+
+```text
+https://rewardsverse.online/api/postback/mooffers
+```
+
+RewardsVerse xác minh `X-Callback-Signature` bằng HMAC-SHA256 trên **exact raw JSON body** với `MOOFFERS_POSTBACK_SECRET`, sau đó lấy `uid`, `payout`, `conversion_id` và trạng thái conversion để ghi thưởng idempotent. Hãy lưu secret thật trong Render Environment dưới `MOOFFERS_POSTBACK_SECRET`; không gửi secret qua chat.
+
 ## CPX Research: cấu hình
 
 CPX Research sử dụng App ID `35865` của ứng dụng Rewardsverse. Đặt `CPX_APP_SECURE_HASH` trong Render bằng App Secure Hash của CPX; không commit giá trị này. Trong CPX Publisher → Apps → Rewardsverse → Postback Settings, đặt Main Postback URL theo mẫu được tạo trong Admin Panel → Postbacks. Endpoint xác thực bằng `md5(trans_id-CPX_APP_SECURE_HASH)`, nhận `amount_usd`, `user_id` và xử lý `status=2` như giao dịch hủy/chargeback.

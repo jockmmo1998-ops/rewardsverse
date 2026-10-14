@@ -343,7 +343,7 @@ export const appRouter = router({
         const builder = OFFER_WALL_URLS[provider];
         let configured = false;
         try {
-          configured = Boolean(builder?.(userId));
+          configured = Boolean(builder?.(userId, user.countryCode));
         } catch {
           configured = false;
         }
@@ -494,7 +494,7 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Unknown offer wall" });
         }
         const userId = user.username || user.name || `user_${user.id}`;
-        const url = urlFn(userId);
+        const url = urlFn(userId, user.countryCode);
         if (!url) {
           throw new TRPCError({
             code: "PRECONDITION_FAILED",

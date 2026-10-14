@@ -10,6 +10,11 @@ describe("MoOffers integration", () => {
     expect(url).toContain("platform=web");
   });
 
+  it("uses the user's ISO country when building the H5 link", () => {
+    const url = OFFER_WALL_URLS.mooffers?.("member_42", "VN");
+    expect(url).toContain("country=VN");
+  });
+
   it("credits 40% of MoOffers payout while keeping USD as the wallet unit", () => {
     const policy = getRewardPolicy("mooffers");
     expect(policy.unit).toBe("usd");
