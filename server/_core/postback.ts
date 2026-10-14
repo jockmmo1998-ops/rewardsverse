@@ -389,6 +389,14 @@ function verifyProviderSha256Signature(
     return constantTimeEqual(expected, signature.toLowerCase());
   });
 }
+/** MoOffers signs the exact raw JSON request body with HMAC-SHA256. */
+function verifyMooffersSignature(secret: string, req: Request): boolean {
+  const provided = String(req.get("X-Callback-Signature") || "").trim().toLowerCase();
+  const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
+  if (!provided || !rawBody) return false;
+  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+  return constantTimeEqual(expected, provided);
+}
 
 /**
  * Some networks (notably TaskWall) do not provide a stable transaction ID.
@@ -437,6 +445,8 @@ function extractSignature(params: Record<string, any>): string {
  *     hash=sha256(user_id + offer_id + transaction_id + secret)
  * - theoremreach:
  *     HMAC-SHA1(URL without hash parameter, secret key), base64url encoded
+ * - mooffers:
+ *     X-Callback-Signature=HMAC-SHA256(raw JSON body, postback secret)
  *
  * Chi tiết param từng provider:
  * - revtoo:      subId=USERNAME    reward=AMOUNT    transId=TXID    signature=MD5
@@ -687,6 +697,13 @@ async function handlePostback(req: Request, res: Response) {
         return respond(401, { success: false, message: "Invalid postback signature" },
           "failed", 0, "", "", "", "signature_mismatch");
       }
+    } else if (spec.auth === "hmac_sha256") {
+      if (provider !== "mooffers" || !verifyMooffersSignature(expectedSecret, req)) {
+        console.error(`[Postback][${provider}] HMAC-SHA256 signature mismatch`);
+        return respond(401, { success: false, message: "Invalid postback signature" },
+          "failed", 0, "", "", "", "signature_mismatch");
+      }
+      diagnostics.authentication = "PASS";
     } else if (spec.auth === "hmac_sha1") {
       if (!verifyTheoremReachSignature(expectedSecret, requestUrl)) {
         console.error(`[Postback][${provider}] HMAC-SHA1 signature mismatch`);

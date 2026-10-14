@@ -84,7 +84,9 @@ async function startServer() {
     next();
   });
   // Cấu hình body parser với giới hạn lớn hơn cho file upload
-  app.use(express.json({ limit: "50mb" }));
+  app.use(express.json({ limit: "50mb", verify: (req, _res, buffer) => {
+    (req as typeof req & { rawBody?: Buffer }).rawBody = Buffer.from(buffer);
+  } }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   app.use("/api/trpc/auth", createRateLimiter({ windowMs: 60_000, max: 30 }));
   app.get("/api/health", (_req, res) => res.status(200).json({ ok: true, service: "rewardsverse", version: "2.0" }));

@@ -10,7 +10,7 @@ import { createHash, createHmac } from "crypto";
 
 type OfferWallUrlBuilder = (userId: string) => string | null;
 
-export type PostbackAuth = "none" | "token" | "md5" | "sha256" | "hmac_sha1" | "ip";
+export type PostbackAuth = "none" | "token" | "md5" | "sha256" | "hmac_sha1" | "hmac_sha256" | "ip";
 export type PostbackResponse = "json" | "ok" | "dup";
 
 export type PostbackParamSpec = {
@@ -87,6 +87,7 @@ export const OFFER_WALL_IDS = [
   "cpxresearch",
   "theoremreach",
   "timewall",
+  "mooffers",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -108,6 +109,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   cpxresearch: "CPX Research",
   theoremreach: "TheoremReach",
   timewall: "TimeWall",
+  mooffers: "MoOffers",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -230,6 +232,17 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     return url.toString();
   },
   timewall: (userId) => buildTimewallProfileUrl(userId),
+  mooffers: (userId) => {
+    const appId = env("MOOFFERS_APP_ID") || "app_57767c1f84d80017";
+    const normalizedUserId = userId.trim();
+    if (!appId || !normalizedUserId) return null;
+    const url = new URL(`https://wall.mooffers.com/offerwall/${encodeURIComponent(appId)}`);
+    url.searchParams.set("uid", normalizedUserId);
+    url.searchParams.set("platform", "web");
+    url.searchParams.set("country", "US");
+    url.searchParams.set("source", "rewardsverse");
+    return url.toString();
+  },
 };
 
 const secretEntries: Array<[string, string]> = [
@@ -254,6 +267,7 @@ const secretEntries: Array<[string, string]> = [
   ["cpxresearch", env("CPX_APP_SECURE_HASH")],
   ["theoremreach", env("THEOREMREACH_SECRET_KEY")],
   ["timewall", env("TIMEWALL_POSTBACK_SECRET")],
+  ["mooffers", env("MOOFFERS_POSTBACK_SECRET")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -425,6 +439,14 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["userid", "txid", "revenue", "currency", "hash", "ip", "type", "withdrawid", "reason", "offername", "offerdetail"],
   },
+  mooffers: {
+    user: "uid",
+    reward: "payout",
+    transaction: "conversion_id",
+    auth: "hmac_sha256",
+    response: "json",
+    macros: ["conversion_id", "app_id", "uid", "click_id", "survey_id", "event_type", "status", "reward", "payout", "currency", "offer_name", "offer_id", "sub1", "sub2", "sub3"],
+  },
   offermintx: {
     user: "subid1",
     reward: "payout",
@@ -440,7 +462,7 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
 export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride?: string): string | null => {
   const spec = POSTBACK_PARAM_SPECS[provider];
   const secret = secretOverride || POSTBACK_SECRETS[provider];
-  if (!spec || !baseUrl || (spec.auth !== "none" && spec.auth !== "ip" && !secret)) return null;
+  if (!spec || !baseUrl || (spec.auth !== "none" && spec.auth !== "ip" && spec.auth !== "hmac_sha256" && !secret)) return null;
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/api/postback/${provider}`);
   if (provider === "adloot") {
     for (const [field, macro] of [
@@ -546,7 +568,7 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
   }
   if (spec.auth === "md5") {
     url.searchParams.set("signature", `{signature}`);
-  } else if (spec.auth !== "none" && spec.auth !== "sha256") {
+  } else if (spec.auth !== "none" && spec.auth !== "sha256" && spec.auth !== "hmac_sha256") {
     const authField = provider === "taskwall" ? "token" : (spec.authFields?.[0] || "token");
     if (provider !== "taskwall") url.searchParams.set(authField, secret);
   }
