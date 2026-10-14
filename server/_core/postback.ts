@@ -86,6 +86,10 @@ const RADIENTWALL_POINTS_PER_USD = 400;
 function isAdlootIpAllowed(remoteIp: string): boolean {
   return isOfficialAdlootIpAllowed(remoteIp);
 }
+// Wannads documents a single source IP for Global Postback requests.
+function isWannadsIpAllowed(remoteIp: string): boolean {
+  return remoteIp === "3.22.177.178" || remoteIp === "::ffff:3.22.177.178";
+}
 
 function getRequestIpCandidates(req: Request): string[] {
   const cloudflareIp = req.headers["cf-ray"]
@@ -691,8 +695,14 @@ async function handlePostback(req: Request, res: Response) {
     } else if (spec.auth === "ip") {
       // AdLoot may use the direct peer or a Cloudflare client IP only after
       // CF-Ray, CDN-Loop, CF-Connecting-IP, True-Client-IP and the first XFF
-      // hop all agree. The query-string `ip` field is never considered.
-      if (provider !== "adloot" || !requestIpCandidates.some(isAdlootIpAllowed)) {
+      // hop all agree. Wannads documents a fixed source IP. The query-string
+      // `ip` field is never considered for either provider.
+      const sourceAllowed = provider === "adloot"
+        ? requestIpCandidates.some(isAdlootIpAllowed)
+        : provider === "wannads"
+          ? requestIpCandidates.some(isWannadsIpAllowed)
+          : false;
+      if (!sourceAllowed) {
         console.error(`[Postback][${provider}] Source IP is not allowlisted: ${requestIpCandidates.join(", ") || remoteIp}`);
         return respond(403, { success: false, message: "Postback source IP is not allowlisted" },
           "failed", 0, "", "", "", "ip_not_allowed");

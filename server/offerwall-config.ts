@@ -88,6 +88,7 @@ export const OFFER_WALL_IDS = [
   "theoremreach",
   "timewall",
   "mooffers",
+  "wannads",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -110,6 +111,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   theoremreach: "TheoremReach",
   timewall: "TimeWall",
   mooffers: "MoOffers",
+  wannads: "Wannads",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -244,6 +246,16 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     url.searchParams.set("source", "rewardsverse");
     return url.toString();
   },
+  wannads: (userId) => {
+    const appId = env("WANNADS_APP_ID") || "6acf285d8f84e497533936";
+    const normalizedUserId = userId.trim();
+    if (!appId || !normalizedUserId) return null;
+    const url = new URL("https://earn.wannads.com/wall");
+    url.searchParams.set("apiKey", appId);
+    url.searchParams.set("userId", normalizedUserId);
+    url.searchParams.set("aff_sub", normalizedUserId);
+    return url.toString();
+  },
 };
 
 const secretEntries: Array<[string, string]> = [
@@ -269,6 +281,7 @@ const secretEntries: Array<[string, string]> = [
   ["theoremreach", env("THEOREMREACH_SECRET_KEY")],
   ["timewall", env("TIMEWALL_POSTBACK_SECRET")],
   ["mooffers", env("MOOFFERS_POSTBACK_SECRET")],
+  ["wannads", env("WANNADS_POSTBACK_SECRET")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -447,6 +460,14 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     auth: "hmac_sha256",
     response: "json",
     macros: ["conversion_id", "app_id", "uid", "click_id", "survey_id", "event_type", "status", "reward", "payout", "currency", "offer_name", "offer_id", "sub1", "sub2", "sub3"],
+  },
+  wannads: {
+    user: "uid",
+    reward: "payout",
+    transaction: "transaction_id",
+    auth: "ip",
+    response: "json",
+    macros: ["uid", "payout", "transaction_id", "status", "offer_id", "offer_name", "aff_sub", "aff_sub2", "aff_sub3", "aff_sub4", "goal_id", "goal_name", "ip"],
   },
   offermintx: {
     user: "subid1",

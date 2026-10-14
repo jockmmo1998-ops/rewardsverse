@@ -22,4 +22,16 @@ describe("MoOffers integration", () => {
     expect(grossUsdFromProviderAmount("mooffers", 1.2)).toBe(1.2);
     expect(userRewardUsd("mooffers", 1.2)).toBeCloseTo(0.48, 8);
   });
+
+  it("builds the Wannads wall link and applies the same USD reward policy", () => {
+    const url = OFFER_WALL_URLS.wannads?.("member_42");
+    expect(url).toContain("https://earn.wannads.com/wall");
+    expect(url).toContain("apiKey=6acf285d8f84e497533936");
+    expect(url).toContain("userId=member_42");
+    expect(url).toContain("aff_sub=member_42");
+    const policy = getRewardPolicy("wannads");
+    expect(policy.unit).toBe("usd");
+    expect(policy.pointsPerUsd).toBe(1000);
+    expect(userRewardUsd("wannads", 1)).toBeCloseTo(0.4, 8);
+  });
 });

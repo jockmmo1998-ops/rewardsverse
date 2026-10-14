@@ -22,6 +22,7 @@ const POLICIES: Record<string, ProviderRewardPolicy> = {
   offerwallme: { unit: "points", pointsPerUsd: 1000, userShare: 1, pendingThresholdUsd: 4 },
   radientwall: { unit: "points", pointsPerUsd: 400, userShare: 1, pendingThresholdUsd: 10 },
   mooffers: { unit: "usd", pointsPerUsd: 1000, userShare: 0.4, pendingThresholdUsd: 10 },
+  wannads: { unit: "usd", pointsPerUsd: 1000, userShare: 0.4, pendingThresholdUsd: 10 },
 };
 
 export function getRewardPolicy(provider: string): ProviderRewardPolicy {
