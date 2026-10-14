@@ -512,6 +512,18 @@ export function registerPostbackRoutes(app: Express, rateLimiter?: RequestHandle
   app.post("/api/postback/unified/:provider", rateLimiter || ((_req, _res, next) => next()), handleUnifiedPostback);
   app.get("/api/postback/unified/:provider", rateLimiter || ((_req, _res, next) => next()), handleUnifiedPostback);
 
+  // Short callback URL for dashboards that validate only the base path. Empty
+  // probes are health checks; real requests use the normal MoOffers HMAC path.
+  app.post("/api/postback", (req, res) => {
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    if (Object.keys(req.query).length === 0 && Object.keys(body).length === 0 && !req.get("X-Callback-Signature")) {
+      return res.json({ success: true, provider: "mooffers", endpoint: "postback" });
+    }
+    const mooffersRequest = Object.assign(req, {
+      params: { ...req.params, provider: "mooffers" },
+    });
+    return handlePostback(mooffersRequest, res);
+  });
   // MoOffers probes callback URLs with an unsigned empty POST. Accept only
   // that exact probe without crediting anything; real callbacks still pass
   // through HMAC authentication in handlePostback below.
