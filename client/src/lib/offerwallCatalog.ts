@@ -40,6 +40,9 @@ export const OFFER_WALLS: OfferWall[] = [
   { id: 'wannads', name: 'Wannads', desc: 'Offers, surveys & routers worldwide', reward: '$0.10–$25.00', logo: '/assets/provider-logos/wannads.png', tag: 'NEW', category: 'Tasks', rating: 4.8, surface: '#ffffff', border: '#F59E0B', logoSurface: '#ffffff', accent: '#FBBF24', brandColor: '#F59E0B', track: '#4A3216', gradient: 'linear-gradient(90deg, #F59E0B, #FBBF24)', badgeSurface: '#4A3216' },
 ];
 
-export const NEW_TAB_WALL_IDS = new Set(['timewall', 'cointo']);
+// These providers can open advertiser pages that reject nested iframes. Route
+// them through the full-page view so offer clicks stay top-level and tracking
+// parameters remain intact.
+export const NEW_TAB_WALL_IDS = new Set(['timewall', 'cointo', 'mooffers']);
 export const OPINION_UNIVERSE_WALL_ID = 'opinionuniverse';
 export const OPINION_UNIVERSE_URL = 'https://opinionuniverse.com/offerwall?pubId=4078&appId=ID_95cdecb90aad77eaa007a2a89e6661d9';
