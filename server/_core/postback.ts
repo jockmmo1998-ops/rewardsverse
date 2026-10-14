@@ -494,6 +494,16 @@ export function registerPostbackRoutes(app: Express, rateLimiter?: RequestHandle
     });
   });
 
+  // MoOffers validates a configured callback URL with an unsigned GET before
+  // saving it. Return metadata for that empty probe only; real callbacks still
+  // use POST JSON and must pass HMAC validation in handlePostback below.
+  app.get("/api/postback/mooffers", (req, res, next) => {
+    if (Object.keys(req.query).length === 0 && !req.get("X-Callback-Signature")) {
+      return res.json({ success: true, provider: "mooffers", endpoint: "postback" });
+    }
+    return next();
+  });
+
   // Unified entry point. The provider is still required and is authenticated
   // by its own adapter rules inside the shared processor; it cannot bypass
   // credentials by choosing an arbitrary provider name.
