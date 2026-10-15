@@ -29,6 +29,10 @@ services:
         value: ""
       - key: PUBLIC_APP_URL
         value: https://rewardsverse.online
+      - key: MOOFFERS_APP_ID
+        value: app_57767c1f84d80017
+      - key: MOOFFERS_POSTBACK_SECRET
+        sync: false
       # AdLoot placement/API key is public and is also kept as a code fallback
       # for older deployments that have not synced this variable yet.
       - key: ADLOOT_PLACEMENT_ID

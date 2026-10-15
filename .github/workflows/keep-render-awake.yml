@@ -11,7 +11,8 @@ permissions: {}
 jobs:
   keep-awake:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    # A free Render instance can need up to about a minute to wake from sleep.
+    timeout-minutes: 3
     steps:
       - name: Ping production health endpoint
         env:
@@ -21,7 +22,7 @@ jobs:
           response_file="$(mktemp)"
           trap 'rm -f "$response_file"' EXIT
           http_code="$(curl --fail --silent --show-error --location \
-            --max-time 25 --retry 2 --retry-delay 3 \
+            --max-time 30 --retry 6 --retry-delay 5 --retry-max-time 150 --retry-all-errors \
             --output "$response_file" --write-out '%{http_code}' "$HEALTH_URL")"
           echo "Health endpoint returned HTTP $http_code"
           cat "$response_file"
