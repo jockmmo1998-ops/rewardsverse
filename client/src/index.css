@@ -1011,8 +1011,8 @@
   padding: 12px !important;
   border: 1px solid var(--provider-logo-color, var(--provider-accent, #42B883)) !important;
   border-radius: 14px !important;
-  background: color-mix(in srgb, var(--provider-brand, #16A34A) 22%, #1A211F) !important;
-  background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 22%, #1A211F) !important;
+  background: color-mix(in srgb, var(--provider-brand, #16A34A) 36%, #24302C) !important;
+  background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 36%, #24302C) !important;
   background-image: none !important;
   box-shadow: none !important;
   color: #E8F2EB !important;
@@ -1021,8 +1021,8 @@
 .unified-page .rv-network-provider-grid .rv-provider-card-flat:hover:not(:disabled),
 .unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible {
   border-color: var(--provider-logo-color, var(--provider-accent, #42B883)) !important;
-  background: color-mix(in srgb, var(--provider-brand, #16A34A) 30%, #1A211F) !important;
-  background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 30%, #1A211F) !important;
+  background: color-mix(in srgb, var(--provider-brand, #16A34A) 50%, #293832) !important;
+  background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 50%, #293832) !important;
   box-shadow: 0 12px 28px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 30%, transparent), 0 0 22px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 18%, transparent) !important;
   transform: translateY(-4px) scale(1.015) !important;
 }
