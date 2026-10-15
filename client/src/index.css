@@ -1009,21 +1009,21 @@
   aspect-ratio: 1.55 / 1 !important;
   min-height: 124px !important;
   padding: 12px !important;
-  border: 1px solid color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 62%, #82958A) !important;
+  border: 1px solid var(--provider-logo-color, var(--provider-accent, #42B883)) !important;
   border-radius: 14px !important;
   background: color-mix(in srgb, var(--provider-brand, #16A34A) 22%, #1A211F) !important;
   background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 22%, #1A211F) !important;
   background-image: none !important;
-  box-shadow: none !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 24%, transparent), 0 8px 18px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 12%, transparent) !important;
   color: #E8F2EB !important;
   transition: background-color .2s ease, border-color .2s ease, transform .2s ease !important;
 }
 .unified-page .rv-network-provider-grid .rv-provider-card-flat:hover:not(:disabled),
 .unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible {
-  border-color: color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 88%, white) !important;
+  border-color: var(--provider-logo-color, var(--provider-accent, #42B883)) !important;
   background: color-mix(in srgb, var(--provider-brand, #16A34A) 30%, #1A211F) !important;
   background-color: color-mix(in srgb, var(--provider-brand, #16A34A) 30%, #1A211F) !important;
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 26%, transparent), 0 0 0 1px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 22%, transparent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 44%, transparent), 0 12px 28px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 30%, transparent), 0 0 22px color-mix(in srgb, var(--provider-logo-color, var(--provider-accent, #42B883)) 18%, transparent) !important;
   transform: translateY(-4px) scale(1.015) !important;
 }
 .unified-page .rv-network-provider-grid .rv-provider-card-flat:focus-visible {
