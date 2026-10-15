@@ -1882,7 +1882,7 @@ button:disabled {
 }
 
 .provider-revtoo-logo {
-  background: var(--rv-sidebar);
+  background: transparent;
 }
 
 /* Offerwall embeds deliberately retain the provider's own canvas inside app chrome. */
