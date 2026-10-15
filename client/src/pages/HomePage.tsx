@@ -7,10 +7,8 @@ import { UserAvatar } from '@/components/AvatarSystem';
 import { Surface } from '@/components/shared/RewardUI';
 import { OfferCatalogResults } from '@/components/dashboard/OfferCatalogResults';
 import { EmbeddedOfferDialog } from '@/components/dashboard/EmbeddedOfferDialog';
-import { CommunityActivityPanel } from '@/components/dashboard/CommunityActivityPanel';
 import { PartnerDirectory } from '@/components/dashboard/PartnerDirectory';
-import { WeeklyProgressPanel } from '@/components/dashboard/WeeklyProgressPanel';
-import { NEW_TAB_WALL_IDS, OFFER_WALLS, OPINION_UNIVERSE_URL, OPINION_UNIVERSE_WALL_ID } from '@/lib/offerwallCatalog';
+import { NEW_TAB_WALL_IDS, OFFER_WALLS, OPINION_UNIVERSE_URL, OPINION_UNIVERSE_WALL_ID, SURVEY_WALL_IDS, SURVEY_WALLS } from '@/lib/offerwallCatalog';
 
 const offerFilters = [
   { label: 'Featured', value: 'featured', icon: Sparkles },
@@ -72,12 +70,10 @@ export default function HomePage() {
   const [activeWall, setActiveWall] = useState<string | null>(null);
   const offerTriggerRef = useRef<HTMLElement | null>(null);
   const wallTriggerRef = useRef<HTMLElement | null>(null);
-  const [lowerPanelsRef, lowerPanelsVisible] = useNearViewport<HTMLDivElement>();
   const [partnerSectionRef, partnerSectionVisible] = useNearViewport<HTMLDivElement>();
   const [wallUrl, setWallUrl] = useState('');
   const featured = trpc.user.getFeaturedOffers.useQuery(undefined, { staleTime: 60_000, gcTime: 5 * 60_000, placeholderData: (previousData) => previousData, refetchOnWindowFocus: false, retry: false });
   const summary = trpc.user.getDashboardSummary.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
-  const weeklyQuery = trpc.user.getWeeklyProgress.useQuery(undefined, { enabled: Boolean(profile?.id), staleTime: 30_000, refetchOnWindowFocus: false, retry: false });
   const wallStatusQuery = trpc.user.getOfferWallStatuses.useQuery(undefined, { enabled: Boolean(profile?.id && partnerSectionVisible), staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
   const wallUrlQuery = trpc.user.getOfferWallUrl.useQuery({ wall: activeWall || '' }, { enabled: Boolean(activeWall && activeWall !== OPINION_UNIVERSE_WALL_ID && user?.id), retry: false, refetchOnWindowFocus: false });
 
@@ -91,9 +87,8 @@ export default function HomePage() {
   }, [activeWall, user?.id, user?.name, user?.username, wallUrlQuery.data?.url]);
 
   const allOffers = featured.data ?? [];
-  const weeklyTotal = Number(weeklyQuery.data?.total ?? 0);
-  const weeklyGoal = Number(weeklyQuery.data?.goal ?? 10);
-  const weeklyPercent = Math.min(100, Math.round((weeklyTotal / Math.max(weeklyGoal, 1)) * 100));
+  const surveyWallIds = new Set<string>(SURVEY_WALL_IDS);
+  const rewardNetworkWalls = OFFER_WALLS.filter((wall) => !surveyWallIds.has(wall.id));
   const filteredOffers = useMemo(() => {
     const query = search.trim().toLowerCase();
     let offers = allOffers.filter((offer: any) => {
@@ -113,11 +108,6 @@ export default function HomePage() {
   const completedOffersLabel = !user || previewDataUnavailable ? '—' : (profile?.offersCompleted ?? profile?.completed_offers ?? 0);
   const todayEarningsLabel = !user || previewDataUnavailable ? '—' : money(summary.data?.todayEarnings);
   const pendingRewardsLabel = !user || previewDataUnavailable ? '—' : money(pendingRewards);
-  const weeklyDataUnavailable = previewDataUnavailable && !weeklyQuery.data;
-  const weeklyTotalLabel = weeklyDataUnavailable ? '—' : money(weeklyTotal);
-  const weeklyGoalLabel = weeklyDataUnavailable ? '—' : money(weeklyGoal);
-  const weeklyPercentLabel = weeklyDataUnavailable ? '—' : `${weeklyPercent}%`;
-
   return (
     <div className="dashboard-page dashboard-layout-grid mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="dashboard-main-column">
@@ -209,20 +199,33 @@ export default function HomePage() {
         onClose={() => { setActiveWall(null); setWallUrl(''); }}
         returnFocusRef={wallTriggerRef}
       />
-      <div ref={lowerPanelsRef} className="rv-dashboard-split rv-dashboard-lazy-zone">
-        <WeeklyProgressPanel
-          unavailable={weeklyDataUnavailable}
-          percent={weeklyPercent}
-          percentLabel={weeklyPercentLabel}
-          totalLabel={weeklyTotalLabel}
-          goalLabel={weeklyGoalLabel}
-          streak={Number(weeklyQuery.data?.streak ?? 0)}
-        />
-        <CommunityActivityPanel enabled={lowerPanelsVisible} />
-      </div>
       <PartnerDirectory
         sectionRef={partnerSectionRef}
+        walls={rewardNetworkWalls}
         statuses={wallStatusQuery.data}
+        onSelect={(wallId, trigger) => {
+          const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
+          if (!user) {
+            navigate('/login', { state: { from: '/offerwalls' } });
+            return;
+          }
+          if (status && !status.configured) return;
+          if (NEW_TAB_WALL_IDS.has(wallId)) {
+            navigate(`/offerwalls/${wallId}`);
+            return;
+          }
+          wallTriggerRef.current = trigger ?? null;
+          setWallUrl('');
+          setActiveWall(wallId);
+        }}
+      />
+      <PartnerDirectory
+        walls={SURVEY_WALLS}
+        statuses={wallStatusQuery.data}
+        eyebrow="SURVEY NETWORK"
+        title="Surveys. Your voice, rewarded."
+        description="Choose a survey partner and turn your opinions into verified rewards."
+        ariaLabel="Survey providers"
         onSelect={(wallId, trigger) => {
           const status = wallStatusQuery.data?.find((item) => item.provider === wallId);
           if (!user) {

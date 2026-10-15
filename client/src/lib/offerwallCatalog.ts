@@ -44,5 +44,7 @@ export const OFFER_WALLS: OfferWall[] = [
 // them through the full-page view so offer clicks stay top-level and tracking
 // parameters remain intact.
 export const NEW_TAB_WALL_IDS = new Set(['timewall', 'cointo', 'mooffers']);
+export const SURVEY_WALL_IDS = ['cpxresearch', 'timewall', 'theoremreach'] as const;
+export const SURVEY_WALLS = OFFER_WALLS.filter((wall) => SURVEY_WALL_IDS.includes(wall.id as (typeof SURVEY_WALL_IDS)[number]));
 export const OPINION_UNIVERSE_WALL_ID = 'opinionuniverse';
 export const OPINION_UNIVERSE_URL = 'https://opinionuniverse.com/offerwall?pubId=4078&appId=ID_95cdecb90aad77eaa007a2a89e6661d9';

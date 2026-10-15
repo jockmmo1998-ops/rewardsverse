@@ -2,23 +2,29 @@ import type { CSSProperties, Ref } from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { OFFER_WALLS } from '@/lib/offerwallCatalog';
+import type { OfferWall } from '@/lib/offerwallCatalog';
 
 interface PartnerDirectoryProps {
   statuses?: Array<{ provider: string; configured: boolean }>;
   onSelect: (wallId: string, trigger?: HTMLButtonElement) => void;
   sectionRef?: Ref<HTMLElement>;
+  walls?: OfferWall[];
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  ariaLabel?: string;
 }
 
-export function PartnerDirectory({ statuses, onSelect, sectionRef }: PartnerDirectoryProps) {
-  const partners = OFFER_WALLS;
+export function PartnerDirectory({ statuses, onSelect, sectionRef, walls = OFFER_WALLS, eyebrow = 'REWARD NETWORK', title = 'One network. More ways to explore.', description = 'Every provider in the Offerwall catalog, gathered in one place.', ariaLabel = 'All offerwall partners' }: PartnerDirectoryProps) {
+  const partners = walls;
 
   return (
-    <section ref={sectionRef} className="rv-partner-directory rv-dashboard-lazy-zone" aria-label="All offerwall partners">
+    <section ref={sectionRef} className="rv-partner-directory rv-dashboard-lazy-zone" aria-label={ariaLabel}>
       <header className="rv-partner-heading">
         <div>
-          <p className="rv-eyebrow"><span className="section-dot" /> REWARD NETWORK</p>
-          <h2>One network. More ways to explore.</h2>
-          <p>Every provider in the Offerwall catalog, gathered in one place.</p>
+          <p className="rv-eyebrow"><span className="section-dot" /> {eyebrow}</p>
+          <h2>{title}</h2>
+          <p>{description}</p>
         </div>
         <span className="rv-partner-count">{partners.length} offerwall partners</span>
       </header>
