@@ -19,7 +19,7 @@ export function PartnerDirectory({ statuses, onSelect, sectionRef, walls = OFFER
   const partners = walls;
 
   return (
-    <section ref={sectionRef} className="rv-partner-directory rv-dashboard-lazy-zone" aria-label={ariaLabel}>
+    <section ref={sectionRef} className="rv-partner-directory rv-dashboard-lazy-zone unified-page" aria-label={ariaLabel}>
       <header className="rv-partner-heading">
         <div>
           <p className="rv-eyebrow"><span className="section-dot" /> {eyebrow}</p>
@@ -28,7 +28,7 @@ export function PartnerDirectory({ statuses, onSelect, sectionRef, walls = OFFER
         </div>
         <span className="rv-partner-count">{partners.length} offerwall partners</span>
       </header>
-      <div className="rv-partner-grid rv-network-provider-grid unified-page">
+      <div className="rv-partner-grid rv-network-provider-grid">
         {partners.map((wall) => {
           const status = statuses?.find((item) => item.provider === wall.id);
           const configured = status?.configured !== false;
