@@ -1155,7 +1155,7 @@ async function handlePostback(req: Request, res: Response) {
         await db.addNotification({
           userId: user.id,
           title: "Reward pending review",
-          message: `Your ${provider} offer reward of $${reviewAmountUsd.toFixed(2)} is pending verification before it is added to your balance.`,
+          message: `Your ${provider} pending reward of $${reward.toFixed(2)} is awaiting verification before it is added to your balance.`,
           type: "reward",
           isRead: 0,
         });
