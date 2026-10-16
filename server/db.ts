@@ -1,4 +1,4 @@
-import { eq, desc, sql, and, gte } from "drizzle-orm";
+import { eq, desc, sql, and, gte, ne } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { randomBytes } from "crypto";
 import {
@@ -692,6 +692,8 @@ export async function getActivitiesByUserId(userId: number) {
 export async function getRecentActivities(limit: number = 50) {
   const db = await getDb();
   if (!db) return [];
+  // Chargebacks/reversals remain in the private activity and audit history for
+  // administrators, but must never appear in the public live ticker.
   return db
     .select({
       id: activities.id,
@@ -708,6 +710,7 @@ export async function getRecentActivities(limit: number = 50) {
       totalEarned: users.totalEarned,
     })
     .from(activities)
+    .where(ne(activities.type, "offer_reversal"))
     .leftJoin(users, eq(activities.userId, users.id))
     .orderBy(desc(activities.createdAt))
     .limit(limit);

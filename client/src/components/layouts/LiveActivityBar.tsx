@@ -112,6 +112,8 @@ export function LiveActivityBar() {
   const currentUserId = String(user?.id ?? user?.userId ?? '');
   const currentUsername = String(user?.username ?? '').toLowerCase();
   const items = (activities.data ?? [])
+    // Reversals are private admin/audit events, never public ticker content.
+    .filter((item: any) => item.type !== 'offer_reversal')
     .filter((item: any) => {
       const itemUserId = String(item.userId ?? '');
       const itemUsername = String(item.username ?? '').toLowerCase();
