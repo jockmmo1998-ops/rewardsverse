@@ -11,7 +11,7 @@ const sampleOffers = [
   ['Join a rewards program', 'Offerwall.me', '$0.10–$10.00', 'Tasks'],
   ['Answer a short questionnaire', 'TimeWall', '$0.10–$8.00', 'Surveys'],
   ['Try a premium mobile app', 'Moustache Leads', '$0.50–$10.00', 'Apps'],
-  ['Finish an engagement task', 'Taskwall', '$0.15–$6.00', 'Tasks'],
+  ['Explore a rewarded offer', 'Clickwall', 'Varies by offer', 'Apps'],
   ['Complete a crypto offer', 'Cointo', '$0.20–$4.00', 'Apps'],
   ['Explore a new finance app', 'Klink Labs', '$0.30–$7.00', 'Apps'],
   ['Take a rewarded survey', 'TheoremReach', '$0.10–$5.00', 'Surveys'],

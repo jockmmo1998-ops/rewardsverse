@@ -73,6 +73,10 @@ services:
         sync: false
       - key: MOUSTACHE_POSTBACK_SECRET
         sync: false
+      - key: CLICKWALL_PLACEMENT_ID
+        value: "10621"
+      - key: CLICKWALL_POSTBACK_SECRET
+        sync: false
       - key: TASKWALL_APP_ID
         sync: false
       - key: TASKWALL_POSTBACK_SECRET

@@ -19,6 +19,8 @@ const POLICIES: Record<string, ProviderRewardPolicy> = {
   admaxflow: { unit: "points", pointsPerUsd: 400, userShare: 0.4, pendingThresholdUsd: 10 },
   gaintwall: { ...DEFAULT_POLICY, userShare: 0.4 },
   gleamads: { unit: "points", pointsPerUsd: 1000, userShare: 0.5, pendingThresholdUsd: 4 },
+  // Clickwall payout is already USD; the configured 500 coins/$1 is not the wallet unit.
+  clickwall: { ...DEFAULT_POLICY, userShare: 0.5 },
   offerwallme: { unit: "points", pointsPerUsd: 1000, userShare: 1, pendingThresholdUsd: 4 },
   radientwall: { unit: "points", pointsPerUsd: 400, userShare: 1, pendingThresholdUsd: 10 },
   mooffers: { unit: "usd", pointsPerUsd: 1000, userShare: 0.4, pendingThresholdUsd: 10 },

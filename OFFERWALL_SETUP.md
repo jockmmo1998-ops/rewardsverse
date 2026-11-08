@@ -21,7 +21,7 @@ Link hoàn chỉnh được tạo trong Admin Panel → **Postbacks** chỉ khi 
 | CPX Research | App ID và App Secure Hash trong Apps → Rewardsverse | `CPX_APP_ID`, `CPX_APP_SECURE_HASH` | `/api/postback/cpxresearch` |
 | Gemiwall | Placement ID và **Secret Key** trong Settings → Account Information. Nếu dashboard cấp API key riêng thì dùng khóa đó; nếu không, code dùng Secret Key làm API key fallback | `GEMIWALL_PLACEMENT_ID`, `GEMIWALL_POSTBACK_SECRET` (hoặc thêm `GEMIWALL_API_KEY`) | `/api/postback/gemiwall` |
 | Revtoo | API key/placement key và postback secret | `REVTOO_API_KEY` hoặc `REVTOO_PLACEMENT_ID`, `REVTOO_POSTBACK_SECRET` | `/api/postback/revtoo` |
-| Clickwall | Placement ID và postback token/secret | `CLICKWALL_PLACEMENT_ID`, `CLICKWALL_POSTBACK_SECRET` | `/api/postback/clickwall` |
+| Clickwall | App ID `10621` và Postback Secret Key trong App Settings | `CLICKWALL_PLACEMENT_ID`, `CLICKWALL_POSTBACK_SECRET` | `/api/postback/clickwall` |
 | Moustache Leads | Placement ID, API key nếu dashboard yêu cầu, và postback secret | `MOUSTACHE_PLACEMENT_ID`, `MOUSTACHE_API_KEY`, `MOUSTACHE_POSTBACK_SECRET` | `/api/postback/moustache` |
 | Taskwall | App ID và token/password dùng để xác thực callback | `TASKWALL_APP_ID`, `TASKWALL_POSTBACK_SECRET` | `/api/postback/taskwall` |
 | CoinToMedia | Public/site key và postback secret | `COINTO_PUBLIC_KEY` hoặc `COINTO_PLACEMENT_ID`, `COINTO_POSTBACK_SECRET` | `/api/postback/cointo` |
@@ -54,7 +54,21 @@ RewardsVerse xác minh `X-Callback-Signature` bằng HMAC-SHA256 trên **exact r
 
 CPX Research sử dụng App ID `35865` của ứng dụng Rewardsverse. Đặt `CPX_APP_SECURE_HASH` trong Render bằng App Secure Hash của CPX; không commit giá trị này. Trong CPX Publisher → Apps → Rewardsverse → Postback Settings, đặt Main Postback URL theo mẫu được tạo trong Admin Panel → Postbacks. Endpoint xác thực bằng `md5(trans_id-CPX_APP_SECURE_HASH)`, nhận `amount_usd`, `user_id` và xử lý `status=2` như giao dịch hủy/chargeback.
 
+## Clickwall: cấu hình RewardsVerse
+
+Clickwall App ID `10621` dùng URL offerwall chính thức `https://clickwall.net/app/iframe/10621/{USER_ID}`. RewardsVerse truyền username đã đăng nhập làm `{USER_ID}` để conversion gắn đúng tài khoản. App hiện cấu hình tiền ảo `coins` với tỷ lệ `500 coins = $1`; ví RewardsVerse vẫn dùng USD.
+
+Trong Clickwall → Apps → Edit Settings, đặt APP URL thành `https://rewardsverse.online/` và callback URL thành:
+
+```text
+https://rewardsverse.online/api/postback/clickwall?user_id={user_id}&offer_id={offer_id}&amount={amount}&payout={payout}&offer_name={offer_name}&user_ip={user_ip}&txid={txid}&status={status}&sig={sig}
+```
+
+Endpoint xác minh `sig` bằng HMAC-SHA256 trên chuỗi đúng thứ tự `user_id={user_id}&oid={offer_id}&amount={amount}&tx_id={txid}` với `CLICKWALL_POSTBACK_SECRET` lấy từ nút Postback Key của app. Server dùng `payout` (USD) làm gross reward rồi áp dụng user-share 50% hiện có; `amount` (coins) chỉ dùng xác minh chữ ký, không được cộng như USD. `status=rejected` được xử lý như reversal, `txid` chống cộng trùng và callback hợp lệ được xác nhận bằng body `1`. Lưu secret chỉ trong Render Environment Variables.
+
 ## Taskwall: cấu hình và test
+
+Taskwall đã bị gỡ khỏi catalog giao diện. Handler cũ vẫn được giữ để tiếp nhận postback trễ của conversion đã bắt đầu trước khi bị gỡ.
 
 Trong Taskwall, sử dụng link được tạo từ Admin Panel. Link có dạng:
 

@@ -89,6 +89,7 @@ export const OFFER_WALL_IDS = [
   "timewall",
   "mooffers",
   "wannads",
+  "clickwall",
 ] as const;
 
 export const OFFER_WALL_LABELS: Record<string, string> = {
@@ -99,6 +100,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   revtoo: "Revtoo",
   gleamads: "GleamAds",
   moustache: "MoustacheLeads",
+  clickwall: "Clickwall",
   taskwall: "Taskwall",
   cointo: "CoinToMedia",
   klink: "Klink Finance",
@@ -171,6 +173,12 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     url.searchParams.set("user_id", userId);
     if (apiKey) url.searchParams.set("api_key", apiKey);
     return url.toString();
+  },
+  clickwall: (userId) => {
+    const placementId = env("CLICKWALL_PLACEMENT_ID") || "10621";
+    const normalizedUserId = userId.trim();
+    if (!placementId || !normalizedUserId) return null;
+    return `https://clickwall.net/app/iframe/${encodeURIComponent(placementId)}/${encodedUserId(normalizedUserId)}`;
   },
   taskwall: (userId) => {
     const appId = env("TASKWALL_APP_ID") || "0640f51b6a17749572b508423c387b00";
@@ -269,6 +277,7 @@ const secretEntries: Array<[string, string]> = [
   // GleamAds has no postback token field; its placement uses source-IP validation.
   ["gleamads", ""],
   ["moustache", env("MOUSTACHE_POSTBACK_SECRET")],
+  ["clickwall", env("CLICKWALL_POSTBACK_SECRET")],
   ["taskwall", env("TASKWALL_POSTBACK_SECRET")],
   ["cointo", env("COINTO_POSTBACK_SECRET")],
   ["klink", env("KLINK_POSTBACK_SECRET")],
@@ -362,6 +371,15 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     authFields: ["token", "password", "secret", "apikey", "api_key", "key"],
     macros: ["user_id", "payout", "transaction_id", "offer_name", "status"],
+  },
+  clickwall: {
+    user: "user_id",
+    // Clickwall sends payout in USD and amount in the placement's virtual currency.
+    reward: "payout",
+    transaction: "txid",
+    auth: "hmac_sha256",
+    response: "ok",
+    macros: ["user_id", "offer_id", "amount", "payout", "offer_name", "user_ip", "txid", "status", "sig"],
   },
   taskwall: {
     user: "userid",
@@ -486,6 +504,20 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
   const secret = secretOverride || POSTBACK_SECRETS[provider];
   if (!spec || !baseUrl || (spec.auth !== "none" && spec.auth !== "ip" && spec.auth !== "hmac_sha256" && !secret)) return null;
   const url = new URL(`${baseUrl.replace(/\/$/, "")}/api/postback/${provider}`);
+  if (provider === "clickwall") {
+    for (const [field, macro] of [
+      ["user_id", "{user_id}"],
+      ["offer_id", "{offer_id}"],
+      ["amount", "{amount}"],
+      ["payout", "{payout}"],
+      ["offer_name", "{offer_name}"],
+      ["user_ip", "{user_ip}"],
+      ["txid", "{txid}"],
+      ["status", "{status}"],
+      ["sig", "{sig}"],
+    ] as const) url.searchParams.set(field, macro);
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
+  }
   if (provider === "adloot") {
     for (const [field, macro] of [
       ["user_id", "{user_id}"],

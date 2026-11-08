@@ -24,6 +24,7 @@ import {
   trustedCloudflareClientIp,
 } from "../adloot-postback";
 import { grossUsdFromProviderAmount, getRewardPolicy, requiresManualReview, userRewardUsd } from "../reward-policy";
+import { selectClickwallPayout, verifyClickwallSignature } from "../clickwall-postback";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UNIVERSAL PARAMETER MAPS
@@ -660,6 +661,7 @@ async function handlePostback(req: Request, res: Response) {
       // legacy duplicate marker used by AdsWedMedia unchanged.
       const body = logStatus === "duplicate" && (provider === "adswedmedia" || provider === "radientwall")
         ? "DUP"
+        : provider === "clickwall" ? "1"
         : provider === "revtoo" ? "ok" : "OK";
       return res.status(httpStatus).type("text/plain").send(body);
     }
@@ -746,7 +748,12 @@ async function handlePostback(req: Request, res: Response) {
           "failed", 0, "", "", "", "signature_mismatch");
       }
     } else if (spec.auth === "hmac_sha256") {
-      if (provider !== "mooffers" || !verifyMooffersSignature(expectedSecret, req)) {
+      const valid = provider === "mooffers"
+        ? verifyMooffersSignature(expectedSecret, req)
+        : provider === "clickwall"
+          ? verifyClickwallSignature(expectedSecret, params)
+          : false;
+      if (!valid) {
         console.error(`[Postback][${provider}] HMAC-SHA256 signature mismatch`);
         return respond(401, { success: false, message: "Invalid postback signature" },
           "failed", 0, "", "", "", "signature_mismatch");
@@ -895,6 +902,10 @@ async function handlePostback(req: Request, res: Response) {
       // payout contains the actual USD value. Prefer payout for our USD wallet
       // and retain user_amount as a fallback for older callbacks.
       ? pickNumeric(params, ["payout", "user_amount"])
+      : provider === "clickwall"
+      // Clickwall payout is USD. Its amount field is virtual currency and is
+      // used only for signature verification, never as a dollar balance.
+      ? selectClickwallPayout(params)
       // CoinToMedia sends reward as virtual coins and payout as USD. The
       // RewardsVerse balance is denominated in USD, so payout must win.
       : provider === "cointo"
