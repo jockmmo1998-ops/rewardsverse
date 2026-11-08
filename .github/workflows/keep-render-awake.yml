@@ -11,7 +11,7 @@ permissions: {}
 jobs:
   keep-awake:
     runs-on: ubuntu-latest
-    # A free Render instance can need up to about a minute to wake from sleep.
+    # Allow enough time for a Free instance to cold-start before failing the probe.
     timeout-minutes: 3
     steps:
       - name: Ping production health endpoint
@@ -22,10 +22,11 @@ jobs:
           response_file="$(mktemp)"
           trap 'rm -f "$response_file"' EXIT
           last_code="000"
-          for attempt in 1 8; do
+          for attempt in 1 2 3 4 5; do
             : > "$response_file"
             http_code="$(curl --silent --show-error --location \
-              --max-time 20 --output "$response_file" --write-out '%{http_code}' "$HEALTH_URL" || true)"
+              --connect-timeout 8 --max-time 20 --output "$response_file" \
+              --write-out '%{http_code}' "$HEALTH_URL" || true)"
             last_code="$http_code"
             echo "Health endpoint attempt $attempt returned HTTP $http_code"
             cat "$response_file"
@@ -47,7 +48,9 @@ jobs:
                 exit 1
                 ;;
             esac
-            sleep 8
+            if [ "$attempt" -lt 5 ]; then
+              sleep 8
+            fi
           done
 
           if [ "$last_code" = "429" ]; then
