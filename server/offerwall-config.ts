@@ -89,6 +89,7 @@ export const OFFER_WALL_IDS = [
   "timewall",
   "mooffers",
   "wannads",
+  "prismads",
   "clickwall",
 ] as const;
 
@@ -114,6 +115,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   timewall: "TimeWall",
   mooffers: "MoOffers",
   wannads: "Wannads",
+  prismads: "PrismAds",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -179,6 +181,17 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     const normalizedUserId = userId.trim();
     if (!placementId || !normalizedUserId) return null;
     return `https://clickwall.net/app/iframe/${encodeURIComponent(placementId)}/${encodedUserId(normalizedUserId)}`;
+  },
+  prismads: (userId) => {
+    const placementId = env("PRISMADS_PLACEMENT_ID");
+    const iframeApiKey = env("PRISMADS_IFRAME_API_KEY");
+    const postbackSecret = env("PRISMADS_POSTBACK_SECRET");
+    const normalizedUserId = userId.trim();
+    if (!placementId || !iframeApiKey || !postbackSecret || !normalizedUserId) return null;
+    const url = new URL(`https://prismads.co/wall/${encodeURIComponent(placementId)}`);
+    url.searchParams.set("api_key", iframeApiKey);
+    url.searchParams.set("user_id", normalizedUserId);
+    return url.toString();
   },
   taskwall: (userId) => {
     const appId = env("TASKWALL_APP_ID") || "0640f51b6a17749572b508423c387b00";
@@ -291,6 +304,7 @@ const secretEntries: Array<[string, string]> = [
   ["timewall", env("TIMEWALL_POSTBACK_SECRET")],
   ["mooffers", env("MOOFFERS_POSTBACK_SECRET")],
   ["wannads", env("WANNADS_POSTBACK_SECRET")],
+  ["prismads", env("PRISMADS_POSTBACK_SECRET")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -487,6 +501,16 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     response: "json",
     macros: ["uid", "payout", "transaction_id", "status", "offer_id", "offer_name", "aff_sub", "aff_sub2", "aff_sub3", "aff_sub4", "goal_id", "goal_name", "ip"],
   },
+  prismads: {
+    user: "user_id",
+    // `value` is virtual currency. RewardsVerse converts it to USD at the
+    // placement rate (1,000 Coins = $1) before recording the wallet credit.
+    reward: "value",
+    transaction: "txid",
+    auth: "hmac_sha256",
+    response: "json",
+    macros: ["user_id", "payout", "value", "currency", "txid", "token", "offer_id", "offer_name", "status", "event", "click_id", "country", "ip", "placement_id", "signature"],
+  },
   offermintx: {
     user: "subid1",
     reward: "payout",
@@ -515,6 +539,26 @@ export const getPostbackUrl = (provider: string, baseUrl: string, secretOverride
       ["txid", "{txid}"],
       ["status", "{status}"],
       ["sig", "{sig}"],
+    ] as const) url.searchParams.set(field, macro);
+    return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
+  }
+  if (provider === "prismads") {
+    for (const [field, macro] of [
+      ["user_id", "{user_id}"],
+      ["payout", "{payout}"],
+      ["value", "{value}"],
+      ["currency", "{currency}"],
+      ["txid", "{txid}"],
+      ["token", "{token}"],
+      ["offer_id", "{offer_id}"],
+      ["offer_name", "{offer_name}"],
+      ["status", "{status}"],
+      ["event", "{event}"],
+      ["click_id", "{click_id}"],
+      ["country", "{country}"],
+      ["ip", "{ip}"],
+      ["placement_id", "{placement_id}"],
+      ["signature", "{signature}"],
     ] as const) url.searchParams.set(field, macro);
     return url.toString().replace(/%7B/gi, "{").replace(/%7D/gi, "}");
   }

@@ -33,6 +33,13 @@ services:
         value: app_57767c1f84d80017
       - key: MOOFFERS_POSTBACK_SECRET
         sync: false
+      # PrismAds placement, public iframe key, and private HMAC callback secret.
+      - key: PRISMADS_PLACEMENT_ID
+        sync: false
+      - key: PRISMADS_IFRAME_API_KEY
+        sync: false
+      - key: PRISMADS_POSTBACK_SECRET
+        sync: false
       # AdLoot placement/API key is public and is also kept as a code fallback
       # for older deployments that have not synced this variable yet.
       - key: ADLOOT_PLACEMENT_ID

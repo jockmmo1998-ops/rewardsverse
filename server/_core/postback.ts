@@ -25,6 +25,7 @@ import {
 } from "../adloot-postback";
 import { grossUsdFromProviderAmount, getRewardPolicy, requiresManualReview, userRewardUsd } from "../reward-policy";
 import { selectClickwallPayout, verifyClickwallSignature } from "../clickwall-postback";
+import { normalizePrismadsValue, verifyPrismadsSignature } from "../prismads-postback";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UNIVERSAL PARAMETER MAPS
@@ -492,7 +493,7 @@ export function registerPostbackRoutes(app: Express, rateLimiter?: RequestHandle
       version: "2.0",
       supportedMethods: ["GET", "POST", "application/json", "application/x-www-form-urlencoded", "multipart/form-data"],
       configuredProviders: configured,
-      universalMode: "Only the 11 supported providers are accepted; every callback must be authenticated",
+      universalMode: "Only configured providers are accepted; every callback must be authenticated",
       postbackUrl: "Use the provider-specific callback URL from the admin panel",
       supportedProviders: OFFER_WALL_IDS,
       userFields: USER_FIELDS,
@@ -752,6 +753,8 @@ async function handlePostback(req: Request, res: Response) {
         ? verifyMooffersSignature(expectedSecret, req)
         : provider === "clickwall"
           ? verifyClickwallSignature(expectedSecret, params)
+          : provider === "prismads"
+            ? verifyPrismadsSignature(expectedSecret, params)
           : false;
       if (!valid) {
         console.error(`[Postback][${provider}] HMAC-SHA256 signature mismatch`);
@@ -906,6 +909,10 @@ async function handlePostback(req: Request, res: Response) {
       // Clickwall payout is USD. Its amount field is virtual currency and is
       // used only for signature verification, never as a dollar balance.
       ? selectClickwallPayout(params)
+      : provider === "prismads"
+      // PrismAds signs and sends the virtual-currency `value`; the placement
+      // rate is converted to the site's USD wallet by reward-policy.ts.
+      ? normalizePrismadsValue(pickSignedNumeric(params, ["value"]))
       // CoinToMedia sends reward as virtual coins and payout as USD. The
       // RewardsVerse balance is denominated in USD, so payout must win.
       : provider === "cointo"
@@ -1010,7 +1017,9 @@ async function handlePostback(req: Request, res: Response) {
     // Use only the documented transaction field for providers that have one.
     // TaskWall has no transaction ID, so derive a stable id from the payload;
     // never use its callback password as an idempotency key.
-    let rawTxid = spec.transaction ? pick(params, [spec.transaction]) : "";
+    let rawTxid = provider === "prismads"
+      ? pick(params, ["txid", "token"])
+      : spec.transaction ? pick(params, [spec.transaction]) : "";
     if (!rawTxid && spec.transaction) rawTxid = pick(params, TXID_FIELDS);
     if (provider === "timewall" && !pick(params, ["txid"])) {
       return respond(400, { success: false, message: "Missing TimeWall transactionID" }, "failed", 0, rawAmount, "", pick(params, OFFER_NAME_FIELDS), "missing_transaction_id");
