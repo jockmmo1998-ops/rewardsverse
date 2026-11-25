@@ -27,6 +27,9 @@ const POLICIES: Record<string, ProviderRewardPolicy> = {
   prismads: { unit: "points", pointsPerUsd: PRISMADS_POINTS_PER_USD, userShare: 1, pendingThresholdUsd: 10 },
   mooffers: { unit: "usd", pointsPerUsd: 1000, userShare: 0.4, pendingThresholdUsd: 10 },
   wannads: { unit: "usd", pointsPerUsd: 1000, userShare: 0.4, pendingThresholdUsd: 10 },
+  // RewardTym's payout_amount is already the user's final USD reward after its
+  // configured share; do not apply another percentage reduction here.
+  rewardtym: { unit: "usd", pointsPerUsd: 1, userShare: 1, pendingThresholdUsd: 4000 },
 };
 
 export function getRewardPolicy(provider: string): ProviderRewardPolicy {

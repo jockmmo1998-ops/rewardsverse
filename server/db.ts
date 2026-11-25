@@ -31,6 +31,7 @@ import { FEATURED_OFFERS_LIMIT, getRevtooFeaturedOffers } from "./revtoo-offers"
 import { getGemiWallFeaturedOffers } from "./gemiwall-offers";
 import { getAdLootFeaturedOffers } from "./adloot-offers";
 import { POSTBACK_SECRETS } from "./offerwall-config";
+import { isRewardTymReversalValid } from "./rewardtym-postback";
 
 // Lazy-initialized DB instance — never imported at module load time so the
 // server starts successfully even when DATABASE_URL is absent.
@@ -367,7 +368,7 @@ export async function applyPostbackAtomically(data: AtomicPostbackCredit): Promi
     if (data.walletType === "debit") {
       if (!data.originalExternalId) throw new Error("Chargeback is missing the original transaction id");
       const original = await tx
-        .select({ id: postbacks.id, amount: postbacks.amount })
+        .select({ id: postbacks.id, amount: postbacks.amount, userId: postbacks.userId, status: postbacks.status })
         .from(postbacks)
         .where(and(
           eq(postbacks.provider, data.provider),
@@ -377,6 +378,9 @@ export async function applyPostbackAtomically(data: AtomicPostbackCredit): Promi
       if (original.length === 0) throw new Error("Chargeback rejected: original transaction was not found");
       if (Number(original[0].amount || 0) < Math.abs(data.amount)) {
         throw new Error("Chargeback rejected: amount exceeds original credited amount");
+      }
+      if (data.provider === "rewardtym" && !isRewardTymReversalValid(original[0], data.userId, data.amount)) {
+        throw new Error("Chargeback rejected: RewardTym reversal must match the original completed credit");
       }
     }
 
@@ -726,6 +730,9 @@ export async function getPostbackCredential(provider: string) {
 }
 
 export async function getOrCreatePostbackToken(provider: string, rotate = false): Promise<string> {
+  // RewardTym's HMAC secret is shared only through Render environment config
+  // and its partner dashboard; never copy it into postbackCredentials.
+  if (provider === "rewardtym") return POSTBACK_SECRETS[provider] || "";
   const database = await getDb();
   if (!database) throw new Error("Database not available");
   const existing = await getPostbackCredential(provider);
@@ -755,7 +762,8 @@ export async function getOrCreatePostbackToken(provider: string, rotate = false)
  * never override the deployment secret used by the network.
  */
 export async function getActivePostbackSecret(provider: string): Promise<string> {
-  const signedProviders = new Set(["revtoo", "cointo", "adswedmedia", "gaintwall", "theoremreach", "timewall", "mooffers", "clickwall", "prismads"]);
+  if (provider === "rewardtym") return POSTBACK_SECRETS[provider] || "";
+  const signedProviders = new Set(["revtoo", "cointo", "adswedmedia", "gaintwall", "theoremreach", "timewall", "mooffers", "clickwall", "prismads", "rewardtym"]);
   if (signedProviders.has(provider) && POSTBACK_SECRETS[provider]) {
     return POSTBACK_SECRETS[provider];
   }

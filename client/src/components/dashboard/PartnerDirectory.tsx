@@ -48,7 +48,7 @@ export function PartnerDirectory({ statuses, onSelect, sectionRef, walls = OFFER
 	              >
 	                <span className="provider-badge absolute right-2.5 top-2.5 z-[4] rounded-md px-2 py-1 text-[9px] font-extrabold uppercase tracking-wide" style={{ '--provider-badge': wall.accent } as CSSProperties}>{wall.tag}</span>
                 <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center pt-2">
-                  <div className={`mb-2 flex h-10 w-full max-w-[148px] items-center justify-center ${wall.id === 'revtoo' ? 'provider-revtoo-logo rounded-md px-3 py-1' : ''}`}>
+                  <div className={`mb-2 flex h-10 w-full max-w-[148px] items-center justify-center ${wall.id === 'revtoo' ? 'provider-revtoo-logo rounded-md px-3 py-1' : wall.id === 'rewardtym' ? 'rounded-md px-2 py-1' : ''}`} style={wall.id === 'rewardtym' ? { backgroundColor: wall.logoSurface } : undefined}>
                     {wall.logo
                       ? <img src={wall.logo} alt={`${wall.name} official logo`} loading="lazy" decoding="async" width="148" height="40" className="max-h-full max-w-full object-contain" onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                       : <span className="provider-logo-fallback text-xl font-black" style={{ color: wall.brandColor }}>{wall.name.slice(0, 1)}</span>}

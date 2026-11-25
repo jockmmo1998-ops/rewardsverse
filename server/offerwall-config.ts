@@ -90,6 +90,7 @@ export const OFFER_WALL_IDS = [
   "mooffers",
   "wannads",
   "prismads",
+  "rewardtym",
   "clickwall",
 ] as const;
 
@@ -116,6 +117,7 @@ export const OFFER_WALL_LABELS: Record<string, string> = {
   mooffers: "MoOffers",
   wannads: "Wannads",
   prismads: "PrismAds",
+  rewardtym: "RewardTym",
 };
 
 export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
@@ -191,6 +193,16 @@ export const OFFER_WALL_URLS: Record<string, OfferWallUrlBuilder> = {
     const url = new URL(`https://prismads.co/wall/${encodeURIComponent(placementId)}`);
     url.searchParams.set("api_key", iframeApiKey);
     url.searchParams.set("user_id", normalizedUserId);
+    return url.toString();
+  },
+  rewardtym: (userId) => {
+    const partnerId = env("REWARDTYM_PARTNER_ID");
+    const postbackSecret = env("REWARDTYM_POSTBACK_SECRET");
+    const normalizedUserId = userId.trim();
+    if (!partnerId || !postbackSecret || !normalizedUserId) return null;
+    const url = new URL("https://rewardtym.online/offerwall");
+    url.searchParams.set("partnerid", partnerId);
+    url.searchParams.set("userid", normalizedUserId);
     return url.toString();
   },
   taskwall: (userId) => {
@@ -305,6 +317,7 @@ const secretEntries: Array<[string, string]> = [
   ["mooffers", env("MOOFFERS_POSTBACK_SECRET")],
   ["wannads", env("WANNADS_POSTBACK_SECRET")],
   ["prismads", env("PRISMADS_POSTBACK_SECRET")],
+  ["rewardtym", env("REWARDTYM_POSTBACK_SECRET")],
 ];
 
 /** Only configured secrets are exposed to the postback handler. */
@@ -510,6 +523,16 @@ export const POSTBACK_PARAM_SPECS: Record<string, PostbackParamSpec> = {
     auth: "hmac_sha256",
     response: "json",
     macros: ["user_id", "payout", "value", "currency", "txid", "token", "offer_id", "offer_name", "status", "event", "click_id", "country", "ip", "placement_id", "signature"],
+  },
+  rewardtym: {
+    user: "user_id",
+    reward: "payout_amount",
+    transaction: "conversion_id",
+    auth: "hmac_sha256",
+    response: "json",
+    // RewardTym sends a signed JSON payload. Keep the URL plain so its query
+    // parameters cannot replace or omit fields covered by the signature.
+    macros: [],
   },
   offermintx: {
     user: "subid1",

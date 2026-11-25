@@ -26,6 +26,13 @@ import {
 import { grossUsdFromProviderAmount, getRewardPolicy, requiresManualReview, userRewardUsd } from "../reward-policy";
 import { selectClickwallPayout, verifyClickwallSignature } from "../clickwall-postback";
 import { normalizePrismadsValue, verifyPrismadsSignature } from "../prismads-postback";
+import {
+  getRewardTymDisposition,
+  getRewardTymEventKey,
+  isValidRewardTymPayout,
+  parseRewardTymPayload,
+  verifyRewardTymSignature,
+} from "../rewardtym-postback";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UNIVERSAL PARAMETER MAPS
@@ -598,7 +605,13 @@ async function handlePostback(req: Request, res: Response) {
   // Body wins for payload fields (status, reward, userId) so that POST JSON /
   // form-encoded providers like KlinkLabs are not overridden by query-string
   // token params. Query wins only for fields not present in the body.
-  const params: Record<string, any> = { ...req.query, ...req.body };
+  const bodyParams = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
+  // RewardTym uses the signed JSON body as the sole source of callback fields;
+  // unsigned query parameters must not fill gaps or override signed values.
+  const params: Record<string, any> = provider === "rewardtym"
+    ? { ...bodyParams }
+    : { ...req.query, ...bodyParams };
+  const rewardTymPayload = provider === "rewardtym" ? parseRewardTymPayload(params) : null;
 
   console.log(`[Postback] ──────────────────────────────────────────────`);
   console.log(`[Postback] RECEIVED  ${req.method} /api/postback/${provider}`);
@@ -749,7 +762,9 @@ async function handlePostback(req: Request, res: Response) {
           "failed", 0, "", "", "", "signature_mismatch");
       }
     } else if (spec.auth === "hmac_sha256") {
-      const valid = provider === "mooffers"
+      const valid = provider === "rewardtym"
+        ? req.method === "POST" && req.is("application/json") && verifyRewardTymSignature(expectedSecret, req.body)
+        : provider === "mooffers"
         ? verifyMooffersSignature(expectedSecret, req)
         : provider === "clickwall"
           ? verifyClickwallSignature(expectedSecret, params)
@@ -790,8 +805,11 @@ async function handlePostback(req: Request, res: Response) {
     // Field names "completed" and "approved" are intentionally NOT in this
     // list as they are values, not field names — using them as keys caused
     // false-positive skips when the field was absent (picked as undefined).
-    const statusRaw = pick(params, ["status", "state", "event_type", "eventType", "event", "type"]);
+    const statusRaw = rewardTymPayload
+      ? rewardTymPayload.status
+      : pick(params, ["status", "state", "event_type", "eventType", "event", "type"]);
     const statusNorm = statusRaw.toLowerCase().trim();
+    const rewardTymDisposition = provider === "rewardtym" ? getRewardTymDisposition(statusNorm) : null;
 
     console.log(`[Postback][${provider}] Raw status field="${statusRaw}" normalised="${statusNorm}"`);
 
@@ -802,7 +820,8 @@ async function handlePostback(req: Request, res: Response) {
     // GleamAds documents status=0 as a chargeback and status=1 as a
     // conversion. Keep this provider-specific so other networks' status
     // semantics and duplicate protection remain unchanged.
-    const isChargeback = (provider === "adloot" && isAdlootChargebackStatus(statusNorm))
+    const isChargeback = (provider === "rewardtym" && rewardTymDisposition === "reverse")
+      || (provider === "adloot" && isAdlootChargebackStatus(statusNorm))
       || (provider === "gleamads" && statusNorm === "0")
       || (provider === "timewall" && isTimewallChargeback(statusNorm))
       || CHARGEBACK_STATUSES.has(statusNorm)
@@ -814,7 +833,8 @@ async function handlePostback(req: Request, res: Response) {
     const timewallStatusInvalid = provider === "timewall"
       && !isTimewallCredit(statusNorm)
       && !isChargeback;
-    const genericStatusInvalid = provider !== "timewall" && provider !== "adloot"
+    const rewardTymStatusInvalid = provider === "rewardtym" && rewardTymDisposition === "ignore";
+    const genericStatusInvalid = provider !== "timewall" && provider !== "adloot" && provider !== "rewardtym"
       && statusNorm !== ""
       && !COMPLETED_STATUSES.has(statusNorm)
       && !isChargeback;
@@ -822,18 +842,22 @@ async function handlePostback(req: Request, res: Response) {
       && statusNorm !== ""
       && !isAdlootCompletedStatus(statusNorm)
       && !isChargeback;
-    if (timewallStatusInvalid || genericStatusInvalid || adlootStatusInvalid) {
+    if (timewallStatusInvalid || genericStatusInvalid || adlootStatusInvalid || rewardTymStatusInvalid) {
       console.log(`[Postback][${provider}] Status "${statusRaw}" is not a completed or chargeback value — skipping`);
       return respond(200, {
         success: true,
         message: `Postback received but status "${statusRaw}" is not a completed state — skipped`,
         receivedStatus: statusRaw,
-        acceptedValues: [...Array.from(COMPLETED_STATUSES), ...Array.from(CHARGEBACK_STATUSES)],
+        acceptedValues: provider === "rewardtym"
+          ? ["approved", "reversed"]
+          : [...Array.from(COMPLETED_STATUSES), ...Array.from(CHARGEBACK_STATUSES)],
       }, "failed", 0, "", "", "");
     }
 
     // ── 4. Extract user identifier ─────────────────────────────────────────
-    const rawUserId = provider === "timewall"
+    const rawUserId = provider === "rewardtym"
+      ? rewardTymPayload?.userId || ""
+      : provider === "timewall"
       ? pick(params, ["userid"])
       : pick(params, [spec.user, ...USER_FIELDS]);
     const normalizedUserId = normalizeUserIdentifier(rawUserId);
@@ -855,7 +879,9 @@ async function handlePostback(req: Request, res: Response) {
     // field when both virtual points and a USD payout are present. The selected
     // value is the gross/original reward; the user credit is halved below.
     // Signature validation still uses the provider amount.
-    const rawAmount = provider === "timewall"
+    const rawAmount = provider === "rewardtym"
+      ? rewardTymPayload?.payoutAmount || ""
+      : provider === "timewall"
       ? pickSignedNumeric(params, ["revenue"])
       : provider === "cpxresearch"
       ? pickSignedNumeric(params, ["amount_usd"])
@@ -950,6 +976,10 @@ async function handlePostback(req: Request, res: Response) {
         receivedParams: Object.keys(params),
       }, "failed", 0, "", "", "", "missing_amount");
     }
+    if (provider === "rewardtym" && !isValidRewardTymPayout(rawAmount)) {
+      return respond(400, { success: false, message: "RewardTym payout_amount must be a non-negative USD amount" },
+        "failed", 0, rawAmount, "", "", "invalid_amount");
+    }
 
     // Provider reversal payloads may carry a negative payout/reward. Keep the
     // amount positive, apply the provider-specific user share once, and let balanceDelta
@@ -1017,9 +1047,15 @@ async function handlePostback(req: Request, res: Response) {
     // Use only the documented transaction field for providers that have one.
     // TaskWall has no transaction ID, so derive a stable id from the payload;
     // never use its callback password as an idempotency key.
-    let rawTxid = provider === "prismads"
+    let rawTxid = provider === "rewardtym"
+      ? rewardTymPayload?.conversionId || ""
+      : provider === "prismads"
       ? pick(params, ["txid", "token"])
       : spec.transaction ? pick(params, [spec.transaction]) : "";
+    if (provider === "rewardtym" && !rawTxid) {
+      return respond(400, { success: false, message: "Missing RewardTym conversion_id" },
+        "failed", 0, rawAmount, "", "", "missing_transaction_id");
+    }
     if (!rawTxid && spec.transaction) rawTxid = pick(params, TXID_FIELDS);
     if (provider === "timewall" && !pick(params, ["txid"])) {
       return respond(400, { success: false, message: "Missing TimeWall transactionID" }, "failed", 0, rawAmount, "", pick(params, OFFER_NAME_FIELDS), "missing_transaction_id");
@@ -1030,13 +1066,19 @@ async function handlePostback(req: Request, res: Response) {
     const txid = rawTxid;
     diagnostics.transaction = txid ? "PASS" : "FAIL";
     diagnostics.transactionId = txid;
-    const eventKey = isChargeback ? `${txid}:chargeback` : txid;
+    const eventKey = provider === "rewardtym"
+      ? getRewardTymEventKey(txid, isChargeback)
+      : isChargeback ? `${txid}:chargeback` : txid;
 
     // ── 7. Extract offer name ──────────────────────────────────────────────
-    const offerName = pick(params, OFFER_NAME_FIELDS);
+    const offerName = provider === "rewardtym"
+      ? rewardTymPayload?.campaignName || rewardTymPayload?.eventName || ""
+      : pick(params, OFFER_NAME_FIELDS);
 
     // ── 8. Offer / campaign ID ─────────────────────────────────────────────
-    const offerId = pick(params, ["offerId", "offer_id", "company_id", "campaign_id", "app_id"]);
+    const offerId = provider === "rewardtym"
+      ? rewardTymPayload?.campaignId || ""
+      : pick(params, ["offerId", "offer_id", "company_id", "campaign_id", "app_id"]);
     diagnostics.offerId = offerId;
     diagnostics.offerName = offerName;
 
